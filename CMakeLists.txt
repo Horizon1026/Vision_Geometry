@@ -1,35 +1,34 @@
-# cmake工程最低版本为3.1
 cmake_minimum_required( VERSION 3.10 )
 
-# cmake工程名
-project( perspectiveNPoint )
+project( vision_geometry )
 
-# 设置编译类型为发布
-set(CMAKE_BUILD_TYPE "Release")
+set( CMAKE_BUILD_TYPE "Release" )
+set( CMAKE_CXX_FLAGS "-std=c++17 -O3 -Wall" )
 
-# 添加c++ 11标准的支持
-set(CMAKE_CXX_FLAGS "-std=c++11 -O2")
-
-# 寻找OpenCV库并添加其路径
 find_package( OpenCV REQUIRED )
-include_directories( ${OpenCV_INCLUDE_DIRS} )
+find_package( Eigen3 REQUIRED )
 
-# 寻找Sophus的库并添加Sophus的路径
-find_package( Sophus REQUIRED )
-include_directories( ${Sophus_INCLUDE_DIRS} )
+set( SLAM_UTILITY_PATH ${PROJECT_SOURCE_DIR}/../Slam_Utility )
 
-# 寻找Eigen库并添加其路径
-include_directories( ${PROJECT_SOURCE_DIR}/include )
-include_directories("/usr/include/eigen3")
+# include_directories( "/usr/include/eigen3" )
+include_directories( ${SLAM_UTILITY_PATH}/src/datatype )
+include_directories( ${SLAM_UTILITY_PATH}/src/log )
+include_directories( ${SLAM_UTILITY_PATH}/src/math )
+include_directories( ${SLAM_UTILITY_PATH}/src/operate )
+include_directories( ${PROJECT_SOURCE_DIR}/src )
+include_directories( ${PROJECT_SOURCE_DIR}/test )
 
-# 添加可执行文件
-add_executable( perspectiveNPoint
-    src/main.cpp
-    include/perspectiveNPoint.cpp
-)
+aux_source_directory( ${SLAM_UTILITY_PATH}/src/datatype     SLAM_UTILITY_DATATYPE )
+aux_source_directory( ${SLAM_UTILITY_PATH}/src/log          SLAM_UTILITY_LOG )
+aux_source_directory( ${SLAM_UTILITY_PATH}/src/math         SLAM_UTILITY_MATH )
+aux_source_directory( ${SLAM_UTILITY_PATH}/src/operate      SLAM_UTILITY_OPERATE )
+aux_source_directory( ${PROJECT_SOURCE_DIR}/src             GEOMERTY )
 
-# 链接库到可执行文件
-target_link_libraries( perspectiveNPoint
-    ${OpenCV_LIBS}
-    Sophus::Sophus  # 增加Sophus的库（否则找不到fmt/core.h文件）
+add_executable( test_pnp
+    ${SLAM_UTILITY_DATATYPE}
+    ${SLAM_UTILITY_LOG}
+    ${SLAM_UTILITY_MATH}
+    ${SLAM_UTILITY_OPERATE}
+    ${GEOMERTY}
+    test/test_pnp.cpp
 )
