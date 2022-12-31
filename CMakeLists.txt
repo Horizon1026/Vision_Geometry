@@ -32,3 +32,12 @@ add_executable( test_pnp
     ${GEOMERTY}
     test/test_pnp.cpp
 )
+
+add_executable( test_triangulation
+    ${SLAM_UTILITY_DATATYPE}
+    ${SLAM_UTILITY_LOG}
+    ${SLAM_UTILITY_MATH}
+    ${SLAM_UTILITY_OPERATE}
+    ${GEOMERTY}
+    test/test_triangulation.cpp
+)
