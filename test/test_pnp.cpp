@@ -9,7 +9,6 @@
 
 
 int main(int argc, char **argv) {
-    // 初始化测试
     LogInfo(YELLOW ">> Perspective-n-Point Module Test" RESET_COLOR);
     LogFixPercision();
 
@@ -52,7 +51,7 @@ int main(int argc, char **argv) {
     float cost_time;
     clock_t begin, end;
 
-    LogInfo(YELLOW ">> Test pnp using all points." RESET_COLOR);
+    LogInfo(GREEN ">> Test pnp using all points." RESET_COLOR);
     res_q_wc.setIdentity();
     res_p_wc.setZero();
     pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::PNP_ALL;
@@ -60,11 +59,10 @@ int main(int argc, char **argv) {
     pnpSolver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
     end = clock();
     cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
-    LogInfo("res_q_wc is " << LogQuat(res_q_wc));
     LogInfo("cost time is " << cost_time << " ms");
-    LogInfo("res_p_wc is " << LogVec(res_p_wc));
+    LogInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
 
-    LogInfo(YELLOW ">> Test pnp using ransac method." RESET_COLOR);
+    LogInfo(GREEN ">> Test pnp using ransac method." RESET_COLOR);
     res_q_wc.setIdentity();
     res_p_wc.setZero();
     pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::PNP_RANSAC;
@@ -72,11 +70,10 @@ int main(int argc, char **argv) {
     pnpSolver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
     end = clock();
     cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
-    LogInfo("res_q_wc is " << LogQuat(res_q_wc));
     LogInfo("cost time is " << cost_time << " ms");
-    LogInfo("res_p_wc is " << LogVec(res_p_wc));
+    LogInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
 
-    LogInfo(YELLOW ">> Test pnp using huber kernel." RESET_COLOR);
+    LogInfo(GREEN ">> Test pnp using huber kernel." RESET_COLOR);
     res_q_wc.setIdentity();
     res_p_wc.setZero();
     pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::PNP_HUBER;
@@ -84,11 +81,10 @@ int main(int argc, char **argv) {
     pnpSolver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
     end = clock();
     cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
-    LogInfo("res_q_wc is " << LogQuat(res_q_wc));
     LogInfo("cost time is " << cost_time << " ms");
-    LogInfo("res_p_wc is " << LogVec(res_p_wc));
+    LogInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
 
-    LogInfo(YELLOW ">> Test pnp using cauchy kernel." RESET_COLOR);
+    LogInfo(GREEN ">> Test pnp using cauchy kernel." RESET_COLOR);
     res_q_wc.setIdentity();
     res_p_wc.setZero();
     pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::PNP_CAUCHY;
@@ -96,9 +92,8 @@ int main(int argc, char **argv) {
     pnpSolver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
     end = clock();
     cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
-    LogInfo("res_q_wc is " << LogQuat(res_q_wc));
     LogInfo("cost time is " << cost_time << " ms");
-    LogInfo("res_p_wc is " << LogVec(res_p_wc));
+    LogInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
 
     return 0;
 }

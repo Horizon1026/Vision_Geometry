@@ -8,28 +8,28 @@ namespace VISION_GEOMETRY {
 class PnpSolver {
 
 public:
-enum PnpMethod : uint8_t {
-    PNP_ALL = 0,
-    PNP_RANSAC,
-    PNP_HUBER,
-    PNP_CAUCHY,
-};
+    enum PnpMethod : uint8_t {
+        PNP_ALL = 0,
+        PNP_RANSAC,
+        PNP_HUBER,
+        PNP_CAUCHY,
+    };
 
-enum PnpResult : uint8_t {
-    SOlVED = 0,
-    UNSOLVED,
-    LARGE_RISIDUAL,
-};
+    enum PnpResult : uint8_t {
+        SOlVED = 0,
+        UNSOLVED,
+        LARGE_RISIDUAL,
+    };
 
-typedef struct {
-    uint32_t kMaxSolvePointsNumber = 200;
-    uint32_t kMaxIteration = 10;
-    float kMaxConvergeStep = 1e-6f;
-    float kMaxConvergeResidual = 1e-3f;
-    float kMinRansacInlierRatio = 0.9f;
-    float kMinValidDepth = 1e-3f;
-    PnpMethod kMethod = PNP_RANSAC;
-} PnpOptions;
+    struct PnpOptions {
+        uint32_t kMaxSolvePointsNumber = 200;
+        uint32_t kMaxIteration = 10;
+        float kMaxConvergeStep = 1e-6f;
+        float kMaxConvergeResidual = 1e-3f;
+        float kMinRansacInlierRatio = 0.9f;
+        float kMinValidDepth = 1e-3f;
+        PnpMethod kMethod = PNP_RANSAC;
+    };
 
 public:
     explicit PnpSolver() = default;
