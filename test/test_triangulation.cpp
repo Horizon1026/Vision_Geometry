@@ -72,7 +72,7 @@ bool TestTrianglateIterative() {
 
 int main(int argc, char **argv) {
     LogInfo(YELLOW ">> Triangulation Module Test" RESET_COLOR);
-    LogFixPercision();
+    LogFixPercision(3);
 
     uint32_t poseNums = 16;      // 相机数目
     Vec3 p_w{2, 2, 2};

@@ -10,7 +10,7 @@
 
 int main(int argc, char **argv) {
     LogInfo(YELLOW ">> Perspective-n-Point Module Test" RESET_COLOR);
-    LogFixPercision();
+    LogFixPercision(3);
 
     // 构造 3D 点云
     std::vector<Vec3> pts_3d;
