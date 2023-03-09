@@ -14,6 +14,7 @@ set( SLAM_UTILITY_PATH ${PROJECT_SOURCE_DIR}/../Slam_Utility )
 include_directories( ${SLAM_UTILITY_PATH}/src/datatype )
 include_directories( ${SLAM_UTILITY_PATH}/src/log )
 include_directories( ${SLAM_UTILITY_PATH}/src/math )
+include_directories( ${SLAM_UTILITY_PATH}/src/memory )
 include_directories( ${SLAM_UTILITY_PATH}/src/operate )
 include_directories( ${PROJECT_SOURCE_DIR}/src )
 include_directories( ${PROJECT_SOURCE_DIR}/test )
@@ -21,6 +22,7 @@ include_directories( ${PROJECT_SOURCE_DIR}/test )
 aux_source_directory( ${SLAM_UTILITY_PATH}/src/datatype     SLAM_UTILITY_DATATYPE )
 aux_source_directory( ${SLAM_UTILITY_PATH}/src/log          SLAM_UTILITY_LOG )
 aux_source_directory( ${SLAM_UTILITY_PATH}/src/math         SLAM_UTILITY_MATH )
+aux_source_directory( ${SLAM_UTILITY_PATH}/src/memory       SLAM_UTILITY_MEMORY )
 aux_source_directory( ${SLAM_UTILITY_PATH}/src/operate      SLAM_UTILITY_OPERATE )
 aux_source_directory( ${PROJECT_SOURCE_DIR}/src             GEOMERTY )
 
@@ -28,8 +30,10 @@ add_executable( test_pnp
     ${SLAM_UTILITY_DATATYPE}
     ${SLAM_UTILITY_LOG}
     ${SLAM_UTILITY_MATH}
+    ${SLAM_UTILITY_MEMORY}
     ${SLAM_UTILITY_OPERATE}
     ${GEOMERTY}
+
     test/test_pnp.cpp
 )
 
