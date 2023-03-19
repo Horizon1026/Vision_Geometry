@@ -14,17 +14,23 @@ if ( NOT TARGET lib_slam_utility )
     add_subdirectory( ${SLAM_UTILITY_PATH}/src ${PROJECT_SOURCE_DIR}/build/lib_slam_utility )
 endif()
 
-include_directories( ${PROJECT_SOURCE_DIR}/src )
-aux_source_directory( ${PROJECT_SOURCE_DIR}/src GEOMERTY )
+# Add vision geometry
+if ( NOT TARGET lib_vision_geometry )
+    add_subdirectory( src ${PROJECT_SOURCE_DIR}/build/lib_vision_geometry )
+endif()
 
 add_executable( test_pnp
-    ${GEOMERTY}
     test/test_pnp.cpp
 )
-target_link_libraries( test_pnp lib_slam_utility )
+target_link_libraries( test_pnp
+    lib_slam_utility
+    lib_vision_geometry
+)
 
 add_executable( test_triangulation
-    ${GEOMERTY}
     test/test_triangulation.cpp
 )
-target_link_libraries( test_triangulation lib_slam_utility )
+target_link_libraries( test_triangulation
+    lib_slam_utility
+    lib_vision_geometry
+)
