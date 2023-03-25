@@ -12,13 +12,13 @@ bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w,
                              Vec3 &p_wc,
                              std::vector<PnpResult> &status) {
     switch (options_.kMethod) {
-        case PNP_RANSAC: {
-            return EstimatePoseRANSAC(p_w, norm_uv, q_wc, p_wc, status);
+        case PnpMethod::PNP_RANSAC: {
+            return EstimatePoseRansac(p_w, norm_uv, q_wc, p_wc, status);
         }
 
-        case PNP_ALL:
-        case PNP_HUBER:
-        case PNP_CAUCHY: {
+        case PnpMethod::PNP_ALL:
+        case PnpMethod::PNP_HUBER:
+        case PnpMethod::PNP_CAUCHY: {
             return EstimatePoseUseAll(p_w, norm_uv, q_wc, p_wc, status);
         }
 
@@ -36,7 +36,7 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
     RETURN_FALSE_IF_FALSE(EstimatePoseUseAll(p_w, norm_uv, q_wc, p_wc));
 
     if (status.size() != p_w.size()) {
-        status.resize(p_w.size(), SOlVED);
+        status.resize(p_w.size(), PnpResult::SOlVED);
     }
 
     return true;
@@ -78,19 +78,19 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
 
             switch (options_.kMethod) {
                 default:
-                case PNP_ALL: {
+                case PnpMethod::PNP_ALL: {
                     H += jacobian.transpose() * jacobian;
                     b += - jacobian.transpose() * residual;
                     break;
                 }
-                case PNP_HUBER: {
+                case PnpMethod::PNP_HUBER: {
                     const float r_norm = residual.norm();
                     const float kernel = this->Huber(1.0f, r_norm);
                     H += jacobian.transpose() * jacobian * kernel;
                     b += - jacobian.transpose() * residual * kernel;
                     break;
                 }
-                case PNP_CAUCHY: {
+                case PnpMethod::PNP_CAUCHY: {
                     const float r_norm = residual.norm();
                     const float kernel = this->Cauchy(1.0f, r_norm);
                     H += jacobian.transpose() * jacobian * kernel;
@@ -119,7 +119,7 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
     return true;
 }
 
-bool PnpSolver::EstimatePoseRANSAC(const std::vector<Vec3> &p_w,
+bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w,
                                    const std::vector<Vec2> &norm_uv,
                                    Quat &q_wc,
                                    Vec3 &p_wc,
@@ -181,12 +181,12 @@ bool PnpSolver::EstimatePoseRANSAC(const std::vector<Vec3> &p_w,
         }
     }
 
-    status.resize(p_w.size(), SOlVED);
+    status.resize(p_w.size(), PnpResult::SOlVED);
     for (uint32_t i = 0; i < p_w.size(); ++i) {
         Vec3 p_c = q_wc.inverse() * (p_w[i] - p_wc);
         Vec2 r = Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)) - norm_uv[i];
         if (r.squaredNorm() >= options_.kMaxConvergeResidual) {
-            status[i] = LARGE_RISIDUAL;
+            status[i] = PnpResult::LARGE_RISIDUAL;
         }
     }
     return true;

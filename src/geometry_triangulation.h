@@ -8,17 +8,17 @@ namespace VISION_GEOMETRY {
 class Triangulator {
 
 public:
-    enum TriangulationMethod: uint8_t {
+    enum class TriangulationMethod: uint8_t {
         ANALYTIC = 0,
-        ITERATIVE,
-    } ;
+        ITERATIVE = 1,
+    };
 
     struct TriangulationOptions {
         uint32_t kMaxIteration = 10;
         uint32_t kMaxUsedCameraView = 10;
         float kMinValidDepth = 1e-3f;
         float kMaxConvergeStep = 1e-6f;
-        TriangulationMethod kMethod = ANALYTIC;
+        TriangulationMethod kMethod = TriangulationMethod::ANALYTIC;
     };
 
 public:

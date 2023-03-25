@@ -8,17 +8,17 @@ namespace VISION_GEOMETRY {
 class PnpSolver {
 
 public:
-    enum PnpMethod : uint8_t {
+    enum class PnpMethod : uint8_t {
         PNP_ALL = 0,
-        PNP_RANSAC,
-        PNP_HUBER,
-        PNP_CAUCHY,
+        PNP_RANSAC = 1,
+        PNP_HUBER = 2,
+        PNP_CAUCHY = 3,
     };
 
-    enum PnpResult : uint8_t {
+    enum class PnpResult : uint8_t {
         SOlVED = 0,
-        UNSOLVED,
-        LARGE_RISIDUAL,
+        UNSOLVED = 1,
+        LARGE_RISIDUAL = 2,
     };
 
     struct PnpOptions {
@@ -28,7 +28,7 @@ public:
         float kMaxConvergeResidual = 1e-3f;
         float kMinRansacInlierRatio = 0.9f;
         float kMinValidDepth = 1e-3f;
-        PnpMethod kMethod = PNP_RANSAC;
+        PnpMethod kMethod = PnpMethod::PNP_RANSAC;
     };
 
 public:
@@ -55,7 +55,7 @@ private:
                             Quat &q_wc,
                             Vec3 &p_wc);
 
-    bool EstimatePoseRANSAC(const std::vector<Vec3> &p_w,
+    bool EstimatePoseRansac(const std::vector<Vec3> &p_w,
                             const std::vector<Vec2> &norm_uv,
                             Quat &q_wc,
                             Vec3 &p_wc,

@@ -9,10 +9,10 @@ bool Triangulator::Triangulate(const std::vector<Quat> &q_wc,
                                Vec3 &p_w) {
     switch (options_.kMethod) {
         default:
-        case ANALYTIC: {
+        case TriangulationMethod::ANALYTIC: {
             return TriangulateAnalytic(q_wc, p_wc, norm_uv, p_w);
         }
-        case ITERATIVE: {
+        case TriangulationMethod::ITERATIVE: {
             return TriangulateIterative(q_wc, p_wc, norm_uv, p_w);
         }
     }
