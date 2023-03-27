@@ -16,8 +16,8 @@ public:
     };
 
     enum class PnpResult : uint8_t {
-        SOlVED = 0,
-        UNSOLVED = 1,
+        UNSOLVED = 0,
+        SOLVED = 1,
         LARGE_RISIDUAL = 2,
     };
 
@@ -27,6 +27,7 @@ public:
         float kMaxConvergeStep = 1e-6f;
         float kMaxConvergeResidual = 1e-3f;
         float kMinRansacInlierRatio = 0.9f;
+        float kMaxPnpResidual = 1e-3f;
         float kMinValidDepth = 1e-3f;
         PnpMethod kMethod = PnpMethod::PNP_RANSAC;
     };

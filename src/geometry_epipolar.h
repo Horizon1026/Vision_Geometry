@@ -15,8 +15,18 @@ public:
         EPIPOLAR_CAUCHY = 3,
     };
 
+    enum class EpipolarResult : uint8_t {
+        UNSOLVED = 0,
+        SOLVED = 1,
+        LARGE_RISIDUAL = 2,
+    };
+
     struct EpipolarOptions {
-        EpipolarMethod kMethod = EpipolarMethod::EPIPOLAR_RANSAC;
+        uint32_t kMaxSolvePointsNumber = 200;
+        uint32_t kMaxIteration = 10;
+        float kMaxEpipolarResidual = 1e-3f;
+        float kMinRansacInlierRatio = 0.9f;
+        EpipolarMethod kMethod = EpipolarMethod::EPIPOLAR_ALL;
     };
 
 public:
@@ -25,7 +35,8 @@ public:
 
     bool EstimateEssential(const std::vector<Vec2> &norm_uv_ref,
                            const std::vector<Vec2> &norm_uv_cur,
-                           Mat3 essential);
+                           Mat3 essential,
+                           std::vector<EpipolarResult> &status);
 
     EpipolarOptions &options() { return options_; }
 
@@ -33,7 +44,7 @@ private:
     bool EstimateEssentialUseAll(const std::vector<Vec2> &norm_uv_ref,
                                  const std::vector<Vec2> &norm_uv_cur,
                                  Mat3 essential,
-                                 std::vector<PnpResult> &status);
+                                 std::vector<EpipolarResult> &status);
 
     bool EstimateEssentialUseAll(const std::vector<Vec2> &norm_uv_ref,
                                  const std::vector<Vec2> &norm_uv_cur,
@@ -42,10 +53,11 @@ private:
     bool EstimateEssentialRansac(const std::vector<Vec2> &norm_uv_ref,
                                  const std::vector<Vec2> &norm_uv_cur,
                                  Mat3 essential,
-                                 std::vector<PnpResult> &status);
+                                 std::vector<EpipolarResult> &status);
 
 private:
     EpipolarOptions options_;
+    Mat A;
 };
 
 }

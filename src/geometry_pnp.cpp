@@ -36,7 +36,22 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
     RETURN_FALSE_IF_FALSE(EstimatePoseUseAll(p_w, norm_uv, q_wc, p_wc));
 
     if (status.size() != p_w.size()) {
-        status.resize(p_w.size(), PnpResult::SOlVED);
+        status.resize(p_w.size(), PnpResult::UNSOLVED);
+    }
+
+    // Check those features that haven't been solved.
+    for (uint32_t i = 0; i < p_w.size(); ++i) {
+        if (status[i] == PnpResult::UNSOLVED) {
+            const Vec3 p_c = q_wc.inverse() * (p_w[i] - p_wc);
+            if (p_c(2) > kZero) {
+                const float residual = (norm_uv[i] - p_c.head<2>() / p_c(2)).norm();
+                if (residual < options_.kMaxPnpResidual) {
+                    status[i] = PnpResult::SOLVED;
+                } else {
+                    status[i] = PnpResult::LARGE_RISIDUAL;
+                }
+            }
+        }
     }
 
     return true;
@@ -181,7 +196,7 @@ bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w,
         }
     }
 
-    status.resize(p_w.size(), PnpResult::SOlVED);
+    status.resize(p_w.size(), PnpResult::SOLVED);
     for (uint32_t i = 0; i < p_w.size(); ++i) {
         Vec3 p_c = q_wc.inverse() * (p_w[i] - p_wc);
         Vec2 r = Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)) - norm_uv[i];
