@@ -13,28 +13,28 @@ int main(int argc, char **argv) {
     LogFixPercision(3);
 
     // 构造 3D 点云
-    std::vector<Eigen::Vector3d> points;
+    std::vector<Vec3> points;
     for (int i = 1; i < 10; i++) {
         for (int j = 1; j < 10; j++) {
             for (int k = 1; k < 10; k++) {
-                points.emplace_back(Eigen::Vector3d(i, j, k * 2.0));
+                points.emplace_back(Vec3(i, j, k * 2.0));
             }
         }
     }
 
     // 定义两帧位姿
-    Eigen::Matrix3d R_c0w = Eigen::Matrix3d::Identity();
-    Eigen::Vector3d t_c0w = Eigen::Vector3d::Zero();
-    Eigen::Matrix3d R_c1w = Eigen::Matrix3d::Identity();
-    Eigen::Vector3d t_c1w = Eigen::Vector3d(1, -3, 0);
+    Mat3 R_c0w = Mat3::Identity();
+    Vec3 t_c0w = Vec3::Zero();
+    Mat3 R_c1w = Mat3::Identity();
+    Vec3 t_c1w = Vec3(1, -2, 0);
 
     // 将 3D 点云通过两帧位姿映射到对应的归一化平面上，构造匹配点对
     std::vector<Vec2> norm_uv_ref, norm_uv_cur;
-    for (unsigned long i = 0; i < points.size(); i++) {
-        Eigen::Vector3d tempP = R_c0w * points[i] + t_c0w;
-        norm_uv_ref.emplace_back(Vec2(tempP(0, 0) / tempP(2, 0), tempP(1, 0) / tempP(2, 0)));
-        tempP = R_c1w * points[i] + t_c1w;
-        norm_uv_cur.emplace_back(Vec2(tempP(0, 0) / tempP(2, 0), tempP(1, 0) / tempP(2, 0)));
+    for (uint32_t i = 0; i < points.size(); i++) {
+        Vec3 p_c = R_c0w * points[i] + t_c0w;
+        norm_uv_ref.emplace_back(Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)));
+        p_c = R_c1w * points[i] + t_c1w;
+        norm_uv_cur.emplace_back(Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)));
     }
 
     VISION_GEOMETRY::EpipolarSolver solver;

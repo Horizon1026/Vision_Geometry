@@ -35,7 +35,7 @@ public:
 
     bool EstimateEssential(const std::vector<Vec2> &norm_uv_ref,
                            const std::vector<Vec2> &norm_uv_cur,
-                           Mat3 essential,
+                           Mat3 &essential,
                            std::vector<EpipolarResult> &status);
 
     EpipolarOptions &options() { return options_; }
@@ -43,17 +43,21 @@ public:
 private:
     bool EstimateEssentialUseAll(const std::vector<Vec2> &norm_uv_ref,
                                  const std::vector<Vec2> &norm_uv_cur,
-                                 Mat3 essential,
+                                 Mat3 &essential,
                                  std::vector<EpipolarResult> &status);
 
     bool EstimateEssentialUseAll(const std::vector<Vec2> &norm_uv_ref,
                                  const std::vector<Vec2> &norm_uv_cur,
-                                 Mat3 essential);
+                                 Mat3 &essential);
 
     bool EstimateEssentialRansac(const std::vector<Vec2> &norm_uv_ref,
                                  const std::vector<Vec2> &norm_uv_cur,
-                                 Mat3 essential,
+                                 Mat3 &essential,
                                  std::vector<EpipolarResult> &status);
+
+    void RefineEssentialMatrix(Mat3 &essential);
+
+    void DecomposeEssentialMatrix(const Mat3 &essential, Mat3 &R0, Mat3 &R1, Vec3 &t0, Vec3 &t1);
 
 private:
     EpipolarOptions options_;
