@@ -15,6 +15,11 @@ public:
         EPIPOLAR_CAUCHY = 3,
     };
 
+    enum class EpipolarModel : uint8_t {
+        FIVE_POINTS = 0,
+        EIGHT_POINTS = 1,
+    };
+
     enum class EpipolarResult : uint8_t {
         UNSOLVED = 0,
         SOLVED = 1,
@@ -27,6 +32,7 @@ public:
         float kMaxEpipolarResidual = 1e-3f;
         float kMinRansacInlierRatio = 0.9f;
         EpipolarMethod kMethod = EpipolarMethod::EPIPOLAR_ALL;
+        EpipolarModel kModel = EpipolarModel::EIGHT_POINTS;
     };
 
 public:
@@ -37,6 +43,8 @@ public:
                            const std::vector<Vec2> &norm_uv_cur,
                            Mat3 &essential,
                            std::vector<EpipolarResult> &status);
+
+    void DecomposeEssentialMatrix(const Mat3 &essential, Mat3 &R0, Mat3 &R1, Vec3 &t0, Vec3 &t1);
 
     EpipolarOptions &options() { return options_; }
 
@@ -50,6 +58,10 @@ private:
                                  const std::vector<Vec2> &norm_uv_cur,
                                  Mat3 &essential);
 
+    bool EstimateEssentialUseFivePoints(const std::vector<Vec2> &norm_uv_ref,
+                                        const std::vector<Vec2> &norm_uv_cur,
+                                        Mat3 &essential);
+
     bool EstimateEssentialRansac(const std::vector<Vec2> &norm_uv_ref,
                                  const std::vector<Vec2> &norm_uv_cur,
                                  Mat3 &essential,
@@ -57,7 +69,6 @@ private:
 
     void RefineEssentialMatrix(Mat3 &essential);
 
-    void DecomposeEssentialMatrix(const Mat3 &essential, Mat3 &R0, Mat3 &R1, Vec3 &t0, Vec3 &t1);
 
 private:
     EpipolarOptions options_;

@@ -51,5 +51,12 @@ int main(int argc, char **argv) {
     LogInfo("cost time is " << cost_time << " ms");
     LogInfo("essential is\n" << essential);
 
+    LogInfo(GREEN ">> Decompose essential matrix." RESET_COLOR);
+    Mat3 R0, R1;
+    Vec3 t0, t1;
+    solver.DecomposeEssentialMatrix(essential, R0, R1, t0, t1);
+    LogInfo("R0 is\n" << R0);
+    LogInfo("t0 is " << t0.transpose());
+
     return 0;
 }
