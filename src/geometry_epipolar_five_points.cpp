@@ -20,8 +20,9 @@ bool EpipolarSolver::EstimateEssentialUseFivePoints(const std::vector<Vec2> &nor
     all_essentials.reserve(10);
 
     // Construct eight point model Qe = 0.
-    Mat59 Q;
-    for (uint32_t i = 0; i < 5; ++i) {
+    Eigen::Matrix<float, Eigen::Dynamic, 9> Q;
+    Q.resize(norm_uv_cur.size(), 9);
+    for (uint32_t i = 0; i < norm_uv_ref.size(); ++i) {
         const float u1 = norm_uv_ref[i].x();
         const float v1 = norm_uv_ref[i].y();
         const float u2 = norm_uv_cur[i].x();
@@ -32,7 +33,7 @@ bool EpipolarSolver::EstimateEssentialUseFivePoints(const std::vector<Vec2> &nor
     // There 5 points but 9 varibles, so the null-space of e = {e|Qe = 0} is 4-DOF, which means E = xX + yY + zZ + wW.
     // Matrix E has constrains as this: E * E.transpose() * E - 0.5 * trace(E * E.transpose()) * E = 0
     // Use two functions as above, Ac = 0 can be constructed, A is 10*20, c is vector of 20 different combinations by x, y, z.
-    Eigen::JacobiSVD<Mat59> svd(Q, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    Eigen::BDCSVD<Eigen::Matrix<float, Eigen::Dynamic, 9>> svd(Q, Eigen::ComputeFullU | Eigen::ComputeFullV);
     Eigen::Matrix<float, 9, 4, Eigen::ColMajor> EE = svd.matrixV().rightCols<4>();
     Eigen::Matrix<float, 10, 20, Eigen::RowMajor> temp_A = Eigen::Matrix<float, 10, 20, Eigen::RowMajor>::Zero();
     GaussJordanElimination(EE.data(), temp_A.data());
@@ -142,7 +143,7 @@ void EpipolarSolver::FindBestOneFromAllPossibleEssentials(const std::vector<Vec2
 
 void EpipolarSolver::GaussJordanElimination(float *e, float *A) {
     float ep2[36], ep3[36];
-    for (int i = 0; i < 36; ++i) {
+    for (int32_t i = 0; i < 36; ++i) {
         ep2[i] = e[i] * e[i];
         ep3[i] = ep2[i] * e[i];
     }

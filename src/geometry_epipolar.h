@@ -44,7 +44,11 @@ public:
                            Mat3 &essential,
                            std::vector<EpipolarResult> &status);
 
-    void DecomposeEssentialMatrix(const Mat3 &essential, Mat3 &R0, Mat3 &R1, Vec3 &t0, Vec3 &t1);
+    bool RecoverPoseFromEssential(const std::vector<Vec2> &norm_uv_ref,
+                                  const std::vector<Vec2> &norm_uv_cur,
+                                  const Mat3 &essential,
+                                  Mat3 &R_cr,
+                                  Vec3 &t_cr);
 
     EpipolarOptions &options() { return options_; }
 
@@ -67,6 +71,17 @@ private:
                                        const std::vector<Vec2> &norm_uv_cur,
                                        const Mat3 &essential,
                                        std::vector<float> &residuals);
+
+    float ComputeEssentialModelResidualSummary(const std::vector<Vec2> &norm_uv_ref,
+                                               const std::vector<Vec2> &norm_uv_cur,
+                                               const Mat3 &essential);
+
+    void CheckEssentialPairsStatus(const std::vector<Vec2> &norm_uv_ref,
+                                   const std::vector<Vec2> &norm_uv_cur,
+                                   Mat3 &essential,
+                                   std::vector<EpipolarResult> &status);
+
+    void DecomposeEssentialMatrix(const Mat3 &essential, Mat3 &R0, Mat3 &R1, Vec3 &t0, Vec3 &t1);
 
 private:
     /* Method for five points model. */
