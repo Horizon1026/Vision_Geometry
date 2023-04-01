@@ -10,7 +10,7 @@
 
 int main(int argc, char **argv) {
     LogInfo(YELLOW ">> Epipolar Module Test" RESET_COLOR);
-    LogFixPercision(3);
+    LogFixPercision(8);
 
     // 构造 3D 点云
     std::vector<Vec3> points;
@@ -26,11 +26,12 @@ int main(int argc, char **argv) {
     Mat3 R_c0w = Mat3::Identity();
     Vec3 t_c0w = Vec3::Zero();
     Mat3 R_c1w = Mat3::Identity();
-    Vec3 t_c1w = Vec3(1, -2, 0);
+    Vec3 t_c1w = Vec3(1, -4, 0);
 
     // 将 3D 点云通过两帧位姿映射到对应的归一化平面上，构造匹配点对
     std::vector<Vec2> norm_uv_ref, norm_uv_cur;
-    for (uint32_t i = 0; i < points.size(); i++) {
+    for (uint32_t j = 0; j < points.size(); j++) {
+        const uint32_t i = rand() % points.size();
         Vec3 p_c = R_c0w * points[i] + t_c0w;
         norm_uv_ref.emplace_back(Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)));
         p_c = R_c1w * points[i] + t_c1w;
@@ -40,10 +41,14 @@ int main(int argc, char **argv) {
     VISION_GEOMETRY::EpipolarSolver solver;
     float cost_time;
     clock_t begin, end;
-
-    LogInfo(GREEN ">> Test epipolar using all points." RESET_COLOR);
     Mat3 essential;
     std::vector<VISION_GEOMETRY::EpipolarSolver::EpipolarResult> status;
+    Mat3 R0, R1;
+    Vec3 t0, t1;
+
+    // Test eight points model.
+    LogInfo(GREEN ">> Test epipolar using eight points model." RESET_COLOR);
+    solver.options().kModel = VISION_GEOMETRY::EpipolarSolver::EpipolarModel::EIGHT_POINTS;
     begin = clock();
     solver.EstimateEssential(norm_uv_ref, norm_uv_cur, essential, status);
     end = clock();
@@ -52,8 +57,21 @@ int main(int argc, char **argv) {
     LogInfo("essential is\n" << essential);
 
     LogInfo(GREEN ">> Decompose essential matrix." RESET_COLOR);
-    Mat3 R0, R1;
-    Vec3 t0, t1;
+    solver.DecomposeEssentialMatrix(essential, R0, R1, t0, t1);
+    LogInfo("R0 is\n" << R0);
+    LogInfo("t0 is " << t0.transpose());
+
+    // Test five points model.
+    LogInfo(GREEN ">> Test epipolar using five points model." RESET_COLOR);
+    solver.options().kModel = VISION_GEOMETRY::EpipolarSolver::EpipolarModel::FIVE_POINTS;
+    begin = clock();
+    solver.EstimateEssential(norm_uv_ref, norm_uv_cur, essential, status);
+    end = clock();
+    cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
+    LogInfo("cost time is " << cost_time << " ms");
+    LogInfo("essential is\n" << essential);
+
+    LogInfo(GREEN ">> Decompose essential matrix." RESET_COLOR);
     solver.DecomposeEssentialMatrix(essential, R0, R1, t0, t1);
     LogInfo("R0 is\n" << R0);
     LogInfo("t0 is " << t0.transpose());

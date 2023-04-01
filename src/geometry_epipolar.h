@@ -32,7 +32,7 @@ public:
         float kMaxEpipolarResidual = 1e-3f;
         float kMinRansacInlierRatio = 0.9f;
         EpipolarMethod kMethod = EpipolarMethod::EPIPOLAR_ALL;
-        EpipolarModel kModel = EpipolarModel::EIGHT_POINTS;
+        EpipolarModel kModel = EpipolarModel::FIVE_POINTS;
     };
 
 public:
@@ -58,17 +58,36 @@ private:
                                  const std::vector<Vec2> &norm_uv_cur,
                                  Mat3 &essential);
 
-    bool EstimateEssentialUseFivePoints(const std::vector<Vec2> &norm_uv_ref,
-                                        const std::vector<Vec2> &norm_uv_cur,
-                                        Mat3 &essential);
-
     bool EstimateEssentialRansac(const std::vector<Vec2> &norm_uv_ref,
                                  const std::vector<Vec2> &norm_uv_cur,
                                  Mat3 &essential,
                                  std::vector<EpipolarResult> &status);
 
-    void RefineEssentialMatrix(Mat3 &essential);
+    void ComputeEssentialModelResidual(const std::vector<Vec2> &norm_uv_ref,
+                                       const std::vector<Vec2> &norm_uv_cur,
+                                       const Mat3 &essential,
+                                       std::vector<float> &residuals);
 
+private:
+    /* Method for five points model. */
+    bool EstimateEssentialUseFivePoints(const std::vector<Vec2> &norm_uv_ref,
+                                        const std::vector<Vec2> &norm_uv_cur,
+                                        Mat3 &essential);
+
+    void GaussJordanElimination(float *e, float *A);
+
+    void FindBestOneFromAllPossibleEssentials(const std::vector<Vec2> &norm_uv_ref,
+                                              const std::vector<Vec2> &norm_uv_cur,
+                                              const std::vector<Mat3> &essentials,
+                                              Mat3 &best_essential);
+
+private:
+    /* Method for eight points model. */
+    bool EstimateEssentialUseEightPoints(const std::vector<Vec2> &norm_uv_ref,
+                                         const std::vector<Vec2> &norm_uv_cur,
+                                         Mat3 &essential);
+
+    void RefineEssentialMatrix(Mat3 &essential);
 
 private:
     EpipolarOptions options_;
