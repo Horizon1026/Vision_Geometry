@@ -16,7 +16,7 @@ void TestEssentialFivePointsModel(VISION_GEOMETRY::EpipolarSolver &solver,
     Mat3 R_cr;
     Vec3 t_cr;
 
-    LogInfo(GREEN ">> Test epipolar using eight points model." RESET_COLOR);
+    LogInfo(GREEN ">> Test epipolar using five points model." RESET_COLOR);
     solver.options().kModel = VISION_GEOMETRY::EpipolarSolver::EpipolarModel::FIVE_POINTS;
 
     begin = clock();
