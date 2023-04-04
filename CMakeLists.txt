@@ -5,9 +5,6 @@ project( vision_geometry )
 set( CMAKE_BUILD_TYPE "Release" )
 set( CMAKE_CXX_FLAGS "-std=c++17 -O3 -Wall" )
 
-find_package( OpenCV REQUIRED )
-find_package( Eigen3 REQUIRED )
-
 # Add slam utility
 set( SLAM_UTILITY_PATH ${PROJECT_SOURCE_DIR}/../Slam_Utility )
 if ( NOT TARGET lib_slam_utility )
