@@ -31,7 +31,7 @@ public:
         uint32_t kMaxIteration = 10;
         float kMaxEpipolarResidual = 1e-3f;
         float kMinRansacInlierRatio = 0.9f;
-        EpipolarMethod kMethod = EpipolarMethod::EPIPOLAR_ALL;
+        EpipolarMethod kMethod = EpipolarMethod::EPIPOLAR_RANSAC;
         EpipolarModel kModel = EpipolarModel::FIVE_POINTS;
     };
 
