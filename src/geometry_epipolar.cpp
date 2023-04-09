@@ -91,6 +91,10 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &norm_uv_re
         return false;
     }
 
+    if (status.size() != norm_uv_ref.size()) {
+        status.resize(norm_uv_ref.size(), EpipolarResult::SOLVED);
+    }
+
     // Preparation.
     uint32_t indice_size = 0;
     switch (options_.kModel) {
@@ -123,7 +127,10 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &norm_uv_re
         sub_norm_uv_cur.clear();
 
         while (indice.size() < indice_size) {
-            indice.insert(std::rand() % norm_uv_ref.size());
+            const uint32_t idx = std::rand() % norm_uv_ref.size();
+            if (status[idx] == EpipolarResult::UNSOLVED) {
+                indice.insert(idx);
+            }
         }
 
         for (auto it = indice.cbegin(); it != indice.cend(); ++it) {
