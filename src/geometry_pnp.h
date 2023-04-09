@@ -40,7 +40,7 @@ public:
                       const std::vector<Vec2> &norm_uv,
                       Quat &q_wc,
                       Vec3 &p_wc,
-                      std::vector<PnpResult> &status);
+                      std::vector<uint8_t> &status);
 
     PnpOptions &options() { return options_;}
 
@@ -49,7 +49,7 @@ private:
                             const std::vector<Vec2> &norm_uv,
                             Quat &q_wc,
                             Vec3 &p_wc,
-                            std::vector<PnpResult> &status);
+                            std::vector<uint8_t> &status);
 
     bool EstimatePoseUseAll(const std::vector<Vec3> &p_w,
                             const std::vector<Vec2> &norm_uv,
@@ -60,7 +60,13 @@ private:
                             const std::vector<Vec2> &norm_uv,
                             Quat &q_wc,
                             Vec3 &p_wc,
-                            std::vector<PnpResult> &status);
+                            std::vector<uint8_t> &status);
+
+    void CheckPnpStatus(const std::vector<Vec3> &p_w,
+                        const std::vector<Vec2> &norm_uv,
+                        Quat &q_wc,
+                        Vec3 &p_wc,
+                        std::vector<uint8_t> &status);
 
     inline float Huber(float param, float x) {
         float huber = 1.0f;

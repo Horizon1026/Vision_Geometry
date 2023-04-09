@@ -39,13 +39,13 @@ public:
     explicit EpipolarSolver() = default;
     virtual ~EpipolarSolver() = default;
 
-    bool EstimateEssential(const std::vector<Vec2> &norm_uv_ref,
-                           const std::vector<Vec2> &norm_uv_cur,
+    bool EstimateEssential(const std::vector<Vec2> &ref_norm_xy,
+                           const std::vector<Vec2> &cur_norm_xy,
                            Mat3 &essential,
-                           std::vector<EpipolarResult> &status);
+                           std::vector<uint8_t> &status);
 
-    bool RecoverPoseFromEssential(const std::vector<Vec2> &norm_uv_ref,
-                                  const std::vector<Vec2> &norm_uv_cur,
+    bool RecoverPoseFromEssential(const std::vector<Vec2> &ref_norm_xy,
+                                  const std::vector<Vec2> &cur_norm_xy,
                                   const Mat3 &essential,
                                   Mat3 &R_cr,
                                   Vec3 &t_cr);
@@ -53,53 +53,53 @@ public:
     EpipolarOptions &options() { return options_; }
 
 private:
-    bool EstimateEssentialUseAll(const std::vector<Vec2> &norm_uv_ref,
-                                 const std::vector<Vec2> &norm_uv_cur,
+    bool EstimateEssentialUseAll(const std::vector<Vec2> &ref_norm_xy,
+                                 const std::vector<Vec2> &cur_norm_xy,
                                  Mat3 &essential,
-                                 std::vector<EpipolarResult> &status);
+                                 std::vector<uint8_t> &status);
 
-    bool EstimateEssentialUseAll(const std::vector<Vec2> &norm_uv_ref,
-                                 const std::vector<Vec2> &norm_uv_cur,
+    bool EstimateEssentialUseAll(const std::vector<Vec2> &ref_norm_xy,
+                                 const std::vector<Vec2> &cur_norm_xy,
                                  Mat3 &essential);
 
-    bool EstimateEssentialRansac(const std::vector<Vec2> &norm_uv_ref,
-                                 const std::vector<Vec2> &norm_uv_cur,
+    bool EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_xy,
+                                 const std::vector<Vec2> &cur_norm_xy,
                                  Mat3 &essential,
-                                 std::vector<EpipolarResult> &status);
+                                 std::vector<uint8_t> &status);
 
-    void ComputeEssentialModelResidual(const std::vector<Vec2> &norm_uv_ref,
-                                       const std::vector<Vec2> &norm_uv_cur,
+    void ComputeEssentialModelResidual(const std::vector<Vec2> &ref_norm_xy,
+                                       const std::vector<Vec2> &cur_norm_xy,
                                        const Mat3 &essential,
                                        std::vector<float> &residuals);
 
-    float ComputeEssentialModelResidualSummary(const std::vector<Vec2> &norm_uv_ref,
-                                               const std::vector<Vec2> &norm_uv_cur,
+    float ComputeEssentialModelResidualSummary(const std::vector<Vec2> &ref_norm_xy,
+                                               const std::vector<Vec2> &cur_norm_xy,
                                                const Mat3 &essential);
 
-    void CheckEssentialPairsStatus(const std::vector<Vec2> &norm_uv_ref,
-                                   const std::vector<Vec2> &norm_uv_cur,
+    void CheckEssentialPairsStatus(const std::vector<Vec2> &ref_norm_xy,
+                                   const std::vector<Vec2> &cur_norm_xy,
                                    Mat3 &essential,
-                                   std::vector<EpipolarResult> &status);
+                                   std::vector<uint8_t> &status);
 
     void DecomposeEssentialMatrix(const Mat3 &essential, Mat3 &R0, Mat3 &R1, Vec3 &t0, Vec3 &t1);
 
 private:
     /* Method for five points model. */
-    bool EstimateEssentialUseFivePoints(const std::vector<Vec2> &norm_uv_ref,
-                                        const std::vector<Vec2> &norm_uv_cur,
+    bool EstimateEssentialUseFivePoints(const std::vector<Vec2> &ref_norm_xy,
+                                        const std::vector<Vec2> &cur_norm_xy,
                                         Mat3 &essential);
 
     void GaussJordanElimination(float *e, float *A);
 
-    void FindBestOneFromAllPossibleEssentials(const std::vector<Vec2> &norm_uv_ref,
-                                              const std::vector<Vec2> &norm_uv_cur,
+    void FindBestOneFromAllPossibleEssentials(const std::vector<Vec2> &ref_norm_xy,
+                                              const std::vector<Vec2> &cur_norm_xy,
                                               const std::vector<Mat3> &essentials,
                                               Mat3 &best_essential);
 
 private:
     /* Method for eight points model. */
-    bool EstimateEssentialUseEightPoints(const std::vector<Vec2> &norm_uv_ref,
-                                         const std::vector<Vec2> &norm_uv_cur,
+    bool EstimateEssentialUseEightPoints(const std::vector<Vec2> &ref_norm_xy,
+                                         const std::vector<Vec2> &cur_norm_xy,
                                          Mat3 &essential);
 
     void RefineEssentialMatrix(Mat3 &essential);

@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     Quat res_q_wc;
     Vec3 res_p_wc;
     VISION_GEOMETRY::PnpSolver pnpSolver;
-    std::vector<VISION_GEOMETRY::PnpSolver::PnpResult> status;
+    std::vector<uint8_t> status;
     float cost_time;
     clock_t begin, end;
 

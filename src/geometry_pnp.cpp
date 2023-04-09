@@ -10,7 +10,7 @@ bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w,
                              const std::vector<Vec2> &norm_uv,
                              Quat &q_wc,
                              Vec3 &p_wc,
-                             std::vector<PnpResult> &status) {
+                             std::vector<uint8_t> &status) {
     switch (options_.kMethod) {
         case PnpMethod::PNP_RANSAC: {
             return EstimatePoseRansac(p_w, norm_uv, q_wc, p_wc, status);
@@ -32,23 +32,23 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
                                    const std::vector<Vec2> &norm_uv,
                                    Quat &q_wc,
                                    Vec3 &p_wc,
-                                   std::vector<PnpResult> &status) {
+                                   std::vector<uint8_t> &status) {
     RETURN_FALSE_IF_FALSE(EstimatePoseUseAll(p_w, norm_uv, q_wc, p_wc));
 
     if (status.size() != p_w.size()) {
-        status.resize(p_w.size(), PnpResult::UNSOLVED);
+        status.resize(p_w.size(), static_cast<uint8_t>(PnpResult::UNSOLVED));
     }
 
     // Check those features that haven't been solved.
     for (uint32_t i = 0; i < p_w.size(); ++i) {
-        if (status[i] == PnpResult::UNSOLVED) {
+        if (status[i] == static_cast<uint8_t>(PnpResult::UNSOLVED)) {
             const Vec3 p_c = q_wc.inverse() * (p_w[i] - p_wc);
             if (p_c(2) > kZero) {
                 const float residual = (norm_uv[i] - p_c.head<2>() / p_c(2)).norm();
                 if (residual < options_.kMaxPnpResidual) {
-                    status[i] = PnpResult::SOLVED;
+                    status[i] = static_cast<uint8_t>(PnpResult::SOLVED);
                 } else {
-                    status[i] = PnpResult::LARGE_RISIDUAL;
+                    status[i] = static_cast<uint8_t>(PnpResult::LARGE_RISIDUAL);
                 }
             }
         }
@@ -138,7 +138,7 @@ bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w,
                                    const std::vector<Vec2> &norm_uv,
                                    Quat &q_wc,
                                    Vec3 &p_wc,
-                                   std::vector<PnpResult> &status) {
+                                   std::vector<uint8_t> &status) {
 
     if (p_w.size() != norm_uv.size() || p_w.empty()) {
         return false;
@@ -196,15 +196,31 @@ bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w,
         }
     }
 
-    status.resize(p_w.size(), PnpResult::SOLVED);
+    CheckPnpStatus(p_w, norm_uv, q_wc, p_wc, status);
+
+    return true;
+}
+
+void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w,
+                               const std::vector<Vec2> &norm_uv,
+                               Quat &q_wc,
+                               Vec3 &p_wc,
+                               std::vector<uint8_t> &status) {
+    if (status.size() != norm_uv.size()) {
+        status.resize(norm_uv.size(), static_cast<uint8_t>(PnpResult::UNSOLVED));
+    }
+
     for (uint32_t i = 0; i < p_w.size(); ++i) {
-        Vec3 p_c = q_wc.inverse() * (p_w[i] - p_wc);
-        Vec2 r = Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)) - norm_uv[i];
-        if (r.squaredNorm() >= options_.kMaxConvergeResidual) {
-            status[i] = PnpResult::LARGE_RISIDUAL;
+        if (status[i] == static_cast<uint8_t>(PnpResult::UNSOLVED) || status[i] == static_cast<uint8_t>(PnpResult::SOLVED)) {
+            Vec3 p_c = q_wc.inverse() * (p_w[i] - p_wc);
+            Vec2 r = Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)) - norm_uv[i];
+            if (r.squaredNorm() >= options_.kMaxConvergeResidual) {
+                status[i] = static_cast<uint8_t>(PnpResult::LARGE_RISIDUAL);
+            } else {
+                status[i] = static_cast<uint8_t>(PnpResult::SOLVED);
+            }
         }
     }
-    return true;
 }
 
 }

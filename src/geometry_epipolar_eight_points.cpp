@@ -8,22 +8,22 @@
 
 namespace VISION_GEOMETRY {
 
-bool EpipolarSolver::EstimateEssentialUseEightPoints(const std::vector<Vec2> &norm_uv_ref,
-                                                     const std::vector<Vec2> &norm_uv_cur,
+bool EpipolarSolver::EstimateEssentialUseEightPoints(const std::vector<Vec2> &ref_norm_xy,
+                                                     const std::vector<Vec2> &cur_norm_xy,
                                                      Mat3 &essential) {
-    if (norm_uv_ref.size() != norm_uv_cur.size() || norm_uv_ref.size() < 8) {
+    if (ref_norm_xy.size() != cur_norm_xy.size() || ref_norm_xy.size() < 8) {
         return false;
     }
 
-    const uint32_t rows = std::min(options_.kMaxSolvePointsNumber, static_cast<uint32_t>(norm_uv_ref.size()));
+    const uint32_t rows = std::min(options_.kMaxSolvePointsNumber, static_cast<uint32_t>(ref_norm_xy.size()));
     A.setZero(rows, 9);
 
     // Construct eight point model Ae = 0.
     for (uint32_t i = 0; i < rows; ++i) {
-        const float u1 = norm_uv_ref[i].x();
-        const float v1 = norm_uv_ref[i].y();
-        const float u2 = norm_uv_cur[i].x();
-        const float v2 = norm_uv_cur[i].y();
+        const float u1 = ref_norm_xy[i].x();
+        const float v1 = ref_norm_xy[i].y();
+        const float u2 = cur_norm_xy[i].x();
+        const float v2 = cur_norm_xy[i].y();
         A.row(i) << u2 * v1, u2 * v1, u2, v2 * u1, v2 * v1, v2, u1, v1, 1;
     }
 
