@@ -1,8 +1,14 @@
 # Vision Geometry
-视觉几何相关内容，包括如下已完成和待完成部分。
-- [x] perspective n points
-- [x] triangulation
-- [x] essential
-- [ ] fundamental
+Intergration of some vision geometry model algorithm.
 
-欢迎相互交流学习，暂不同意商用。
+# Components
+- [x] Perspective n points
+- [x] Triangulation
+- [x] Essential
+- [ ] Fundamental
+
+# Dependence
+Slam_Utility, OpenCV4(only for test)
+
+# Tips
+欢迎一起交流学习，不同意商用
