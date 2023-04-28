@@ -67,7 +67,7 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
 
     Mat6 H;
     Vec6 b;
-    Mat26 jacobian;
+    Mat2x6 jacobian;
 
     uint32_t max_points_used_num = options_.kMaxSolvePointsNumber < p_w.size() ? options_.kMaxSolvePointsNumber : p_w.size();
     for (uint32_t iter = 0; iter < options_.kMaxIteration; ++iter) {
@@ -85,7 +85,7 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
 
             Vec2 residual = Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)) - norm_uv[i];
 
-            Mat23 jacobian_2d_3d;
+            Mat2x3 jacobian_2d_3d;
             jacobian_2d_3d << inv_depth, 0, - p_c(0) * inv_depth2,
                               0, inv_depth, - p_c(1) * inv_depth2;
             jacobian.block<2, 3>(0, 0) = jacobian_2d_3d * (- q_wc.inverse().matrix());

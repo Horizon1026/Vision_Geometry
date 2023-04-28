@@ -59,7 +59,7 @@ bool Triangulator::TriangulateIterative(const std::vector<Quat> &q_wc,
 
     Mat3 H;
     Vec3 b;
-    Mat23 jacobian;
+    Mat2x3 jacobian;
 
     for (uint32_t iter = 0; iter < options_.kMaxIteration; ++iter) {
         H.setZero();
@@ -76,7 +76,7 @@ bool Triangulator::TriangulateIterative(const std::vector<Quat> &q_wc,
 
             Vec2 residual = Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)) - norm_uv[i];
 
-            Mat23 jacobian_2d_3d;
+            Mat2x3 jacobian_2d_3d;
             jacobian_2d_3d << inv_depth, 0, - p_c(0) * inv_depth2,
                               0, inv_depth, - p_c(1) * inv_depth2;
 
