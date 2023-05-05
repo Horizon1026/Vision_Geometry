@@ -33,7 +33,7 @@ bool Triangulator::TriangulateAnalytic(const std::vector<Quat> &q_wc,
     A.resize(used_camera_num * 2, 4);
 
     for (uint32_t i = 0; i < used_camera_num; ++i) {
-        auto pose = Utility::TransformMatrix(q_wc[i].inverse(), - (q_wc[i].inverse() * p_wc[i]));
+        auto pose = Utility::TransformMatrix<float>(q_wc[i].inverse(), - (q_wc[i].inverse() * p_wc[i]));
         A.row(2 * i) = norm_uv[i][0] * pose.row(2) - pose.row(0);
         A.row(2 * i + 1) = norm_uv[i][1] * pose.row(2) - pose.row(1);
     }
