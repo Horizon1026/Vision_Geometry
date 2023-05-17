@@ -1,10 +1,10 @@
 /* 外部依赖 */
-#include <fstream>
-#include <iostream>
+#include "fstream"
+#include "iostream"
 
 /* 内部依赖 */
-#include <geometry_triangulation.h>
-#include <log_api.h>
+#include "geometry_triangulation.h"
+#include "log_report.h"
 
 VISION_GEOMETRY::Triangulator solver;
 
@@ -71,7 +71,7 @@ bool TestTrianglateIterative() {
 
 
 int main(int argc, char **argv) {
-    LogInfo(YELLOW ">> Triangulation Module Test" RESET_COLOR);
+    ReportInfo(YELLOW ">> Triangulation Module Test" RESET_COLOR);
     LogFixPercision(3);
 
     uint32_t poseNums = 16;      // 相机数目
@@ -97,17 +97,17 @@ int main(int argc, char **argv) {
     float cost_time;
     clock_t begin, end;
 
-    LogInfo(GREEN ">> Test triangulation using analytic method." RESET_COLOR);
+    ReportInfo(GREEN ">> Test triangulation using analytic method." RESET_COLOR);
     Vec3 res_p_w;
     solver.options().kMethod = VISION_GEOMETRY::Triangulator::TriangulationMethod::ANALYTIC;
     begin = clock();
     solver.Triangulate(q_wc_vec, p_wc_vec, observe_vec, res_p_w);
     end = clock();
     cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
-    LogInfo("cost time is " << cost_time << " ms");
-    LogInfo("set p_w is " << p_w.transpose() << ", res p_w is " << res_p_w.transpose());
+    ReportInfo("cost time is " << cost_time << " ms");
+    ReportInfo("set p_w is " << p_w.transpose() << ", res p_w is " << res_p_w.transpose());
 
-    LogInfo(GREEN ">> Test triangulation using iterative method." RESET_COLOR);
+    ReportInfo(GREEN ">> Test triangulation using iterative method." RESET_COLOR);
     Vec3 p_w_noise = Vec3(0.5f, 0.5f, 0.5f);
     res_p_w = p_w + p_w_noise;;
     solver.options().kMethod = VISION_GEOMETRY::Triangulator::TriangulationMethod::ITERATIVE;
@@ -115,8 +115,8 @@ int main(int argc, char **argv) {
     solver.Triangulate(q_wc_vec, p_wc_vec, observe_vec, res_p_w);
     end = clock();
     cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
-    LogInfo("cost time is " << cost_time << " ms");
-    LogInfo("set p_w is " << p_w.transpose() << ", res p_w is " << res_p_w.transpose());
+    ReportInfo("cost time is " << cost_time << " ms");
+    ReportInfo("set p_w is " << p_w.transpose() << ", res p_w is " << res_p_w.transpose());
 
     return 0;
 }

@@ -1,11 +1,11 @@
 /* 外部依赖 */
-#include <fstream>
-#include <iostream>
+#include "fstream"
+#include "iostream"
 #include "cmath"
 
 /* 内部依赖 */
 #include "geometry_epipolar.h"
-#include "log_api.h"
+#include "log_report.h"
 
 void TestEssentialFivePointsModel(VISION_GEOMETRY::EpipolarSolver &solver,
                                   std::vector<Vec2> &ref_norm_xy,
@@ -16,7 +16,7 @@ void TestEssentialFivePointsModel(VISION_GEOMETRY::EpipolarSolver &solver,
     Mat3 R_cr;
     Vec3 t_cr;
 
-    LogInfo(GREEN ">> Test epipolar using five points model." RESET_COLOR);
+    ReportInfo(GREEN ">> Test epipolar using five points model." RESET_COLOR);
     solver.options().kModel = VISION_GEOMETRY::EpipolarSolver::EpipolarModel::FIVE_POINTS;
 
     begin = clock();
@@ -24,12 +24,12 @@ void TestEssentialFivePointsModel(VISION_GEOMETRY::EpipolarSolver &solver,
     end = clock();
 
     float cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
-    LogInfo("cost time is " << cost_time << " ms");
-    LogInfo("essential is\n" << essential);
+    ReportInfo("cost time is " << cost_time << " ms");
+    ReportInfo("essential is\n" << essential);
 
     solver.RecoverPoseFromEssential(ref_norm_xy, cur_norm_xy, essential, R_cr, t_cr);
-    LogInfo("R_cr is\n" << R_cr);
-    LogInfo("t_cr is " << t_cr.transpose());
+    ReportInfo("R_cr is\n" << R_cr);
+    ReportInfo("t_cr is " << t_cr.transpose());
 }
 
 void TestEssentialEightPointsModel(VISION_GEOMETRY::EpipolarSolver &solver,
@@ -41,7 +41,7 @@ void TestEssentialEightPointsModel(VISION_GEOMETRY::EpipolarSolver &solver,
     Mat3 R_cr;
     Vec3 t_cr;
 
-    LogInfo(GREEN ">> Test epipolar using eight points model." RESET_COLOR);
+    ReportInfo(GREEN ">> Test epipolar using eight points model." RESET_COLOR);
     solver.options().kModel = VISION_GEOMETRY::EpipolarSolver::EpipolarModel::EIGHT_POINTS;
 
     begin = clock();
@@ -49,17 +49,17 @@ void TestEssentialEightPointsModel(VISION_GEOMETRY::EpipolarSolver &solver,
     end = clock();
 
     float cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
-    LogInfo("cost time is " << cost_time << " ms");
-    LogInfo("essential is\n" << essential);
+    ReportInfo("cost time is " << cost_time << " ms");
+    ReportInfo("essential is\n" << essential);
 
     solver.RecoverPoseFromEssential(ref_norm_xy, cur_norm_xy, essential, R_cr, t_cr);
-    LogInfo("R_cr is\n" << R_cr);
-    LogInfo("t_cr is " << t_cr.transpose());
+    ReportInfo("R_cr is\n" << R_cr);
+    ReportInfo("t_cr is " << t_cr.transpose());
 }
 
 
 int main(int argc, char **argv) {
-    LogInfo(YELLOW ">> Epipolar Module Test" RESET_COLOR);
+    ReportInfo(YELLOW ">> Epipolar Module Test" RESET_COLOR);
     LogFixPercision(8);
 
     // 构造 3D 点云
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
     Mat3 R_c0w = Mat3::Identity();
     Vec3 t_c0w = Vec3::Zero();
     Mat3 R_c1w = Mat3::Identity();
-    Vec3 t_c1w = Vec3(2, -10, 0);
+    Vec3 t_c1w = Vec3(2, -10, 6);
 
     // 将 3D 点云通过两帧位姿映射到对应的归一化平面上，构造匹配点对
     std::vector<Vec2> ref_norm_xy, cur_norm_xy;

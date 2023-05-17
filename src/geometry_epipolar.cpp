@@ -3,7 +3,7 @@
 #include "math_kinematics.h"
 #include "slam_operations.h"
 
-#include "log_api.h"
+#include "log_report.h"
 
 #include <set>
 

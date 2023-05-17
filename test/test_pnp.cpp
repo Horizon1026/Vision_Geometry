@@ -1,15 +1,15 @@
 /* 外部依赖 */
-#include <fstream>
-#include <iostream>
+#include "fstream"
+#include "iostream"
 #include "cmath"
 
 /* 内部依赖 */
 #include "geometry_pnp.h"
-#include "log_api.h"
+#include "log_report.h"
 
 
 int main(int argc, char **argv) {
-    LogInfo(YELLOW ">> Perspective-n-Point Module Test" RESET_COLOR);
+    ReportInfo(YELLOW ">> Perspective-n-Point Module Test" RESET_COLOR);
     LogFixPercision(3);
 
     // 构造 3D 点云
@@ -26,8 +26,8 @@ int main(int argc, char **argv) {
     Mat3 R_wc = Mat3::Identity();
     Vec3 p_wc = Vec3(1, -3, 0);
     Quat q_wc(R_wc);
-    LogInfo("true q_wc is " << LogQuat(q_wc));
-    LogInfo("true p_wc is " << LogVec(p_wc));
+    ReportInfo("true q_wc is " << LogQuat(q_wc));
+    ReportInfo("true p_wc is " << LogVec(p_wc));
 
     // 将 3D 点云通过两帧位姿映射到对应的归一化平面上，构造匹配点对
     std::vector<Vec2> pts_2d;
@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
     float cost_time;
     clock_t begin, end;
 
-    LogInfo(GREEN ">> Test pnp using all points." RESET_COLOR);
+    ReportInfo(GREEN ">> Test pnp using all points." RESET_COLOR);
     res_q_wc.setIdentity();
     res_p_wc.setZero();
     pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::PnpMethod::PNP_ALL;
@@ -59,10 +59,10 @@ int main(int argc, char **argv) {
     pnpSolver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
     end = clock();
     cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
-    LogInfo("cost time is " << cost_time << " ms");
-    LogInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
+    ReportInfo("cost time is " << cost_time << " ms");
+    ReportInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
 
-    LogInfo(GREEN ">> Test pnp using ransac method." RESET_COLOR);
+    ReportInfo(GREEN ">> Test pnp using ransac method." RESET_COLOR);
     res_q_wc.setIdentity();
     res_p_wc.setZero();
     pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::PnpMethod::PNP_RANSAC;
@@ -70,10 +70,10 @@ int main(int argc, char **argv) {
     pnpSolver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
     end = clock();
     cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
-    LogInfo("cost time is " << cost_time << " ms");
-    LogInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
+    ReportInfo("cost time is " << cost_time << " ms");
+    ReportInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
 
-    LogInfo(GREEN ">> Test pnp using huber kernel." RESET_COLOR);
+    ReportInfo(GREEN ">> Test pnp using huber kernel." RESET_COLOR);
     res_q_wc.setIdentity();
     res_p_wc.setZero();
     pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::PnpMethod::PNP_HUBER;
@@ -81,10 +81,10 @@ int main(int argc, char **argv) {
     pnpSolver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
     end = clock();
     cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
-    LogInfo("cost time is " << cost_time << " ms");
-    LogInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
+    ReportInfo("cost time is " << cost_time << " ms");
+    ReportInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
 
-    LogInfo(GREEN ">> Test pnp using cauchy kernel." RESET_COLOR);
+    ReportInfo(GREEN ">> Test pnp using cauchy kernel." RESET_COLOR);
     res_q_wc.setIdentity();
     res_p_wc.setZero();
     pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::PnpMethod::PNP_CAUCHY;
@@ -92,8 +92,8 @@ int main(int argc, char **argv) {
     pnpSolver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
     end = clock();
     cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
-    LogInfo("cost time is " << cost_time << " ms");
-    LogInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
+    ReportInfo("cost time is " << cost_time << " ms");
+    ReportInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
 
     return 0;
 }
