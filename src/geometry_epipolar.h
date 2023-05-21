@@ -9,21 +9,21 @@ class EpipolarSolver {
 
 public:
     enum class EpipolarMethod : uint8_t {
-        EPIPOLAR_ALL = 0,
-        EPIPOLAR_RANSAC = 1,
-        EPIPOLAR_HUBER = 2,
-        EPIPOLAR_CAUCHY = 3,
+        kUseAll = 0,
+        kRansac = 1,
+        kHuber = 2,
+        kCauchy = 3,
     };
 
     enum class EpipolarModel : uint8_t {
-        FIVE_POINTS = 0,
-        EIGHT_POINTS = 1,
+        kFivePoints = 0,
+        kEightPoints = 1,
     };
 
     enum class EpipolarResult : uint8_t {
-        UNSOLVED = 0,
-        SOLVED = 1,
-        LARGE_RISIDUAL = 2,
+        kUnsolved = 0,
+        kSolved = 1,
+        kLargeResidual = 2,
     };
 
     struct EpipolarOptions {
@@ -31,12 +31,12 @@ public:
         uint32_t kMaxIteration = 10;
         float kMaxEpipolarResidual = 1e-3f;
         float kMinRansacInlierRatio = 0.9f;
-        EpipolarMethod kMethod = EpipolarMethod::EPIPOLAR_RANSAC;
-        EpipolarModel kModel = EpipolarModel::FIVE_POINTS;
+        EpipolarMethod kMethod = EpipolarMethod::kRansac;
+        EpipolarModel kModel = EpipolarModel::kFivePoints;
     };
 
 public:
-    explicit EpipolarSolver() = default;
+    EpipolarSolver() = default;
     virtual ~EpipolarSolver() = default;
 
     bool EstimateEssential(const std::vector<Vec2> &ref_norm_xy,

@@ -17,7 +17,7 @@ void TestEssentialFivePointsModel(VISION_GEOMETRY::EpipolarSolver &solver,
     Vec3 t_cr;
 
     ReportInfo(GREEN ">> Test epipolar using five points model." RESET_COLOR);
-    solver.options().kModel = VISION_GEOMETRY::EpipolarSolver::EpipolarModel::FIVE_POINTS;
+    solver.options().kModel = VISION_GEOMETRY::EpipolarSolver::EpipolarModel::kFivePoints;
 
     begin = clock();
     solver.EstimateEssential(ref_norm_xy, cur_norm_xy, essential, status);
@@ -42,7 +42,7 @@ void TestEssentialEightPointsModel(VISION_GEOMETRY::EpipolarSolver &solver,
     Vec3 t_cr;
 
     ReportInfo(GREEN ">> Test epipolar using eight points model." RESET_COLOR);
-    solver.options().kModel = VISION_GEOMETRY::EpipolarSolver::EpipolarModel::EIGHT_POINTS;
+    solver.options().kModel = VISION_GEOMETRY::EpipolarSolver::EpipolarModel::kEightPoints;
 
     begin = clock();
     solver.EstimateEssential(ref_norm_xy, cur_norm_xy, essential, status);
@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
     }
 
     VISION_GEOMETRY::EpipolarSolver solver;
-    solver.options().kMethod = VISION_GEOMETRY::EpipolarSolver::EpipolarMethod::EPIPOLAR_RANSAC;
+    solver.options().kMethod = VISION_GEOMETRY::EpipolarSolver::EpipolarMethod::kRansac;
     std::vector<uint8_t> status;
 
     TestEssentialEightPointsModel(solver, ref_norm_xy, cur_norm_xy, status);

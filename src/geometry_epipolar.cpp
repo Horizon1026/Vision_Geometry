@@ -14,13 +14,13 @@ bool EpipolarSolver::EstimateEssential(const std::vector<Vec2> &ref_norm_xy,
                                        Mat3 &essential,
                                        std::vector<uint8_t> &status) {
     switch (options_.kMethod) {
-        case EpipolarMethod::EPIPOLAR_RANSAC: {
+        case EpipolarMethod::kRansac: {
             return EstimateEssentialRansac(ref_norm_xy, cur_norm_xy, essential, status);
         }
 
-        case EpipolarMethod::EPIPOLAR_ALL:
-        case EpipolarMethod::EPIPOLAR_HUBER:
-        case EpipolarMethod::EPIPOLAR_CAUCHY: {
+        case EpipolarMethod::kUseAll:
+        case EpipolarMethod::kHuber:
+        case EpipolarMethod::kCauchy: {
             return EstimateEssentialUseAll(ref_norm_xy, cur_norm_xy, essential, status);
         }
 
@@ -70,11 +70,11 @@ bool EpipolarSolver::EstimateEssentialUseAll(const std::vector<Vec2> &ref_norm_x
                                              const std::vector<Vec2> &cur_norm_xy,
                                              Mat3 &essential) {
     switch (options_.kModel) {
-        case EpipolarModel::FIVE_POINTS:
+        case EpipolarModel::kFivePoints:
             RETURN_FALSE_IF_FALSE(EstimateEssentialUseFivePoints(ref_norm_xy, cur_norm_xy, essential));
             break;
 
-        case EpipolarModel::EIGHT_POINTS:
+        case EpipolarModel::kEightPoints:
         default:
             RETURN_FALSE_IF_FALSE(EstimateEssentialUseEightPoints(ref_norm_xy, cur_norm_xy, essential));
             break;
@@ -94,10 +94,10 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
     // Preparation.
     uint32_t indice_size = 0;
     switch (options_.kModel) {
-        case EpipolarModel::FIVE_POINTS:
+        case EpipolarModel::kFivePoints:
             indice_size = 5;
             break;
-        case EpipolarModel::EIGHT_POINTS:
+        case EpipolarModel::kEightPoints:
             indice_size = 8;
             break;
     }
@@ -196,7 +196,7 @@ void EpipolarSolver::CheckEssentialPairsStatus(const std::vector<Vec2> &ref_norm
                                                Mat3 &essential,
                                                std::vector<uint8_t> &status) {
     if (status.size() != ref_norm_xy.size()) {
-        status.resize(ref_norm_xy.size(), static_cast<uint8_t>(EpipolarResult::UNSOLVED));
+        status.resize(ref_norm_xy.size(), static_cast<uint8_t>(EpipolarResult::kUnsolved));
     }
 
     // Check those features that haven't been solved.
@@ -204,11 +204,11 @@ void EpipolarSolver::CheckEssentialPairsStatus(const std::vector<Vec2> &ref_norm
     residuals.reserve(ref_norm_xy.size());
     ComputeEssentialModelResidual(ref_norm_xy, cur_norm_xy, essential, residuals);
     for (uint32_t i = 0; i < ref_norm_xy.size(); ++i) {
-        if (status[i] == static_cast<uint8_t>(EpipolarResult::UNSOLVED) || status[i] == static_cast<uint8_t>(EpipolarResult::SOLVED)) {
+        if (status[i] == static_cast<uint8_t>(EpipolarResult::kUnsolved) || status[i] == static_cast<uint8_t>(EpipolarResult::kSolved)) {
             if (residuals[i] < options_.kMaxEpipolarResidual) {
-                status[i] = static_cast<uint8_t>(EpipolarResult::SOLVED);
+                status[i] = static_cast<uint8_t>(EpipolarResult::kSolved);
             } else {
-                status[i] = static_cast<uint8_t>(EpipolarResult::LARGE_RISIDUAL);
+                status[i] = static_cast<uint8_t>(EpipolarResult::kLargeResidual);
             }
         }
     }

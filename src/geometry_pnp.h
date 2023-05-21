@@ -16,9 +16,9 @@ public:
     };
 
     enum class PnpResult : uint8_t {
-        UNSOLVED = 0,
-        SOLVED = 1,
-        LARGE_RISIDUAL = 2,
+        kUnsolved = 0,
+        kSolved = 1,
+        kLargeResidual = 2,
     };
 
     struct PnpOptions {
