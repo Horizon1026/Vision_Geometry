@@ -6,6 +6,7 @@ Intergration of some vision geometry model algorithm.
 - [x] Triangulation
 - [x] Essential
 - [ ] Fundamental
+- [ ] Homography
 
 # Dependence
 Slam_Utility, OpenCV4(only for test)
