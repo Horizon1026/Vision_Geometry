@@ -30,7 +30,11 @@ public:
                      const std::vector<Vec2> &norm_uv,
                      Vec3 &p_w);
 
+    // Reference for member variables.
     TriangulationOptions &options() { return options_; }
+
+    // Const reference for member variables.
+    const TriangulationOptions &options() const { return options_; }
 
 private:
     bool TriangulateAnalytic(const std::vector<Quat> &q_wc,

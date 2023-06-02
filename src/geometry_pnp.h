@@ -42,7 +42,11 @@ public:
                       Vec3 &p_wc,
                       std::vector<uint8_t> &status);
 
+    // Reference for member variables.
     PnpOptions &options() { return options_;}
+
+    // Const reference for member variables.
+    const PnpOptions &options() const { return options_;}
 
 private:
     bool EstimatePoseUseAll(const std::vector<Vec3> &p_w,

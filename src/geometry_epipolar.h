@@ -50,7 +50,11 @@ public:
                                   Mat3 &R_cr,
                                   Vec3 &t_cr);
 
+    // Reference for member variables.
     EpipolarOptions &options() { return options_; }
+
+    // Const reference for member variables.
+    const EpipolarOptions &options() const { return options_; }
 
 private:
     bool EstimateEssentialUseAll(const std::vector<Vec2> &ref_norm_xy,
