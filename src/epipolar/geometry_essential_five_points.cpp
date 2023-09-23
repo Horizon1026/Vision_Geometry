@@ -29,7 +29,7 @@ bool EpipolarSolver::EstimateEssentialUseFivePoints(const std::vector<Vec2> &ref
         Q.row(i) << u2 * v1, u2 * v1, u2, v2 * u1, v2 * v1, v2, u1, v1, 1;
     }
 
-    // There 5 points but 9 varibles, so the null-space of e = {e|Qe = 0} is 4-DOF, which means E = xX + yY + zZ + wW.
+    // There 5 points but 9 variables, so the null-space of e = {e|Qe = 0} is 4-DOF, which means E = xX + yY + zZ + wW.
     // Matrix E has constrains as this: E * E.transpose() * E - 0.5 * trace(E * E.transpose()) * E = 0
     // Use two functions as above, Ac = 0 can be constructed, A is 10*20, c is vector of 20 different combinations by x, y, z.
     Eigen::BDCSVD<Eigen::Matrix<float, Eigen::Dynamic, 9>> svd(Q, Eigen::ComputeFullU | Eigen::ComputeFullV);
