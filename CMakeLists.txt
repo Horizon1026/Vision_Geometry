@@ -17,6 +17,9 @@ endif()
 if ( NOT TARGET lib_vision_geometry_triangulation )
     add_subdirectory( src/triangulation ${PROJECT_SOURCE_DIR}/build/lib_vision_geometry_triangulation )
 endif()
+if ( NOT TARGET lib_vision_geometry_relative_rotation )
+    add_subdirectory( src/relative_rotation ${PROJECT_SOURCE_DIR}/build/lib_vision_geometry_relative_rotation )
+endif()
 
 # Add test_pnp.
 add_executable( test_pnp
@@ -40,4 +43,12 @@ add_executable( test_epipolar
 )
 target_link_libraries( test_epipolar
     lib_vision_geometry_epipolar
+)
+
+# Add test_relative_rotation.
+add_executable( test_relative_rotation
+    test/test_relative_rotation.cpp
+)
+target_link_libraries( test_relative_rotation
+    lib_vision_geometry_relative_rotation
 )
