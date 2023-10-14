@@ -37,6 +37,11 @@ int main(int argc, char **argv) {
         cur_norm_xy.emplace_back(Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)));
     }
 
+    VISION_GEOMETRY::RelativeRotation solver;
+    Quat q_cr = Quat::Identity();
+    std::vector<uint8_t> status;
+
+    solver.EstimateRotation(ref_norm_xy, cur_norm_xy, q_cr, status);
 
     return 0;
 }
