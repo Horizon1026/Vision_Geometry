@@ -23,17 +23,17 @@ int main(int argc, char **argv) {
     }
 
     // 定义两帧位姿
-    Mat3 R_c0w = Mat3::Identity();
-    Vec3 t_c0w = Vec3::Zero();
-    Mat3 R_c1w = Mat3::Identity();
-    Vec3 t_c1w = Vec3(2, -10, 6);
+    Mat3 R_rw = Mat3::Identity();
+    Vec3 t_rw = Vec3::Zero();
+    Mat3 R_cw = Quat(0.5, 0.5, 0, 0).normalized().matrix();
+    Vec3 t_cw = Vec3(0, 0, 0);
 
     // 将 3D 点云通过两帧位姿映射到对应的归一化平面上，构造匹配点对
     std::vector<Vec2> ref_norm_xy, cur_norm_xy;
-    for (uint32_t i = 0; i < points.size(); i++) {
-        Vec3 p_c = R_c0w * points[i] + t_c0w;
-        ref_norm_xy.emplace_back(Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)));
-        p_c = R_c1w * points[i] + t_c1w;
+    for (uint32_t i = 0; i < points.size(); ++i) {
+        const Vec3 p_r = R_rw * points[i] + t_rw;
+        ref_norm_xy.emplace_back(Vec2(p_r(0) / p_r(2), p_r(1) / p_r(2)));
+        const Vec3 p_c = R_cw * points[i] + t_cw;
         cur_norm_xy.emplace_back(Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)));
     }
 
@@ -42,6 +42,10 @@ int main(int argc, char **argv) {
     std::vector<uint8_t> status;
 
     solver.EstimateRotation(ref_norm_xy, cur_norm_xy, q_cr, status);
+    ReportInfo("Estimated q_cr is " << LogQuat(q_cr));
+
+    q_cr = Quat(R_cw * R_rw.transpose());
+    ReportInfo("Ground truh q_cr is " << LogQuat(q_cr));
 
     return 0;
 }

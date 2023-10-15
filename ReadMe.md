@@ -5,6 +5,7 @@ Intergration of some vision geometry model algorithm.
 - [x] Perspective n points
 - [x] Triangulation
 - [x] Essential
+- [ ] Relative Rotation(invalid now)
 - [ ] Fundamental
 - [ ] Homography
 - [ ] ICP

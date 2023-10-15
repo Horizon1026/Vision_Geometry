@@ -53,7 +53,59 @@ bool RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
     Vec3 cayley = Utility::ConvertRotationMatrixToCayley(q_cr.matrix());
 
     // Optimize cayley.
-    // TODO:
+    const uint32_t max_iteration = 20;
+    Vec3 delta_cayley = Vec3::Zero();
+    float lambda = 1e-4f;
+    float v = 2.0f;
+    for (uint32_t iter = 0; iter < max_iteration; ++iter) {
+        // Compute residual and jacobian (Linearize this problem).
+        Mat1x3 jacobian = Mat1x3::Zero();
+        const float residual = ComputeSmallestEVWithJacobian(terms, cayley, jacobian);
+
+        // Construct incremental function.
+        const Mat3 hessian = jacobian.transpose() * jacobian;
+        const Vec3 bias = - jacobian.transpose() * residual;
+
+        for (uint32_t j = 0; j < max_iteration; ++j) {
+            // Add robust diagonal.
+            Mat3 lm_hessian = hessian;
+            for (uint32_t i = 0; i < 3; ++i) {
+                const float temp = std::min(1e32f, std::max(1e-10f, lm_hessian(i, i)));
+                lm_hessian(i, i) = lambda * temp;
+            }
+
+            // Compute delta cayley.
+            delta_cayley = lm_hessian.ldlt().solve(bias);
+            ReportInfo("[Relative Rotation] Iter " << iter << " : dx is " << LogVec(delta_cayley));
+            CONTINUE_IF(Eigen::isnan(delta_cayley.array()).any());
+
+            // Check if this step is valid.
+            const Vec3 temp_cayley = cayley + delta_cayley;
+            Mat3 M = Mat3::Zero();
+            const float newest_residual = ComputeSmallestEVWithM(terms, temp_cayley, M);
+            const float scale = delta_cayley.dot(lambda * delta_cayley + bias) + 1e-6f;
+            const float rho = 0.5f * (residual - newest_residual) / scale;
+
+            // Update lm lambda and v.
+            if (rho > 0.0f) {
+                lambda *= std::max(0.33333f, static_cast<float>(1.0f - std::pow(2.0f * rho - 1.0f, 3)));
+                v = 2.0f;
+
+                // Update cayley.
+                cayley = temp_cayley;
+                break;
+            } else {
+                lambda *= v;
+                v *= 2.0f;
+            }
+        }
+
+        // If all trials are failed, stop optimization.
+        BREAK_IF(v > 2.1f);
+
+        // Check convergence.
+        BREAK_IF(delta_cayley.norm() < 1e-6f);
+    }
 
     // Compute matrix M.
     const Mat3 R_cr = Utility::ConvertCayleyToRotationMatrix(cayley);
@@ -87,6 +139,7 @@ bool RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
 
     // Compute translation.
     Vec3 t_cr = eigen_values.head<2>().norm() * eigen_vectors.col(2);
+    ReportInfo("[Relative Rotation] Estimated t_cr is " << LogVec(t_cr));
 
     return true;
 }
@@ -393,6 +446,33 @@ void RelativeRotation::ComputeMWithJacobians(const SummationTerms &terms,
     M_jac3(1, 0) = M_jac3(0, 1);
     M_jac3(2, 0) = M_jac3(0, 2);
     M_jac3(2, 1) = M_jac3(1, 2);
+}
+
+float RelativeRotation::ComputeSmallestEVWithM(const SummationTerms &terms,
+                                               const Vec3 &cayley,
+                                               Mat3 &M) {
+    ComputeM(terms, cayley, M);
+
+    //Retrieve the smallest Eigenvalue by the following closed form solution
+    float b = - M(0, 0) - M(1, 1) - M(2, 2);
+    float c = - pow(M(0, 2), 2) - pow(M(1, 2), 2) - pow(M(0, 1), 2)+
+        M(0,0)*M(1,1)+M(0,0)*M(2,2)+M(1,1)*M(2,2);
+    float d = M(1,1)*pow(M(0,2),2)+M(0,0)*pow(M(1,2),2)+M(2,2)*pow(M(0,1),2)-
+        M(0,0)*M(1,1)*M(2,2)-2*M(0,1)*M(1,2)*M(0,2);
+
+    float s = 2*pow(b,3)-9*b*c+27*d;
+    float t = 4*pow((pow(b,2)-3*c),3);
+
+    float alpha = acos(s/sqrt(t));
+    float beta = alpha/3;
+    float y = cos(beta);
+
+    float r = 0.5*sqrt(t);
+    float w = pow(r,(1.0/3.0));
+
+    float k = w*y;
+    float smallestEV = (-b-2*k)/3;
+    return smallestEV;
 }
 
 float RelativeRotation::ComputeSmallestEVWithJacobian(const SummationTerms &terms,

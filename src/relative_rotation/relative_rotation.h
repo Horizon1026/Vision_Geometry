@@ -54,6 +54,9 @@ private:
                                const Vec3 &cayley,
                                Jacobians &jacobians,
                                Mat3 &M);
+    float ComputeSmallestEVWithM(const SummationTerms &terms,
+                                 const Vec3 &cayley,
+                                 Mat3 &M);
     float ComputeSmallestEVWithJacobian(const SummationTerms &terms,
                                         const Vec3 &cayley,
                                         Mat1x3 &jacobian);
