@@ -49,7 +49,8 @@ public:
 
 private:
     bool EstimateRotationUseAll(const SummationTerms &terms,
-                                Quat &q_cr);
+                                Quat &q_cr,
+                                Vec3 &t_cr);
     void ComputeMWithJacobians(const SummationTerms &terms,
                                const Vec3 &cayley,
                                Jacobians &jacobians,
@@ -57,7 +58,7 @@ private:
     float ComputeSmallestEVWithM(const SummationTerms &terms,
                                  const Vec3 &cayley,
                                  Mat3 &M);
-    float ComputeSmallestEVWithJacobian(const SummationTerms &terms,
+    float ComputeSmallestEigenValueAndJacobian(const SummationTerms &terms,
                                         const Vec3 &cayley,
                                         Mat1x3 &jacobian);
 

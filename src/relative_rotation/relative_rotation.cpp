@@ -40,27 +40,41 @@ bool RelativeRotation::EstimateRotation(const std::vector<Vec2> &ref_norm_xy,
     }
 
     // Estimate rotation between reference and current frame.
-    if (!EstimateRotationUseAll(terms, q_cr)) {
+    Vec3 t_cr = Vec3::Zero();
+    if (!EstimateRotationUseAll(terms, q_cr, t_cr)) {
         ReportError("[Relative Rotation] Failed to estimate rotation.");
         return false;
     }
+
+    // Correct the translation.
+    for (uint32_t i = 0; i < ref_sphere_xyz.size(); ++i) {
+        const Vec3 &f1 = ref_sphere_xyz[i];
+        const Vec3 &f2 = cur_sphere_xyz[i];
+        const Vec3 temp_f2 = q_cr * f2;
+        const Vec3 optical_flow = f1 - temp_f2;
+        if (optical_flow.dot(t_cr) < 0) {
+            t_cr = - t_cr;
+        }
+    }
+
     return true;
 }
 
 bool RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
-                                              Quat &q_cr) {
+                                              Quat &q_cr,
+                                              Vec3 &t_cr) {
     // Prepare for optimizaiton.
     Vec3 cayley = Utility::ConvertRotationMatrixToCayley(q_cr.matrix());
 
     // Optimize cayley.
-    const uint32_t max_iteration = 20;
+    const uint32_t max_iteration = 10;
     Vec3 delta_cayley = Vec3::Zero();
     float lambda = 1e-4f;
     float v = 2.0f;
     for (uint32_t iter = 0; iter < max_iteration; ++iter) {
         // Compute residual and jacobian (Linearize this problem).
         Mat1x3 jacobian = Mat1x3::Zero();
-        const float residual = ComputeSmallestEVWithJacobian(terms, cayley, jacobian);
+        const float residual = ComputeSmallestEigenValueAndJacobian(terms, cayley, jacobian);
 
         // Construct incremental function.
         const Mat3 hessian = jacobian.transpose() * jacobian;
@@ -70,13 +84,12 @@ bool RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
             // Add robust diagonal.
             Mat3 lm_hessian = hessian;
             for (uint32_t i = 0; i < 3; ++i) {
-                const float temp = std::min(1e32f, std::max(1e-10f, lm_hessian(i, i)));
-                lm_hessian(i, i) = lambda * temp;
+                const float temp = std::min(1e32f, std::max(1e-10f, hessian(i, i)));
+                lm_hessian(i, i) += lambda * temp;
             }
 
             // Compute delta cayley.
             delta_cayley = lm_hessian.ldlt().solve(bias);
-            ReportInfo("[Relative Rotation] Iter " << iter << " : dx is " << LogVec(delta_cayley));
             CONTINUE_IF(Eigen::isnan(delta_cayley.array()).any());
 
             // Check if this step is valid.
@@ -85,6 +98,10 @@ bool RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
             const float newest_residual = ComputeSmallestEVWithM(terms, temp_cayley, M);
             const float scale = delta_cayley.dot(lambda * delta_cayley + bias) + 1e-6f;
             const float rho = 0.5f * (residual - newest_residual) / scale;
+
+            // Report information for debug.
+            ReportInfo("[Relative Rotation] Iter " << iter << " : dx " << LogVec(delta_cayley) << ", rho " << rho <<
+                ", lambda " << lambda << ", residual [" << newest_residual << " > " << residual << "]");
 
             // Update lm lambda and v.
             if (rho > 0.0f) {
@@ -138,7 +155,7 @@ bool RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
     }
 
     // Compute translation.
-    Vec3 t_cr = eigen_values.head<2>().norm() * eigen_vectors.col(2);
+    t_cr = eigen_values.head<2>().norm() * eigen_vectors.col(2);
     ReportInfo("[Relative Rotation] Estimated t_cr is " << LogVec(t_cr));
 
     return true;
@@ -475,7 +492,7 @@ float RelativeRotation::ComputeSmallestEVWithM(const SummationTerms &terms,
     return smallestEV;
 }
 
-float RelativeRotation::ComputeSmallestEVWithJacobian(const SummationTerms &terms,
+float RelativeRotation::ComputeSmallestEigenValueAndJacobian(const SummationTerms &terms,
                                                       const Vec3 &cayley,
                                                       Mat1x3 &jacobian) {
     Jacobians jacobians;

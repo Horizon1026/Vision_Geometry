@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
     // 定义两帧位姿
     Mat3 R_rw = Mat3::Identity();
     Vec3 t_rw = Vec3::Zero();
-    Mat3 R_cw = Quat(0.5, 0.5, 0, 0).normalized().matrix();
+    Mat3 R_cw = Quat(1.0, 0.01, 0, 0).normalized().matrix();
     Vec3 t_cw = Vec3(0, 0, 0);
 
     // 将 3D 点云通过两帧位姿映射到对应的归一化平面上，构造匹配点对
