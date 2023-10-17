@@ -17,26 +17,26 @@ bool RelativeRotation::EstimateRotation(const std::vector<Vec2> &ref_norm_xy,
     ref_sphere_xyz.reserve(ref_norm_xy.size());
     cur_sphere_xyz.reserve(cur_norm_xy.size());
     for (const auto &norm_xy : ref_norm_xy) {
-        ref_sphere_xyz.emplace_back(Vec3(norm_xy.x(), norm_xy.y(), 1.0f).normalized());
+        ref_sphere_xyz.emplace_back(Vec3(norm_xy.x(), norm_xy.y(), 1.0f));
     }
     for (const auto &norm_xy : cur_norm_xy) {
-        cur_sphere_xyz.emplace_back(Vec3(norm_xy.x(), norm_xy.y(), 1.0f).normalized());
+        cur_sphere_xyz.emplace_back(Vec3(norm_xy.x(), norm_xy.y(), 1.0f));
     }
 
     // Compute summation terms.
     SummationTerms terms;
     for (uint32_t i = 0; i < ref_sphere_xyz.size(); ++i) {
-        const Vec3 &f1 = ref_sphere_xyz[i];
-        const Vec3 &f2 = cur_sphere_xyz[i];
-        const Mat3 F = f2 * f2.transpose();
+        const Vec3 &f_r = ref_sphere_xyz[i];
+        const Vec3 &f_c = cur_sphere_xyz[i];
+        const Mat3 F = f_r * f_r.transpose();
         const float weight = 1.0f;
 
-        terms.xx += weight * f1.x() * f1.x() * F;
-        terms.yy += weight * f1.y() * f1.y() * F;
-        terms.zz += weight * f1.z() * f1.z() * F;
-        terms.xy += weight * f1.x() * f1.y() * F;
-        terms.yz += weight * f1.y() * f1.z() * F;
-        terms.zx += weight * f1.z() * f1.x() * F;
+        terms.xx += weight * f_c.x() * f_c.x() * F;
+        terms.yy += weight * f_c.y() * f_c.y() * F;
+        terms.zz += weight * f_c.z() * f_c.z() * F;
+        terms.xy += weight * f_c.x() * f_c.y() * F;
+        terms.yz += weight * f_c.y() * f_c.z() * F;
+        terms.zx += weight * f_c.z() * f_c.x() * F;
     }
 
     // Estimate rotation between reference and current frame.
@@ -47,14 +47,12 @@ bool RelativeRotation::EstimateRotation(const std::vector<Vec2> &ref_norm_xy,
     }
 
     // Correct the translation.
-    for (uint32_t i = 0; i < ref_sphere_xyz.size(); ++i) {
-        const Vec3 &f1 = ref_sphere_xyz[i];
-        const Vec3 &f2 = cur_sphere_xyz[i];
-        const Vec3 temp_f2 = q_cr * f2;
-        const Vec3 optical_flow = f1 - temp_f2;
-        if (optical_flow.dot(t_cr) < 0) {
-            t_cr = - t_cr;
-        }
+    const Vec3 &f_r = ref_sphere_xyz.front();
+    const Vec3 &f_c = cur_sphere_xyz.front();
+    const Vec3 temp_f_c = q_cr * f_r;
+    const Vec3 optical_flow = f_c - temp_f_c;
+    if (optical_flow.dot(t_cr) < 0) {
+        t_cr = - t_cr;
     }
 
     return true;
@@ -64,69 +62,26 @@ bool RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
                                               Quat &q_cr,
                                               Vec3 &t_cr) {
     // Prepare for optimizaiton.
-    Vec3 cayley = Utility::ConvertRotationMatrixToCayley(q_cr.matrix());
+    const int n = 3;
+    Vec x(n);
+    x = Utility::ConvertRotationMatrixToCayley(q_cr.matrix());
 
-    // Optimize cayley.
-    const uint32_t max_iteration = 10;
-    Vec3 delta_cayley = Vec3::Zero();
-    float lambda = 1e-4f;
-    float v = 2.0f;
-    for (uint32_t iter = 0; iter < max_iteration; ++iter) {
-        // Compute residual and jacobian (Linearize this problem).
-        Mat1x3 jacobian = Mat1x3::Zero();
-        const float residual = ComputeSmallestEigenValueAndJacobian(terms, cayley, jacobian);
+    // Use LM solver in eigen3 to optimize x.
+    EigenSolverStep functor(terms);
+    Eigen::NumericalDiff<EigenSolverStep> num_diff(functor);
+    Eigen::LevenbergMarquardt<Eigen::NumericalDiff<EigenSolverStep>, float> solver(num_diff);
+    solver.resetParameters();
+    solver.parameters.ftol = 0.00005;
+    solver.parameters.xtol = 1.E1 * Eigen::NumTraits<float>::epsilon();
+    solver.parameters.maxfev = 100;
+    solver.minimize(x);
 
-        // Construct incremental function.
-        const Mat3 hessian = jacobian.transpose() * jacobian;
-        const Vec3 bias = - jacobian.transpose() * residual;
-
-        for (uint32_t j = 0; j < max_iteration; ++j) {
-            // Add robust diagonal.
-            Mat3 lm_hessian = hessian;
-            for (uint32_t i = 0; i < 3; ++i) {
-                const float temp = std::min(1e32f, std::max(1e-10f, hessian(i, i)));
-                lm_hessian(i, i) += lambda * temp;
-            }
-
-            // Compute delta cayley.
-            delta_cayley = lm_hessian.ldlt().solve(bias);
-            CONTINUE_IF(Eigen::isnan(delta_cayley.array()).any());
-
-            // Check if this step is valid.
-            const Vec3 temp_cayley = cayley + delta_cayley;
-            Mat3 M = Mat3::Zero();
-            const float newest_residual = ComputeSmallestEVWithM(terms, temp_cayley, M);
-            const float scale = delta_cayley.dot(lambda * delta_cayley + bias) + 1e-6f;
-            const float rho = 0.5f * (residual - newest_residual) / scale;
-
-            // Report information for debug.
-            ReportInfo("[Relative Rotation] Iter " << iter << " : dx " << LogVec(delta_cayley) << ", rho " << rho <<
-                ", lambda " << lambda << ", residual [" << newest_residual << " > " << residual << "]");
-
-            // Update lm lambda and v.
-            if (rho > 0.0f) {
-                lambda *= std::max(0.33333f, static_cast<float>(1.0f - std::pow(2.0f * rho - 1.0f, 3)));
-                v = 2.0f;
-
-                // Update cayley.
-                cayley = temp_cayley;
-                break;
-            } else {
-                lambda *= v;
-                v *= 2.0f;
-            }
-        }
-
-        // If all trials are failed, stop optimization.
-        BREAK_IF(v > 2.1f);
-
-        // Check convergence.
-        BREAK_IF(delta_cayley.norm() < 1e-6f);
-    }
-
-    // Compute matrix M.
+    // Recovery rotation matrix from cayley.
+    Vec3 cayley = x;
     const Mat3 R_cr = Utility::ConvertCayleyToRotationMatrix(cayley);
     q_cr = Quat(R_cr);
+
+    // Compute matrix M to recovery translation.
     Mat3 M = Mat3::Zero();
     ComputeM(terms, cayley, M);
 
@@ -152,6 +107,7 @@ bool RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
     for (const auto &eigen_value_vector : eigen_values_vectors) {
         eigen_values(idx) = eigen_value_vector.first;
         eigen_vectors.col(idx) = eigen_value_vector.second;
+        ++idx;
     }
 
     // Compute translation.
@@ -465,7 +421,7 @@ void RelativeRotation::ComputeMWithJacobians(const SummationTerms &terms,
     M_jac3(2, 1) = M_jac3(1, 2);
 }
 
-float RelativeRotation::ComputeSmallestEVWithM(const SummationTerms &terms,
+float RelativeRotation::ComputeSmallestEigenValueWithM(const SummationTerms &terms,
                                                const Vec3 &cayley,
                                                Mat3 &M) {
     ComputeM(terms, cayley, M);
@@ -493,8 +449,8 @@ float RelativeRotation::ComputeSmallestEVWithM(const SummationTerms &terms,
 }
 
 float RelativeRotation::ComputeSmallestEigenValueAndJacobian(const SummationTerms &terms,
-                                                      const Vec3 &cayley,
-                                                      Mat1x3 &jacobian) {
+                                                             const Vec3 &cayley,
+                                                             Mat1x3 &jacobian) {
     Jacobians jacobians;
     Mat3 M = Mat3::Zero();
     ComputeMWithJacobians(terms, cayley, jacobians, M);

@@ -2,6 +2,10 @@
 #define _RELATIVE_ROTATION_H_
 
 #include "datatype_basic.h"
+#include "eigen_optimization_functor.h"
+
+#include "eigen3/unsupported/Eigen/NonLinearOptimization"
+#include "eigen3/unsupported/Eigen/NumericalDiff"
 
 namespace VISION_GEOMETRY {
 
@@ -47,20 +51,21 @@ public:
     // Const reference for member variables.
     const RelativeRotationOptions &options() const { return options_;}
 
+    static void ComputeMWithJacobians(const SummationTerms &terms,
+                                      const Vec3 &cayley,
+                                      Jacobians &jacobians,
+                                      Mat3 &M);
+    static float ComputeSmallestEigenValueAndJacobian(const SummationTerms &terms,
+                                                      const Vec3 &cayley,
+                                                      Mat1x3 &jacobian);
+
 private:
     bool EstimateRotationUseAll(const SummationTerms &terms,
                                 Quat &q_cr,
                                 Vec3 &t_cr);
-    void ComputeMWithJacobians(const SummationTerms &terms,
-                               const Vec3 &cayley,
-                               Jacobians &jacobians,
-                               Mat3 &M);
-    float ComputeSmallestEVWithM(const SummationTerms &terms,
-                                 const Vec3 &cayley,
-                                 Mat3 &M);
-    float ComputeSmallestEigenValueAndJacobian(const SummationTerms &terms,
-                                        const Vec3 &cayley,
-                                        Mat1x3 &jacobian);
+    float ComputeSmallestEigenValueWithM(const SummationTerms &terms,
+                                         const Vec3 &cayley,
+                                         Mat3 &M);
 
     void ComputeM(const SummationTerms &terms,
                   const Vec3 &cayley,
@@ -69,6 +74,29 @@ private:
 private:
     RelativeRotationOptions options_;
 };
+
+/* Eigen Solver Step Definition. */
+struct EigenSolverStep : OptimizationFunctor<float> {
+    const SummationTerms &terms_;
+
+    EigenSolverStep(const SummationTerms &terms) :
+        OptimizationFunctor<float>(3, 3),
+        terms_(terms) {}
+
+    int operator()(const Vec &x, Vec &fvec) const {
+        Vec3 cayley = x;
+        Mat1x3 jacobian = Mat1x3::Zero();
+
+        RelativeRotation::ComputeSmallestEigenValueAndJacobian(terms_, cayley, jacobian);
+
+        fvec[0] = jacobian(0, 0);
+        fvec[1] = jacobian(0, 1);
+        fvec[2] = jacobian(0, 2);
+
+        return 0;
+    }
+};
+
 }
 
 #endif // end of _RELATIVE_ROTATION_H_
