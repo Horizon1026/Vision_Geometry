@@ -7,8 +7,7 @@ namespace VISION_GEOMETRY {
 
 bool RelativeRotation::EstimateRotation(const std::vector<Vec2> &ref_norm_xy,
                                         const std::vector<Vec2> &cur_norm_xy,
-                                        Quat &q_cr,
-                                        std::vector<uint8_t> &status) {
+                                        Quat &q_cr) {
     RETURN_FALSE_IF(ref_norm_xy.size() != cur_norm_xy.size());
 
     // Lift all observations from norm plane to unit sphere.
@@ -59,6 +58,12 @@ bool RelativeRotation::EstimateRotation(const std::vector<Vec2> &ref_norm_xy,
 }
 
 bool RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
+                                              Quat &q_cr) {
+    Vec3 t_cr = Vec3::Zero();
+    return EstimateRotationUseAll(terms, q_cr, t_cr);
+}
+
+bool RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
                                               Quat &q_cr,
                                               Vec3 &t_cr) {
     // Prepare for optimizaiton.
@@ -71,8 +76,8 @@ bool RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
     Eigen::NumericalDiff<EigenSolverStep> num_diff(functor);
     Eigen::LevenbergMarquardt<Eigen::NumericalDiff<EigenSolverStep>, float> solver(num_diff);
     solver.resetParameters();
-    solver.parameters.ftol = 0.00005;
-    solver.parameters.xtol = 1.E1 * Eigen::NumTraits<float>::epsilon();
+    solver.parameters.ftol = 5e-5f;
+    solver.parameters.xtol = Eigen::NumTraits<float>::epsilon();
     solver.parameters.maxfev = 100;
     solver.minimize(x);
 
@@ -112,7 +117,6 @@ bool RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
 
     // Compute translation.
     t_cr = eigen_values.head<2>().norm() * eigen_vectors.col(2);
-    ReportInfo("[Relative Rotation] Estimated t_cr is " << LogVec(t_cr));
 
     return true;
 }

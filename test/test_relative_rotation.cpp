@@ -1,18 +1,17 @@
-/* 外部依赖 */
 #include "fstream"
 #include "iostream"
 #include "cmath"
 
-/* 内部依赖 */
 #include "relative_rotation.h"
 #include "log_report.h"
+#include "math_kinematics.h"
 
 
 int main(int argc, char **argv) {
     ReportInfo(YELLOW ">> Relative Rotation Module Test" RESET_COLOR);
     LogFixPercision(8);
 
-    // 构造 3D 点云
+    // Create 3d point cloud.
     std::vector<Vec3> points;
     for (int i = 1; i < 10; i++) {
         for (int j = 1; j < 10; j++) {
@@ -22,13 +21,13 @@ int main(int argc, char **argv) {
         }
     }
 
-    // 定义两帧位姿
+    // Create two camera frame with pose in word frame.
     Mat3 R_rw = Mat3::Identity();
     Vec3 t_rw = Vec3::Zero();
-    Mat3 R_cw = Quat(1.0, 0.02, 0.0, 0.0).normalized().matrix();
-    Vec3 t_cw = Vec3(1, 1, 0);
+    Mat3 R_cw = Quat(1.0, 0.1, 0.0, 0.0).normalized().matrix();
+    Vec3 t_cw = Vec3(1.2, 0.2, 0.2);
 
-    // 将 3D 点云通过两帧位姿映射到对应的归一化平面上，构造匹配点对
+    // Compute pairs of features in two camera frames.
     std::vector<Vec2> ref_norm_xy, cur_norm_xy;
     for (uint32_t i = 0; i < points.size(); ++i) {
         const Vec3 p_r = R_rw * points[i] + t_rw;
@@ -39,13 +38,14 @@ int main(int argc, char **argv) {
 
     VISION_GEOMETRY::RelativeRotation solver;
     Quat q_cr = Quat::Identity();
-    std::vector<uint8_t> status;
 
-    solver.EstimateRotation(ref_norm_xy, cur_norm_xy, q_cr, status);
-    ReportInfo("Estimated q_cr is " << LogQuat(q_cr));
+    solver.EstimateRotation(ref_norm_xy, cur_norm_xy, q_cr);
+    Vec3 euler = Utility::QuaternionToEuler(q_cr);
+    ReportInfo("Estimated q_cr is " << LogQuat(q_cr) << ", euler(deg) is " << LogVec(euler));
 
     q_cr = Quat(R_cw * R_rw.transpose());
-    ReportInfo("Ground truh q_cr is " << LogQuat(q_cr));
+    euler = Utility::QuaternionToEuler(q_cr);
+    ReportInfo("Ground truh q_cr is " << LogQuat(q_cr) << ", euler(deg) is " << LogVec(euler));
 
     return 0;
 }

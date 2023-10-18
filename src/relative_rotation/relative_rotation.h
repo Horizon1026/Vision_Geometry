@@ -42,8 +42,7 @@ public:
 
     bool EstimateRotation(const std::vector<Vec2> &ref_norm_xy,
                           const std::vector<Vec2> &cur_norm_xy,
-                          Quat &q_cr,
-                          std::vector<uint8_t> &status);
+                          Quat &q_cr);
 
     // Reference for member variables.
     RelativeRotationOptions &options() { return options_;}
@@ -60,6 +59,8 @@ public:
                                                       Mat1x3 &jacobian);
 
 private:
+    bool EstimateRotationUseAll(const SummationTerms &terms,
+                                Quat &q_cr);
     bool EstimateRotationUseAll(const SummationTerms &terms,
                                 Quat &q_cr,
                                 Vec3 &t_cr);
