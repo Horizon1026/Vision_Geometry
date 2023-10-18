@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
     // Create two camera frame with pose in word frame.
     Mat3 R_rw = Mat3::Identity();
     Vec3 t_rw = Vec3::Zero();
-    Mat3 R_cw = Quat(1.0, 0.1, 0.0, 0.0).normalized().matrix();
+    Mat3 R_cw = Quat(1.0, 0.2, 0.0, 0.0).normalized().matrix();
     Vec3 t_cw = Vec3(1.2, 0.2, 0.2);
 
     // Compute pairs of features in two camera frames.

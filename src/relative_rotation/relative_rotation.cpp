@@ -8,25 +8,15 @@ namespace VISION_GEOMETRY {
 bool RelativeRotation::EstimateRotation(const std::vector<Vec2> &ref_norm_xy,
                                         const std::vector<Vec2> &cur_norm_xy,
                                         Quat &q_cr) {
+    RETURN_FALSE_IF(ref_norm_xy.empty());
     RETURN_FALSE_IF(ref_norm_xy.size() != cur_norm_xy.size());
-
-    // Lift all observations from norm plane to unit sphere.
-    std::vector<Vec3> ref_sphere_xyz;
-    std::vector<Vec3> cur_sphere_xyz;
-    ref_sphere_xyz.reserve(ref_norm_xy.size());
-    cur_sphere_xyz.reserve(cur_norm_xy.size());
-    for (const auto &norm_xy : ref_norm_xy) {
-        ref_sphere_xyz.emplace_back(Vec3(norm_xy.x(), norm_xy.y(), 1.0f));
-    }
-    for (const auto &norm_xy : cur_norm_xy) {
-        cur_sphere_xyz.emplace_back(Vec3(norm_xy.x(), norm_xy.y(), 1.0f));
-    }
+    q_cr.normalize();
 
     // Compute summation terms.
     SummationTerms terms;
-    for (uint32_t i = 0; i < ref_sphere_xyz.size(); ++i) {
-        const Vec3 &f_r = ref_sphere_xyz[i];
-        const Vec3 &f_c = cur_sphere_xyz[i];
+    for (uint32_t i = 0; i < ref_norm_xy.size(); ++i) {
+        const Vec3 f_r = Vec3(ref_norm_xy[i].x(), ref_norm_xy[i].y(), 1.0f);
+        const Vec3 f_c = Vec3(cur_norm_xy[i].x(), cur_norm_xy[i].y(), 1.0f);
         const Mat3 F = f_r * f_r.transpose();
         const float weight = 1.0f;
 
@@ -46,8 +36,8 @@ bool RelativeRotation::EstimateRotation(const std::vector<Vec2> &ref_norm_xy,
     }
 
     // Correct the translation.
-    const Vec3 &f_r = ref_sphere_xyz.front();
-    const Vec3 &f_c = cur_sphere_xyz.front();
+    const Vec3 f_r = Vec3(ref_norm_xy[0].x(), ref_norm_xy[0].y(), 1.0f);
+    const Vec3 f_c = Vec3(cur_norm_xy[0].x(), cur_norm_xy[0].y(), 1.0f);
     const Vec3 temp_f_c = q_cr * f_r;
     const Vec3 optical_flow = f_c - temp_f_c;
     if (optical_flow.dot(t_cr) < 0) {
@@ -115,7 +105,7 @@ bool RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
         ++idx;
     }
 
-    // Compute translation.
+    // Compute translation, but it seems not good.
     t_cr = eigen_values.head<2>().norm() * eigen_vectors.col(2);
 
     return true;
