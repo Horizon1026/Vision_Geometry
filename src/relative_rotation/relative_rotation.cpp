@@ -14,26 +14,28 @@ bool RelativeRotation::EstimateRotation(const std::vector<Vec2> &ref_norm_xy,
 
     // Compute summation terms.
     SummationTerms terms;
-    for (uint32_t i = 0; i < ref_norm_xy.size(); ++i) {
-        const Vec3 f_r = Vec3(ref_norm_xy[i].x(), ref_norm_xy[i].y(), 1.0f);
-        const Vec3 f_c = Vec3(cur_norm_xy[i].x(), cur_norm_xy[i].y(), 1.0f);
-        const Mat3 F = f_r * f_r.transpose();
-        const float weight = 1.0f;
-
-        terms.xx += weight * f_c.x() * f_c.x() * F;
-        terms.yy += weight * f_c.y() * f_c.y() * F;
-        terms.zz += weight * f_c.z() * f_c.z() * F;
-        terms.xy += weight * f_c.x() * f_c.y() * F;
-        terms.yz += weight * f_c.y() * f_c.z() * F;
-        terms.zx += weight * f_c.z() * f_c.x() * F;
-    }
+    ComputeSummationTerms(ref_norm_xy, cur_norm_xy, terms);
 
     // Estimate rotation between reference and current frame.
-    Vec3 t_cr = Vec3::Zero();
-    if (!EstimateRotationUseAll(terms, q_cr, t_cr)) {
-        ReportError("[Relative Rotation] Failed to estimate rotation.");
-        return false;
-    }
+    EstimateRotationUseAll(terms, q_cr);
+
+    return true;
+}
+
+bool RelativeRotation::EstimatePose(const std::vector<Vec2> &ref_norm_xy,
+                                    const std::vector<Vec2> &cur_norm_xy,
+                                    Quat &q_cr,
+                                    Vec3 &t_cr) {
+    RETURN_FALSE_IF(ref_norm_xy.empty());
+    RETURN_FALSE_IF(ref_norm_xy.size() != cur_norm_xy.size());
+    q_cr.normalize();
+
+    // Compute summation terms.
+    SummationTerms terms;
+    ComputeSummationTerms(ref_norm_xy, cur_norm_xy, terms);
+
+    // Estimate rotation between reference and current frame.
+    EstimatePoseUseAll(terms, q_cr, t_cr);
 
     // Correct the translation.
     const Vec3 f_r = Vec3(ref_norm_xy[0].x(), ref_norm_xy[0].y(), 1.0f);
@@ -47,15 +49,26 @@ bool RelativeRotation::EstimateRotation(const std::vector<Vec2> &ref_norm_xy,
     return true;
 }
 
-bool RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
-                                              Quat &q_cr) {
-    Vec3 t_cr = Vec3::Zero();
-    return EstimateRotationUseAll(terms, q_cr, t_cr);
+void RelativeRotation::ComputeSummationTerms(const std::vector<Vec2> &ref_norm_xy,
+                                             const std::vector<Vec2> &cur_norm_xy,
+                                             SummationTerms &terms) {
+    for (uint32_t i = 0; i < ref_norm_xy.size(); ++i) {
+        const Vec3 f_r = Vec3(ref_norm_xy[i].x(), ref_norm_xy[i].y(), 1.0f);
+        const Vec3 f_c = Vec3(cur_norm_xy[i].x(), cur_norm_xy[i].y(), 1.0f);
+        const Mat3 F = f_r * f_r.transpose();
+        const float weight = 1.0f;
+
+        terms.xx += weight * f_c.x() * f_c.x() * F;
+        terms.yy += weight * f_c.y() * f_c.y() * F;
+        terms.zz += weight * f_c.z() * f_c.z() * F;
+        terms.xy += weight * f_c.x() * f_c.y() * F;
+        terms.yz += weight * f_c.y() * f_c.z() * F;
+        terms.zx += weight * f_c.z() * f_c.x() * F;
+    }
 }
 
-bool RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
-                                              Quat &q_cr,
-                                              Vec3 &t_cr) {
+Vec3 RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
+                                              Quat &q_cr) {
     // Prepare for optimizaiton.
     const int n = 3;
     Vec x(n);
@@ -75,6 +88,15 @@ bool RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
     Vec3 cayley = x;
     const Mat3 R_cr = Utility::ConvertCayleyToRotationMatrix(cayley);
     q_cr = Quat(R_cr);
+
+    return cayley;
+}
+
+void RelativeRotation::EstimatePoseUseAll(const SummationTerms &terms,
+                                          Quat &q_cr,
+                                          Vec3 &t_cr) {
+    // Estiamte rotation with cayley format.
+    Vec3 cayley = EstimateRotationUseAll(terms, q_cr);
 
     // Compute matrix M to recovery translation.
     Mat3 M = Mat3::Zero();
@@ -107,8 +129,6 @@ bool RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
 
     // Compute translation, but it seems not good.
     t_cr = eigen_values.head<2>().norm() * eigen_vectors.col(2);
-
-    return true;
 }
 
 void RelativeRotation::ComputeMWithJacobians(const SummationTerms &terms,

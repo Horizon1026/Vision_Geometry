@@ -38,14 +38,27 @@ int main(int argc, char **argv) {
 
     VISION_GEOMETRY::RelativeRotation solver;
     Quat q_cr = Quat::Identity();
+    Vec3 t_cr = Vec3::Zero();
+    Vec3 euler = Vec3::Zero();
 
+    // Test estimate both rotation and translation.
+    q_cr.setIdentity();
+    solver.EstimatePose(ref_norm_xy, cur_norm_xy, q_cr, t_cr);
+    euler = Utility::QuaternionToEuler(q_cr);
+    ReportInfo("Estimated q_cr is " << LogQuat(q_cr) << ", euler(deg) is " << LogVec(euler));
+    ReportInfo("Estimated t_cr is " << LogVec(t_cr));
+
+    // Test only estimate rotation.
+    q_cr.setIdentity();
     solver.EstimateRotation(ref_norm_xy, cur_norm_xy, q_cr);
-    Vec3 euler = Utility::QuaternionToEuler(q_cr);
+    euler = Utility::QuaternionToEuler(q_cr);
     ReportInfo("Estimated q_cr is " << LogQuat(q_cr) << ", euler(deg) is " << LogVec(euler));
 
+    // Show the ground truth.
     q_cr = Quat(R_cw * R_rw.transpose());
     euler = Utility::QuaternionToEuler(q_cr);
     ReportInfo("Ground truh q_cr is " << LogQuat(q_cr) << ", euler(deg) is " << LogVec(euler));
+    ReportInfo("Ground truh t_cr is " << LogVec(t_cw));
 
     return 0;
 }

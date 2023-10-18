@@ -43,6 +43,10 @@ public:
     bool EstimateRotation(const std::vector<Vec2> &ref_norm_xy,
                           const std::vector<Vec2> &cur_norm_xy,
                           Quat &q_cr);
+    bool EstimatePose(const std::vector<Vec2> &ref_norm_xy,
+                      const std::vector<Vec2> &cur_norm_xy,
+                      Quat &q_cr,
+                      Vec3 &t_cr);
 
     // Reference for member variables.
     RelativeRotationOptions &options() { return options_;}
@@ -50,6 +54,10 @@ public:
     // Const reference for member variables.
     const RelativeRotationOptions &options() const { return options_;}
 
+    // Static functinos.
+    static void ComputeM(const SummationTerms &terms,
+                         const Vec3 &cayley,
+                         Mat3 &M);
     static void ComputeMWithJacobians(const SummationTerms &terms,
                                       const Vec3 &cayley,
                                       Jacobians &jacobians,
@@ -57,20 +65,21 @@ public:
     static float ComputeSmallestEigenValueAndJacobian(const SummationTerms &terms,
                                                       const Vec3 &cayley,
                                                       Mat1x3 &jacobian);
+    static float ComputeSmallestEigenValueWithM(const SummationTerms &terms,
+                                                const Vec3 &cayley,
+                                                Mat3 &M);
 
 private:
-    bool EstimateRotationUseAll(const SummationTerms &terms,
+    void ComputeSummationTerms(const std::vector<Vec2> &ref_norm_xy,
+                               const std::vector<Vec2> &cur_norm_xy,
+                               SummationTerms &terms);
+    // Only estimate rotation, and return the cayley format of it.
+    Vec3 EstimateRotationUseAll(const SummationTerms &terms,
                                 Quat &q_cr);
-    bool EstimateRotationUseAll(const SummationTerms &terms,
-                                Quat &q_cr,
-                                Vec3 &t_cr);
-    float ComputeSmallestEigenValueWithM(const SummationTerms &terms,
-                                         const Vec3 &cayley,
-                                         Mat3 &M);
-
-    void ComputeM(const SummationTerms &terms,
-                  const Vec3 &cayley,
-                  Mat3 &M);
+    // Estimate rotation and translation.
+    void EstimatePoseUseAll(const SummationTerms &terms,
+                            Quat &q_cr,
+                            Vec3 &t_cr);
 
 private:
     RelativeRotationOptions options_;
