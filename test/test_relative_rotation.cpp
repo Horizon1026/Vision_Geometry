@@ -24,8 +24,8 @@ int main(int argc, char **argv) {
     // Create two camera frame with pose in word frame.
     Mat3 R_rw = Mat3::Identity();
     Vec3 t_rw = Vec3::Zero();
-    Mat3 R_cw = Quat(1.0, 0.2, 0.0, 0.0).normalized().matrix();
-    Vec3 t_cw = Vec3(1.2, 0.2, 0.2);
+    Mat3 R_cw = Quat(1.0, 0.4, 0, 0).normalized().matrix();
+    Vec3 t_cw = Vec3(1, 1, 1);
 
     // Compute pairs of features in two camera frames.
     std::vector<Vec2> ref_norm_xy, cur_norm_xy;
@@ -41,6 +41,12 @@ int main(int argc, char **argv) {
     Vec3 t_cr = Vec3::Zero();
     Vec3 euler = Vec3::Zero();
 
+    // Show the ground truth.
+    q_cr = Quat(R_cw * R_rw.transpose());
+    euler = Utility::QuaternionToEuler(q_cr);
+    ReportInfo("Ground truh q_cr is " << LogQuat(q_cr) << ", euler(deg) is " << LogVec(euler));
+    ReportInfo("Ground truh t_cr is " << LogVec(t_cw));
+
     // Test estimate both rotation and translation.
     q_cr.setIdentity();
     solver.EstimatePose(ref_norm_xy, cur_norm_xy, q_cr, t_cr);
@@ -52,13 +58,13 @@ int main(int argc, char **argv) {
     q_cr.setIdentity();
     solver.EstimateRotation(ref_norm_xy, cur_norm_xy, q_cr);
     euler = Utility::QuaternionToEuler(q_cr);
-    ReportInfo("Estimated q_cr is " << LogQuat(q_cr) << ", euler(deg) is " << LogVec(euler));
+    ReportInfo("Directly estimated q_cr is " << LogQuat(q_cr) << ", euler(deg) is " << LogVec(euler));
 
-    // Show the ground truth.
-    q_cr = Quat(R_cw * R_rw.transpose());
+    // Test only estimate rotation with bnb.
+    q_cr.setIdentity();
+    solver.EstimateRotationByBnb(ref_norm_xy, cur_norm_xy, q_cr);
     euler = Utility::QuaternionToEuler(q_cr);
-    ReportInfo("Ground truh q_cr is " << LogQuat(q_cr) << ", euler(deg) is " << LogVec(euler));
-    ReportInfo("Ground truh t_cr is " << LogVec(t_cw));
+    ReportInfo("Bnb estimated q_cr is " << LogQuat(q_cr) << ", euler(deg) is " << LogVec(euler));
 
     return 0;
 }

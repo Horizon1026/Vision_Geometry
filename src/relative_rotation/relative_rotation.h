@@ -10,7 +10,12 @@
 namespace VISION_GEOMETRY {
 
 struct RelativeRotationOptions {
-    uint32_t kMaxIteration = 10;
+    float kHalfBoundOfPitchInDeg = 20.0f;
+    float kHalfBoundOfRollInDeg = 20.0f;
+    float kHalfBoundOfYawInDeg = 20.0f;
+    int32_t kDivisionsOfPitch = 3;
+    int32_t kDivisionsOfRoll = 3;
+    int32_t kDivisionsOfYaw = 3;
 };
 
 struct SummationTerms {
@@ -40,6 +45,9 @@ public:
     RelativeRotation() = default;
     virtual ~RelativeRotation() = default;
 
+    bool EstimateRotationByBnb(const std::vector<Vec2> &ref_norm_xy,
+                               const std::vector<Vec2> &cur_norm_xy,
+                               Quat &q_cr);
     bool EstimateRotation(const std::vector<Vec2> &ref_norm_xy,
                           const std::vector<Vec2> &cur_norm_xy,
                           Quat &q_cr);
@@ -49,10 +57,10 @@ public:
                       Vec3 &t_cr);
 
     // Reference for member variables.
-    RelativeRotationOptions &options() { return options_;}
+    RelativeRotationOptions &options() { return options_; }
 
     // Const reference for member variables.
-    const RelativeRotationOptions &options() const { return options_;}
+    const RelativeRotationOptions &options() const { return options_; }
 
     // Static functinos.
     static void ComputeM(const SummationTerms &terms,
