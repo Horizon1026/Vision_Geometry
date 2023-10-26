@@ -76,11 +76,12 @@ public:
     static float ComputeSmallestEigenValueWithM(const SummationTerms &terms,
                                                 const Vec3 &cayley,
                                                 Mat3 &M);
+    // Convert feature pairs to summation terms.
+    static void ComputeSummationTerms(const std::vector<Vec2> &ref_norm_xy,
+                                      const std::vector<Vec2> &cur_norm_xy,
+                                      SummationTerms &terms);
 
 private:
-    void ComputeSummationTerms(const std::vector<Vec2> &ref_norm_xy,
-                               const std::vector<Vec2> &cur_norm_xy,
-                               SummationTerms &terms);
     // Only estimate rotation, and return the cayley format of it.
     Vec3 EstimateRotationUseAll(const SummationTerms &terms,
                                 Quat &q_cr);
