@@ -109,7 +109,7 @@ bool EpipolarSolver::EstimateEssentialUseFivePoints(const std::vector<Vec2> &ref
         Vec9 e = EE.col(0) * x + EE.col(1) * y + EE.col(2) * z + EE.col(3);
         e /= e.norm();
         Mat3 essential;
-        essential << e;
+        essential << e(0), e(1), e(2), e(3), e(4), e(5), e(6), e(7), e(8);
         all_essentials.emplace_back(essential);
     }
 
