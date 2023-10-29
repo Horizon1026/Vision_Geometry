@@ -50,6 +50,8 @@ bool RelativeRotation::EstimateRotationByBnb(const std::vector<Vec2> &ref_norm_x
         }
     }
 
+    q_cr.normalize();
+
     return true;
 }
 
