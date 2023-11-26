@@ -9,10 +9,10 @@ bool Triangulator::Triangulate(const std::vector<Quat> &q_wc,
                                Vec3 &p_w) {
     switch (options_.kMethod) {
         default:
-        case TriangulationMethod::ANALYTIC: {
+        case TriangulationMethod::kAnalytic: {
             return TriangulateAnalytic(q_wc, p_wc, norm_uv, p_w);
         }
-        case TriangulationMethod::ITERATIVE: {
+        case TriangulationMethod::kIterative: {
             return TriangulateIterative(q_wc, p_wc, norm_uv, p_w);
         }
     }
@@ -108,7 +108,7 @@ bool Triangulator::CheckDepthInMultiView(const std::vector<Quat> &q_wc,
                                          const std::vector<Vec3> &p_wc,
                                          const Vec3 &p_w) {
     for (uint32_t i = 0; i < q_wc.size(); ++i) {
-        Vec3 p_c = q_wc[i].inverse() * (p_w - p_wc[i]);
+        const Vec3 p_c = q_wc[i].inverse() * (p_w - p_wc[i]);
         if (p_c.z() < 0) {
             return false;
         }

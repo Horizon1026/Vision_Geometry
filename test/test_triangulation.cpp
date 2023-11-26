@@ -31,7 +31,7 @@ bool TestTrianglateAnalytic() {
     }
 
     Vec3 res_p_w;
-    solver.options().kMethod = VISION_GEOMETRY::Triangulator::TriangulationMethod::ANALYTIC;
+    solver.options().kMethod = VISION_GEOMETRY::Triangulator::TriangulationMethod::kAnalytic;
     solver.Triangulate(q_wc_vec, p_wc_vec, observe_vec, res_p_w);
     std::cout << "TestTrianglateAnalytic :";
     std::cout << "set p_w is " << p_w.transpose() << ", res p_w is " << res_p_w.transpose() << std::endl;
@@ -62,7 +62,7 @@ bool TestTrianglateIterative() {
     Vec3 p_w_noise = Vec3(0.4, 0.4, 0.4);
     Vec3 res_p_w = p_w + p_w_noise;
 
-    solver.options().kMethod = VISION_GEOMETRY::Triangulator::TriangulationMethod::ITERATIVE;
+    solver.options().kMethod = VISION_GEOMETRY::Triangulator::TriangulationMethod::kIterative;
     solver.Triangulate(q_wc_vec, p_wc_vec, observe_vec, res_p_w);
     std::cout << "TestTrianglateIterative :";
     std::cout << "set p_w is " << res_p_w.transpose() << ", res p_w is " << res_p_w.transpose() << std::endl;
@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
 
     ReportInfo(GREEN ">> Test triangulation using analytic method." RESET_COLOR);
     Vec3 res_p_w;
-    solver.options().kMethod = VISION_GEOMETRY::Triangulator::TriangulationMethod::ANALYTIC;
+    solver.options().kMethod = VISION_GEOMETRY::Triangulator::TriangulationMethod::kAnalytic;
     begin = clock();
     solver.Triangulate(q_wc_vec, p_wc_vec, observe_vec, res_p_w);
     end = clock();
@@ -110,7 +110,7 @@ int main(int argc, char **argv) {
     ReportInfo(GREEN ">> Test triangulation using iterative method." RESET_COLOR);
     Vec3 p_w_noise = Vec3(0.5f, 0.5f, 0.5f);
     res_p_w = p_w + p_w_noise;;
-    solver.options().kMethod = VISION_GEOMETRY::Triangulator::TriangulationMethod::ITERATIVE;
+    solver.options().kMethod = VISION_GEOMETRY::Triangulator::TriangulationMethod::kIterative;
     begin = clock();
     solver.Triangulate(q_wc_vec, p_wc_vec, observe_vec, res_p_w);
     end = clock();

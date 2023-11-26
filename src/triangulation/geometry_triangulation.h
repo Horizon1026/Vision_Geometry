@@ -9,8 +9,8 @@ class Triangulator {
 
 public:
     enum class TriangulationMethod: uint8_t {
-        ANALYTIC = 0,
-        ITERATIVE = 1,
+        kAnalytic = 0,
+        kIterative = 1,
     };
 
     struct TriangulationOptions {
@@ -18,7 +18,7 @@ public:
         uint32_t kMaxUsedCameraView = 10;
         float kMinValidDepth = 1e-3f;
         float kMaxConvergeStep = 1e-6f;
-        TriangulationMethod kMethod = TriangulationMethod::ANALYTIC;
+        TriangulationMethod kMethod = TriangulationMethod::kAnalytic;
     };
 
 public:
