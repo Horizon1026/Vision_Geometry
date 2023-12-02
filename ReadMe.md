@@ -5,7 +5,7 @@ Intergration of some vision geometry model algorithm.
 - [x] Perspective n points
 - [x] Triangulation
 - [x] Essential
-- [ ] Relative Rotation(invalid now)
+- [x] Relative Rotation
 - [ ] Fundamental
 - [ ] Homography
 - [ ] ICP
@@ -15,4 +15,3 @@ Intergration of some vision geometry model algorithm.
 
 # Tips
 - 欢迎一起交流学习，不同意商用；
-- 仓库 owner 为 Horizon1026，暂无共同开发者，请勿 merge；
