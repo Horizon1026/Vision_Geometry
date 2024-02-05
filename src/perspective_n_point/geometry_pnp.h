@@ -9,10 +9,10 @@ class PnpSolver {
 
 public:
     enum class PnpMethod : uint8_t {
-        PNP_ALL = 0,
-        PNP_RANSAC = 1,
-        PNP_HUBER = 2,
-        PNP_CAUCHY = 3,
+        kUseAll = 0,
+        kRansac = 1,
+        kHuber = 2,
+        kCauchy = 3,
     };
 
     enum class PnpResult : uint8_t {
@@ -29,7 +29,7 @@ public:
         float kMinRansacInlierRatio = 0.9f;
         float kMaxPnpResidual = 1e-3f;
         float kMinValidDepth = 1e-3f;
-        PnpMethod kMethod = PnpMethod::PNP_RANSAC;
+        PnpMethod kMethod = PnpMethod::kRansac;
     };
 
 public:

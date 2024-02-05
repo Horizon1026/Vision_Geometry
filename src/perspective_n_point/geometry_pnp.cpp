@@ -12,13 +12,13 @@ bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w,
                              Vec3 &p_wc,
                              std::vector<uint8_t> &status) {
     switch (options_.kMethod) {
-        case PnpMethod::PNP_RANSAC: {
+        case PnpMethod::kRansac: {
             return EstimatePoseRansac(p_w, norm_uv, q_wc, p_wc, status);
         }
 
-        case PnpMethod::PNP_ALL:
-        case PnpMethod::PNP_HUBER:
-        case PnpMethod::PNP_CAUCHY: {
+        case PnpMethod::kUseAll:
+        case PnpMethod::kHuber:
+        case PnpMethod::kCauchy: {
             return EstimatePoseUseAll(p_w, norm_uv, q_wc, p_wc, status);
         }
 
@@ -93,19 +93,19 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
 
             switch (options_.kMethod) {
                 default:
-                case PnpMethod::PNP_ALL: {
+                case PnpMethod::kUseAll: {
                     H += jacobian.transpose() * jacobian;
                     b += - jacobian.transpose() * residual;
                     break;
                 }
-                case PnpMethod::PNP_HUBER: {
+                case PnpMethod::kHuber: {
                     const float r_norm = residual.norm();
                     const float kernel = this->Huber(1.0f, r_norm);
                     H += jacobian.transpose() * jacobian * kernel;
                     b += - jacobian.transpose() * residual * kernel;
                     break;
                 }
-                case PnpMethod::PNP_CAUCHY: {
+                case PnpMethod::kCauchy: {
                     const float r_norm = residual.norm();
                     const float kernel = this->Cauchy(1.0f, r_norm);
                     H += jacobian.transpose() * jacobian * kernel;
