@@ -5,6 +5,7 @@
 
 namespace VISION_GEOMETRY {
 
+/* Class PnpSolver Declaration. */
 class PnpSolver {
 
 public:

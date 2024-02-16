@@ -1,9 +1,7 @@
-/* 外部依赖 */
 #include "fstream"
 #include "iostream"
 #include "cmath"
 
-/* 内部依赖 */
 #include "geometry_epipolar.h"
 #include "log_report.h"
 

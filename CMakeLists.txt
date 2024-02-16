@@ -20,6 +20,19 @@ endif()
 if ( NOT TARGET lib_vision_geometry_relative_rotation )
     add_subdirectory( src/relative_rotation ${PROJECT_SOURCE_DIR}/build/lib_vision_geometry_relative_rotation )
 endif()
+if ( NOT TARGET lib_vision_geometry_icp )
+    add_subdirectory( src/iterative_closest_point ${PROJECT_SOURCE_DIR}/build/lib_vision_geometry_icp )
+endif()
+
+# Add visualizor.
+set( VISUALIZOR_2D_PATH ${PROJECT_SOURCE_DIR}/../Visualizor2D )
+if ( NOT TARGET lib_image_visualizor )
+    add_subdirectory( ${VISUALIZOR_2D_PATH}/src ${PROJECT_SOURCE_DIR}/build/lib_image_visualizor )
+endif()
+set( VISUALIZOR_3D_PATH ${PROJECT_SOURCE_DIR}/../Visualizor3D )
+if ( NOT TARGET lib_3d_visualizor )
+    add_subdirectory( ${VISUALIZOR_3D_PATH}/src ${PROJECT_SOURCE_DIR}/build/lib_3d_visualizor )
+endif()
 
 # Add test_pnp.
 add_executable( test_pnp
@@ -51,4 +64,13 @@ add_executable( test_relative_rotation
 )
 target_link_libraries( test_relative_rotation
     lib_vision_geometry_relative_rotation
+)
+
+# Add test_icp.
+add_executable( test_icp
+    test/test_icp.cpp
+)
+target_link_libraries( test_icp
+    lib_vision_geometry_icp
+    lib_3d_visualizor
 )

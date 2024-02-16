@@ -5,6 +5,7 @@
 
 namespace VISION_GEOMETRY {
 
+/* Class Epipolar Solver Declaration. */
 class EpipolarSolver {
 
 public:

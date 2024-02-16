@@ -5,6 +5,7 @@
 
 namespace VISION_GEOMETRY {
 
+/* Class Triangulator Declaration. */
 class Triangulator {
 
 public:

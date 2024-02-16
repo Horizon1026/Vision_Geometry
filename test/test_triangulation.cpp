@@ -1,8 +1,6 @@
-/* 外部依赖 */
 #include "fstream"
 #include "iostream"
 
-/* 内部依赖 */
 #include "geometry_triangulation.h"
 #include "log_report.h"
 
