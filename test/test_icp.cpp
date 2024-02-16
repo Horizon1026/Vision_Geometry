@@ -14,8 +14,8 @@ int main(int argc, char **argv) {
     LogFixPercision(3);
 
     // Set ground truth of relative pose.
-    const Quat gt_q_cr = Quat(1, 0, 0, 0);
-    const Vec3 gt_p_cr = Vec3::Ones() * 3.0f;
+    const Quat gt_q_cr = Quat(0.9, 0.05, 0.05, 0.05).normalized();
+    const Vec3 gt_p_cr = Vec3::Ones() * 3.0;
 
     // Create two point clouds.
     std::vector<Vec3> ref_p_w;
@@ -43,6 +43,7 @@ int main(int argc, char **argv) {
     ReportInfo("Ground truth p_cr " << LogVec(gt_p_cr));
 
     uint32_t cnt = 0;
+    bool is_converged = false;
     Visualizor3D::camera_view().p_wc = Vec3(5, 5, -20);
     while (!Visualizor3D::ShouldQuit()) {
         ++cnt;
@@ -51,13 +52,22 @@ int main(int argc, char **argv) {
             continue;
         } else {
             cnt = 0;
-            ReportInfo("Iterate once.");
+        }
+
+        if (is_converged) {
+            continue;
         }
 
         // Iterate ICP once.
+        ReportInfo("Iterate once.");
+        const Quat last_q_cr = q_cr;
+        const Vec3 last_p_cr = p_cr;
         icp_solver.EstimatePose(ref_p_w, cur_p_w, q_cr, p_cr);
         ReportInfo("Estimated q_cr " << LogQuat(q_cr));
         ReportInfo("Estimated p_cr " << LogVec(p_cr));
+        if ((last_q_cr.inverse() * q_cr).vec().norm() + (last_p_cr - p_cr).norm() < 1e-6) {
+            is_converged = true;
+        }
 
         // Visualize.
         Visualizor3D::Clear();
