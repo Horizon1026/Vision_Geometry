@@ -15,8 +15,7 @@ bool IcpSolver::EstimatePose(const std::vector<Vec3> &all_ref_p_w,
             return EstimatePoseByMethodPointToPoint(all_ref_p_w, all_cur_p_w, q_rc, p_rc);
 
         case IcpMethod::kPointToLine:
-            // TODO:
-            break;
+            return EstimatePoseByMethodPointToLine(all_ref_p_w, all_cur_p_w, q_rc, p_rc);
 
         case IcpMethod::kPointToPlane:
             // TODO:

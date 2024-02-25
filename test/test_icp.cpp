@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
     Quat q_rc = Quat::Identity();
     Vec3 p_rc = Vec3::Zero();
     VISION_GEOMETRY::IcpSolver icp_solver;
-    icp_solver.options().kMethod = VISION_GEOMETRY::IcpSolver::IcpMethod::kPointToPoint;
+    icp_solver.options().kMethod = VISION_GEOMETRY::IcpSolver::IcpMethod::kPointToLine;
     icp_solver.options().kMaxValidRelativePointDistance = 5.0f;
     icp_solver.options().kMaxIteration = 1;
 
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     Visualizor3D::camera_view().p_wc = Vec3(5, 5, -20);
     while (!Visualizor3D::ShouldQuit()) {
         ++cnt;
-        if (cnt < 10) {
+        if (cnt < 2) {
             Visualizor3D::Refresh("ICP [ref|RED] [cur|GREEN] [estimate|ORANGE(should be the same as cur)]", 50);
             continue;
         } else {
