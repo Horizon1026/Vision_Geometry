@@ -37,6 +37,8 @@ int main(int argc, char **argv) {
     Quat q_cr = Quat::Identity();
     Vec3 p_cr = Vec3::Zero();
     VISION_GEOMETRY::IcpSolver icp_solver;
+    icp_solver.options().kMethod = VISION_GEOMETRY::IcpSolver::IcpMethod::kPointToPoint;
+    icp_solver.options().kMaxValidRelativePointDistance = 5.0f;
     icp_solver.options().kMaxIteration = 1;
 
     ReportInfo("Ground truth q_cr " << LogQuat(gt_q_cr));
