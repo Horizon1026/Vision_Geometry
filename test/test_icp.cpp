@@ -14,8 +14,8 @@ int main(int argc, char **argv) {
     LogFixPercision(3);
 
     // Set ground truth of relative pose.
-    const Quat gt_q_cr = Quat(0.9, 0.05, 0.05, 0.05).normalized();
-    const Vec3 gt_p_cr = Vec3::Ones() * 3.0;
+    const Quat gt_q_rc = Quat(0.9, 0.05, 0.05, 0.05).normalized();
+    const Vec3 gt_p_rc = Vec3::Ones() * 3.0;
 
     // Create two point clouds.
     std::vector<Vec3> ref_p_w;
@@ -27,22 +27,22 @@ int main(int argc, char **argv) {
                     continue;
                 }
                 const Vec3 p_w = Vec3(i, j, k);
-                ref_p_w.emplace_back(p_w);
-                cur_p_w.emplace_back(gt_q_cr * ref_p_w.back() + gt_p_cr);
+                cur_p_w.emplace_back(p_w);
+                ref_p_w.emplace_back(gt_q_rc * cur_p_w.back() + gt_p_rc);
             }
         }
     }
 
     // Estimate pose by icp solver.
-    Quat q_cr = Quat::Identity();
-    Vec3 p_cr = Vec3::Zero();
+    Quat q_rc = Quat::Identity();
+    Vec3 p_rc = Vec3::Zero();
     VISION_GEOMETRY::IcpSolver icp_solver;
     icp_solver.options().kMethod = VISION_GEOMETRY::IcpSolver::IcpMethod::kPointToPoint;
     icp_solver.options().kMaxValidRelativePointDistance = 5.0f;
     icp_solver.options().kMaxIteration = 1;
 
-    ReportInfo("Ground truth q_cr " << LogQuat(gt_q_cr));
-    ReportInfo("Ground truth p_cr " << LogVec(gt_p_cr));
+    ReportInfo("Ground truth q_rc " << LogQuat(gt_q_rc));
+    ReportInfo("Ground truth p_rc " << LogVec(gt_p_rc));
 
     uint32_t cnt = 0;
     bool is_converged = false;
@@ -62,12 +62,12 @@ int main(int argc, char **argv) {
 
         // Iterate ICP once.
         ReportInfo("Iterate once.");
-        const Quat last_q_cr = q_cr;
-        const Vec3 last_p_cr = p_cr;
-        icp_solver.EstimatePose(ref_p_w, cur_p_w, q_cr, p_cr);
-        ReportInfo("Estimated q_cr " << LogQuat(q_cr));
-        ReportInfo("Estimated p_cr " << LogVec(p_cr));
-        if ((last_q_cr.inverse() * q_cr).vec().norm() + (last_p_cr - p_cr).norm() < 1e-6) {
+        const Quat last_q_rc = q_rc;
+        const Vec3 last_p_rc = p_rc;
+        icp_solver.EstimatePose(ref_p_w, cur_p_w, q_rc, p_rc);
+        ReportInfo("Estimated q_rc " << LogQuat(q_rc));
+        ReportInfo("Estimated p_rc " << LogVec(p_rc));
+        if ((last_q_rc.inverse() * q_rc).vec().norm() + (last_p_rc - p_rc).norm() < 1e-6) {
             is_converged = true;
         }
 
@@ -87,9 +87,9 @@ int main(int argc, char **argv) {
                 .radius = 3,
             });
         }
-        for (const auto &point : ref_p_w) {
+        for (const auto &point : cur_p_w) {
             Visualizor3D::points().emplace_back(PointType{
-                .p_w = q_cr * point + p_cr,
+                .p_w = q_rc * point + p_rc,
                 .color = RgbColor::kOrange,
                 .radius = 2,
             });

@@ -25,10 +25,10 @@ public:
     explicit IcpSolver() = default;
     virtual ~IcpSolver() = default;
 
-    bool EstimatePose(const std::vector<Vec3> &ref_p_w,
-                      const std::vector<Vec3> &cur_p_w,
-                      Quat &q_cr,
-                      Vec3 &p_cr);
+    bool EstimatePose(const std::vector<Vec3> &all_ref_p_w,
+                      const std::vector<Vec3> &all_cur_p_w,
+                      Quat &q_rc,
+                      Vec3 &p_rc);
 
     // Reference for member variables.
     IcpOptions &options() { return options_;}
@@ -38,16 +38,20 @@ public:
 
 private:
     // Support for method of point-to-point.
-    bool EstimatePoseByMethodPointToPoint(const std::vector<Vec3> &ref_p_w,
-                                          const std::vector<Vec3> &cur_p_w,
-                                          Quat &q_cr,
-                                          Vec3 &p_cr);
-    bool EstimatePoseByPointPairs(const std::vector<Vec3> &ref_p_w,
-                                  const std::vector<Vec3> &cur_p_w,
-                                  Quat &q_cr,
-                                  Vec3 &p_cr);
+    bool EstimatePoseByMethodPointToPoint(const std::vector<Vec3> &all_ref_p_w,
+                                          const std::vector<Vec3> &all_cur_p_w,
+                                          Quat &q_rc,
+                                          Vec3 &p_rc);
+    bool EstimatePoseByPointPairs(const std::vector<Vec3> &all_ref_p_w,
+                                  const std::vector<Vec3> &all_cur_p_w,
+                                  Quat &q_rc,
+                                  Vec3 &p_rc);
 
     // Support for method of point-to-line.
+    bool EstimatePoseByMethodPointToLine(const std::vector<Vec3> &all_ref_p_w,
+                                         const std::vector<Vec3> &all_cur_p_w,
+                                         Quat &q_rc,
+                                         Vec3 &p_rc);
 
     // Support for method of point-to-plane.
 

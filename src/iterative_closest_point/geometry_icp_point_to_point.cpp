@@ -9,18 +9,18 @@ namespace VISION_GEOMETRY {
 
 bool IcpSolver::EstimatePoseByMethodPointToPoint(const std::vector<Vec3> &all_ref_p_w,
                                                  const std::vector<Vec3> &all_cur_p_w,
-                                                 Quat &q_cr,
-                                                 Vec3 &p_cr) {
-    // Convert reference points into kd-tree.
-    std::vector<int32_t> sorted_point_indices(all_cur_p_w.size(), 0);
+                                                 Quat &q_rc,
+                                                 Vec3 &p_rc) {
+    // Convert all reference points into kd-tree.
+    std::vector<int32_t> sorted_point_indices(all_ref_p_w.size(), 0);
     for (uint32_t i = 0; i < sorted_point_indices.size(); ++i) {
         sorted_point_indices[i] = i;
     }
-    std::unique_ptr<KdTreeNode<float, 3>> cur_kd_tree_ptr = std::make_unique<KdTreeNode<float, 3>>();
-    cur_kd_tree_ptr->Construct(all_cur_p_w, sorted_point_indices, cur_kd_tree_ptr);
+    std::unique_ptr<KdTreeNode<float, 3>> ref_kd_tree_ptr = std::make_unique<KdTreeNode<float, 3>>();
+    ref_kd_tree_ptr->Construct(all_ref_p_w, sorted_point_indices, ref_kd_tree_ptr);
 
     // Prepare for iteration.
-    q_cr.normalize();
+    q_rc.normalize();
     std::vector<Vec3> sub_ref_p_w = all_ref_p_w;
     std::vector<Vec3> sub_cur_p_w = all_cur_p_w;
 
@@ -30,16 +30,16 @@ bool IcpSolver::EstimatePoseByMethodPointToPoint(const std::vector<Vec3> &all_re
         sub_cur_p_w.clear();
 
         // Extract relative point pairs by kd-tree.
-        for (const auto &ref_p_w : all_ref_p_w) {
-            const Vec3 transformed_ref_p_w = q_cr * ref_p_w + p_cr;
+        for (const auto &cur_p_w : all_cur_p_w) {
+            const Vec3 transformed_cur_p_w = q_rc * cur_p_w + p_rc;
             std::multimap<float, int32_t> result_of_nn_search;
-            cur_kd_tree_ptr->SearchKnn(cur_kd_tree_ptr, all_cur_p_w, transformed_ref_p_w, 1, result_of_nn_search);
+            ref_kd_tree_ptr->SearchKnn(ref_kd_tree_ptr, all_ref_p_w, transformed_cur_p_w, 1, result_of_nn_search);
             const auto &pair = *result_of_nn_search.begin();
             CONTINUE_IF(pair.first > options_.kMaxValidRelativePointDistance);
 
-            const Vec3 &nearest_cur_p_w = all_cur_p_w[pair.second];
-            sub_ref_p_w.emplace_back(ref_p_w);
-            sub_cur_p_w.emplace_back(nearest_cur_p_w);
+            const Vec3 &nearest_ref_p_w = all_ref_p_w[pair.second];
+            sub_ref_p_w.emplace_back(nearest_ref_p_w);
+            sub_cur_p_w.emplace_back(cur_p_w);
         }
 
         if (sub_ref_p_w.size() < 3) {
@@ -47,13 +47,13 @@ bool IcpSolver::EstimatePoseByMethodPointToPoint(const std::vector<Vec3> &all_re
             return false;
         }
 
-        Quat d_q_cr = q_cr;
-        Vec3 d_p_cr = p_cr;
-        RETURN_FALSE_IF(!EstimatePoseByPointPairs(sub_ref_p_w, sub_cur_p_w, q_cr, p_cr));
+        Quat d_q_rc = q_rc;
+        Vec3 d_p_rc = p_rc;
+        RETURN_FALSE_IF(!EstimatePoseByPointPairs(sub_ref_p_w, sub_cur_p_w, q_rc, p_rc));
 
-        d_q_cr = d_q_cr.inverse() * q_cr;
-        d_p_cr = p_cr - d_p_cr;
-        BREAK_IF(d_q_cr.vec().norm() + d_p_cr.norm() < 1e-6f);
+        d_q_rc = d_q_rc.inverse() * q_rc;
+        d_p_rc = p_rc - d_p_rc;
+        BREAK_IF(d_q_rc.vec().norm() + d_p_rc.norm() < 1e-6f);
     }
 
     return true;
@@ -61,8 +61,8 @@ bool IcpSolver::EstimatePoseByMethodPointToPoint(const std::vector<Vec3> &all_re
 
 bool IcpSolver::EstimatePoseByPointPairs(const std::vector<Vec3> &all_ref_p_w,
                                          const std::vector<Vec3> &all_cur_p_w,
-                                         Quat &q_cr,
-                                         Vec3 &p_cr) {
+                                         Quat &q_rc,
+                                         Vec3 &p_rc) {
     RETURN_FALSE_IF(all_ref_p_w.empty());
     RETURN_FALSE_IF(all_ref_p_w.size() != all_cur_p_w.size());
     const int32_t size = static_cast<int32_t>(all_ref_p_w.size());
@@ -84,20 +84,20 @@ bool IcpSolver::EstimatePoseByPointPairs(const std::vector<Vec3> &all_ref_p_w,
     for (int32_t i = 0; i < size; ++i) {
         const Vec3 ref_point_diff = all_ref_p_w[i] - ref_mid;
         const Vec3 cur_point_diff = all_cur_p_w[i] - cur_mid;
-        covariance += ref_point_diff * cur_point_diff.transpose();
+        covariance += cur_point_diff * ref_point_diff.transpose();
     }
 
     // Decompose covariance to sove relative pose.
     Eigen::JacobiSVD<Mat3> svd(covariance, Eigen::ComputeThinU | Eigen::ComputeThinV);
-    Mat3 R_cr = svd.matrixV() * svd.matrixU().transpose();
-    q_cr = Quat(R_cr).normalized();
-    if (R_cr.determinant() < 0) {
+    Mat3 R_rc = svd.matrixV() * svd.matrixU().transpose();
+    q_rc = Quat(R_rc).normalized();
+    if (R_rc.determinant() < 0) {
         Mat3 matrix_v = svd.matrixV();
         matrix_v(2, 2) = - matrix_v(2, 2);
-        R_cr = matrix_v * svd.matrixU().transpose();
-        q_cr = Quat(R_cr).normalized();
+        R_rc = matrix_v * svd.matrixU().transpose();
+        q_rc = Quat(R_rc).normalized();
     }
-    p_cr = cur_mid - q_cr * ref_mid;
+    p_rc = ref_mid - q_rc * cur_mid;
 
     return true;
 }
