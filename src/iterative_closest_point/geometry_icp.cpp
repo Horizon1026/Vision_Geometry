@@ -1,5 +1,6 @@
 #include "geometry_icp.h"
 #include "slam_operations.h"
+#include "log_report.h"
 
 namespace VISION_GEOMETRY {
 
@@ -18,8 +19,7 @@ bool IcpSolver::EstimatePose(const std::vector<Vec3> &all_ref_p_w,
             return EstimatePoseByMethodPointToLine(all_ref_p_w, all_cur_p_w, q_rc, p_rc);
 
         case IcpMethod::kPointToPlane:
-            // TODO:
-            break;
+            return EstimatePoseByMethodPointToPlane(all_ref_p_w, all_cur_p_w, q_rc, p_rc);
     }
 
     return true;

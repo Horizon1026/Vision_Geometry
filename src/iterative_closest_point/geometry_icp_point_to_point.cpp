@@ -53,7 +53,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPoint(const std::vector<Vec3> &all_re
 
         d_q_rc = d_q_rc.inverse() * q_rc;
         d_p_rc = p_rc - d_p_rc;
-        BREAK_IF(d_q_rc.vec().norm() + d_p_rc.norm() < 1e-6f);
+        BREAK_IF(d_q_rc.vec().norm() + d_p_rc.norm() < options_.kMaxConvergedStepLength);
     }
 
     return true;

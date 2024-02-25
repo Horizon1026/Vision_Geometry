@@ -11,10 +11,10 @@ Intergration of some vision geometry model algorithm.
     - [ ] Fundamental
     - [ ] Homography
 - [x] Relative Rotation
-- [ ] Iterative Closest Point(ICP SVD)
-    - [x] Point to Point.
-    - [ ] Point to Line.
-    - [ ] Point to Plane.
+- [x] Iterative Closest Point.
+    - [x] Point to Point (SVD method).
+    - [x] Point to Line.
+    - [x] Point to Plane.
 
 # Dependence
 - Slam_Utility

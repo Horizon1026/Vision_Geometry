@@ -7,10 +7,10 @@
 
 namespace VISION_GEOMETRY {
 
-bool IcpSolver::EstimatePoseByMethodPointToLine(const std::vector<Vec3> &all_ref_p_w,
-                                                const std::vector<Vec3> &all_cur_p_w,
-                                                Quat &q_rc,
-                                                Vec3 &p_rc) {
+bool IcpSolver::EstimatePoseByMethodPointToPlane(const std::vector<Vec3> &all_ref_p_w,
+                                                 const std::vector<Vec3> &all_cur_p_w,
+                                                 Quat &q_rc,
+                                                 Vec3 &p_rc) {
     // Convert all reference points into kd-tree.
     std::vector<int32_t> sorted_point_indices(all_ref_p_w.size(), 0);
     for (uint32_t i = 0; i < sorted_point_indices.size(); ++i) {
@@ -30,22 +30,29 @@ bool IcpSolver::EstimatePoseByMethodPointToLine(const std::vector<Vec3> &all_ref
         for (const auto &cur_p_w : all_cur_p_w) {
             const Vec3 transformed_cur_p_w = q_rc * cur_p_w + p_rc;
 
-            // Extract two points closest to target point.
+            // Extract three points closest to target point.
             std::multimap<float, int32_t> result_of_nn_search;
-            ref_kd_tree_ptr->SearchKnn(ref_kd_tree_ptr, all_ref_p_w, transformed_cur_p_w, 2, result_of_nn_search);
-            CONTINUE_IF(result_of_nn_search.size() != 2);
+            ref_kd_tree_ptr->SearchKnn(ref_kd_tree_ptr, all_ref_p_w, transformed_cur_p_w, 3, result_of_nn_search);
+            CONTINUE_IF(result_of_nn_search.size() != 3);
+
             auto it = result_of_nn_search.begin();
             const Vec3 &ref_p_w_0 = all_ref_p_w[it->second];
-            const Vec3 &ref_p_w_1 = all_ref_p_w[std::next(it)->second];
+            ++it;
+            const Vec3 &ref_p_w_1 = all_ref_p_w[it->second];
+            ++it;
+            const Vec3 &ref_p_w_2 = all_ref_p_w[it->second];
 
             // Compute residual.
-            const Vec3 diff_ref_p_w = ref_p_w_0 - ref_p_w_1;
-            const Vec3 residual = (transformed_cur_p_w - ref_p_w_0).cross(transformed_cur_p_w - ref_p_w_1) / diff_ref_p_w.norm();
+            Vec3 plane_vector = (ref_p_w_1 - ref_p_w_0).cross(ref_p_w_2 - ref_p_w_0);
+            const float norm = plane_vector.norm();
+            CONTINUE_IF(norm < kZero);
+            plane_vector /= norm;
+            const float residual = (transformed_cur_p_w - ref_p_w_0).dot(plane_vector);
 
             // Compute jacobian.
-            Mat3x6 jacobian = Mat3x6::Zero();
-            jacobian.block<3, 3>(0, 0) = - Utility::SkewSymmetricMatrix(diff_ref_p_w) / diff_ref_p_w.norm();
-            jacobian.block<3, 3>(0, 3) = - jacobian.block<3, 3>(0, 0) * Utility::SkewSymmetricMatrix(transformed_cur_p_w);
+            Mat1x6 jacobian = Mat1x6::Zero();
+            jacobian.block<1, 3>(0, 0) = plane_vector.transpose();
+            jacobian.block<1, 3>(0, 3) = - plane_vector.transpose() * Utility::SkewSymmetricMatrix(transformed_cur_p_w);
 
             // Construct hessian and bias.
             hessian += jacobian.transpose() * jacobian;

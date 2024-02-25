@@ -18,6 +18,7 @@ public:
     struct IcpOptions {
         uint32_t kMaxIteration = 100;
         float kMaxValidRelativePointDistance = 5.0f;
+        float kMaxConvergedStepLength = 1e-4f;
         IcpMethod kMethod = IcpMethod::kPointToPoint;
     };
 
@@ -54,6 +55,10 @@ private:
                                          Vec3 &p_rc);
 
     // Support for method of point-to-plane.
+    bool EstimatePoseByMethodPointToPlane(const std::vector<Vec3> &all_ref_p_w,
+                                          const std::vector<Vec3> &all_cur_p_w,
+                                          Quat &q_rc,
+                                          Vec3 &p_rc);
 
 private:
     IcpOptions options_;
