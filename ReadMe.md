@@ -4,12 +4,17 @@ Intergration of some vision geometry model algorithm.
 # Components
 - [x] Perspective n Points
 - [x] Triangulation
-- [x] Essential
-- [ ] Fundamental
-- [ ] Homography
+    - [x] Analytic.
+    - [x] Iterative.
+- [ ] Epipolar Constraint
+    - [x] Essential
+    - [ ] Fundamental
+    - [ ] Homography
 - [x] Relative Rotation
-- [x] Iterative Closest Point(ICP SVD)
-- [ ] NDT
+- [ ] Iterative Closest Point(ICP SVD)
+    - [x] Point to Point.
+    - [ ] Point to Line.
+    - [ ] Point to Plane.
 
 # Dependence
 - Slam_Utility
