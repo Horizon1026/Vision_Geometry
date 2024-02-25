@@ -48,6 +48,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlane(const std::vector<Vec3> &all_re
             CONTINUE_IF(norm < kZero);
             plane_vector /= norm;
             const float residual = (transformed_cur_p_w - ref_p_w_0).dot(plane_vector);
+            CONTINUE_IF(residual > options_.kMaxValidRelativePointDistance);
 
             // Compute jacobian.
             Mat1x6 jacobian = Mat1x6::Zero();

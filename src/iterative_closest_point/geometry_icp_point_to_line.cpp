@@ -41,6 +41,7 @@ bool IcpSolver::EstimatePoseByMethodPointToLine(const std::vector<Vec3> &all_ref
             // Compute residual.
             const Vec3 diff_ref_p_w = ref_p_w_0 - ref_p_w_1;
             const Vec3 residual = (transformed_cur_p_w - ref_p_w_0).cross(transformed_cur_p_w - ref_p_w_1) / diff_ref_p_w.norm();
+            CONTINUE_IF(residual.norm() > options_.kMaxValidRelativePointDistance);
 
             // Compute jacobian.
             Mat3x6 jacobian = Mat3x6::Zero();
