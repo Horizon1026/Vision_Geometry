@@ -116,5 +116,11 @@ int main(int argc, char **argv) {
     ReportInfo("cost time is " << cost_time << " ms");
     ReportInfo("set p_w is " << p_w.transpose() << ", res p_w is " << res_p_w.transpose());
 
+    ReportInfo(GREEN ">> Test computation of parallex angle." RESET_COLOR);
+    for (uint32_t i = 1; i < q_wc_vec.size(); ++i) {
+        const float parallex_angle = solver.GetParallexAngle(q_wc_vec[0], p_wc_vec[0], q_wc_vec[i], p_wc_vec[i], observe_vec[0], observe_vec[i]);
+        ReportInfo("Feature " << LogVec(p_w) << " has parallex angle [" << parallex_angle << "] between camera pose 0 and pose " << i << "");
+    }
+
     return 0;
 }
