@@ -1,7 +1,7 @@
 #ifndef _GEOMETRY_ICP_H_
 #define _GEOMETRY_ICP_H_
 
-#include "datatype_basic.h"
+#include "basic_type.h"
 
 namespace VISION_GEOMETRY {
 

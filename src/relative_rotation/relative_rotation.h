@@ -1,7 +1,7 @@
 #ifndef _RELATIVE_ROTATION_H_
 #define _RELATIVE_ROTATION_H_
 
-#include "datatype_basic.h"
+#include "basic_type.h"
 #include "eigen_optimization_functor.h"
 
 #include "eigen3/unsupported/Eigen/NonLinearOptimization"

@@ -1,7 +1,7 @@
 #ifndef _EIGEN_OPTIMIZATION_FUNCTOR_H_
 #define _EIGEN_OPTIMIZATION_FUNCTOR_H_
 
-#include "datatype_basic.h"
+#include "basic_type.h"
 #include "eigen3/Eigen/src/Core/util/DisableStupidWarnings.h"
 
 namespace VISION_GEOMETRY {

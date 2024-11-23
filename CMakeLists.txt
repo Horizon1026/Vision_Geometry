@@ -7,7 +7,7 @@ set( CMAKE_CXX_FLAGS "-std=c++17 -O3 -Wall" )
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 set( CMAKE_CXX_STANDARD 17 )
 
-# Add all components of vision geometry.
+# Add all relative components of vision geometry.
 if ( NOT TARGET lib_vision_geometry_epipolar )
     add_subdirectory( src/epipolar ${PROJECT_SOURCE_DIR}/build/lib_vision_geometry_epipolar )
 endif()
@@ -26,8 +26,8 @@ endif()
 
 # Add visualizor.
 set( VISUALIZOR_2D_PATH ${PROJECT_SOURCE_DIR}/../Visualizor2D )
-if ( NOT TARGET lib_image_visualizor )
-    add_subdirectory( ${VISUALIZOR_2D_PATH}/src ${PROJECT_SOURCE_DIR}/build/lib_image_visualizor )
+if ( NOT TARGET lib_2d_visualizor )
+    add_subdirectory( ${VISUALIZOR_2D_PATH}/src ${PROJECT_SOURCE_DIR}/build/lib_2d_visualizor )
 endif()
 set( VISUALIZOR_3D_PATH ${PROJECT_SOURCE_DIR}/../Visualizor3D )
 if ( NOT TARGET lib_3d_visualizor )
