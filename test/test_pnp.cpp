@@ -3,7 +3,7 @@
 #include "cmath"
 
 #include "geometry_pnp.h"
-#include "log_report.h"
+#include "slam_log_reporter.h"
 
 
 int main(int argc, char **argv) {

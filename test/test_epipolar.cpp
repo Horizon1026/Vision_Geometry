@@ -3,7 +3,7 @@
 #include "cmath"
 
 #include "geometry_epipolar.h"
-#include "log_report.h"
+#include "slam_log_reporter.h"
 
 void TestEssentialFivePointsModel(VISION_GEOMETRY::EpipolarSolver &solver,
                                   std::vector<Vec2> &ref_norm_xy,

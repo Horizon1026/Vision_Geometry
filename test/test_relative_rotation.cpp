@@ -3,8 +3,8 @@
 #include "cmath"
 
 #include "relative_rotation.h"
-#include "log_report.h"
-#include "math_kinematics.h"
+#include "slam_log_reporter.h"
+#include "slam_basic_math.h"
 
 
 int main(int argc, char **argv) {

@@ -3,7 +3,7 @@
 #include "cmath"
 
 #include "geometry_icp.h"
-#include "log_report.h"
+#include "slam_log_reporter.h"
 #include "visualizor_3d.h"
 
 using namespace SLAM_UTILITY;

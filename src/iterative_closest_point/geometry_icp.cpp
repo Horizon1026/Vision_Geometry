@@ -1,6 +1,6 @@
 #include "geometry_icp.h"
 #include "slam_operations.h"
-#include "log_report.h"
+#include "slam_log_reporter.h"
 
 namespace VISION_GEOMETRY {
 

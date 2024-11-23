@@ -86,7 +86,7 @@ bool Triangulator::TriangulateIterative(const std::vector<Quat> &q_wc,
             b -= jacobian.transpose() * residual;
         }
 
-        Vec3 dx = H.ldlt().solve(b);
+        const Vec3 dx = H.ldlt().solve(b);
 
         float norm_dx = dx.squaredNorm();
         if (std::isnan(norm_dx) == true) {

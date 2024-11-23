@@ -2,7 +2,7 @@
 #include "iostream"
 
 #include "geometry_triangulation.h"
-#include "log_report.h"
+#include "slam_log_reporter.h"
 
 VISION_GEOMETRY::Triangulator solver;
 
