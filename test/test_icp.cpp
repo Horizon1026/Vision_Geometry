@@ -10,7 +10,7 @@ using namespace SLAM_UTILITY;
 using namespace SLAM_VISUALIZOR;
 
 int main(int argc, char **argv) {
-    ReportInfo(YELLOW ">> Iterative-Closest Point Module Test" RESET_COLOR);
+    ReportInfo(YELLOW ">> Test iterative-closest point." RESET_COLOR);
     LogFixPercision(3);
 
     // Set ground truth of relative pose.

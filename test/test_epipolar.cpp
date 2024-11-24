@@ -14,7 +14,7 @@ void TestEssentialFivePointsModel(VISION_GEOMETRY::EpipolarSolver &solver,
     Mat3 R_cr;
     Vec3 t_cr;
 
-    ReportInfo(GREEN ">> Test epipolar using five points model." RESET_COLOR);
+    ReportColorInfo(">> Test epipolar using five points model.");
     solver.options().kModel = VISION_GEOMETRY::EpipolarSolver::EpipolarModel::kFivePoints;
 
     begin = clock();
@@ -39,7 +39,7 @@ void TestEssentialEightPointsModel(VISION_GEOMETRY::EpipolarSolver &solver,
     Mat3 R_cr;
     Vec3 t_cr;
 
-    ReportInfo(GREEN ">> Test epipolar using eight points model." RESET_COLOR);
+    ReportColorInfo(">> Test epipolar using eight points model.");
     solver.options().kModel = VISION_GEOMETRY::EpipolarSolver::EpipolarModel::kEightPoints;
 
     begin = clock();
@@ -57,10 +57,10 @@ void TestEssentialEightPointsModel(VISION_GEOMETRY::EpipolarSolver &solver,
 
 
 int main(int argc, char **argv) {
-    ReportInfo(YELLOW ">> Epipolar Module Test" RESET_COLOR);
+    ReportInfo(YELLOW ">> Test epipolar estimator." RESET_COLOR);
     LogFixPercision(8);
 
-    // 构造 3D 点云
+    // Generate 3d point cloud.
     std::vector<Vec3> points;
     for (int i = 1; i < 10; i++) {
         for (int j = 1; j < 10; j++) {
@@ -70,13 +70,13 @@ int main(int argc, char **argv) {
         }
     }
 
-    // 定义两帧位姿
+    // Define two camera poses of camera view.
     Mat3 R_c0w = Mat3::Identity();
     Vec3 t_c0w = Vec3::Zero();
     Mat3 R_c1w = Mat3::Identity();
     Vec3 t_c1w = Vec3(2, -10, 6);
 
-    // 将 3D 点云通过两帧位姿映射到对应的归一化平面上，构造匹配点对
+    // Generate observations.
     std::vector<Vec2> ref_norm_xy, cur_norm_xy;
     for (uint32_t i = 0; i < points.size(); i++) {
         Vec3 p_c = R_c0w * points[i] + t_c0w;
@@ -90,7 +90,6 @@ int main(int argc, char **argv) {
     std::vector<uint8_t> status;
 
     TestEssentialEightPointsModel(solver, ref_norm_xy, cur_norm_xy, status);
-
     TestEssentialFivePointsModel(solver, ref_norm_xy, cur_norm_xy, status);
 
     return 0;

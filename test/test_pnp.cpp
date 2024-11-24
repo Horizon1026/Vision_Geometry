@@ -7,10 +7,10 @@
 
 
 int main(int argc, char **argv) {
-    ReportInfo(YELLOW ">> Perspective-n-Point Module Test" RESET_COLOR);
+    ReportInfo(YELLOW ">> Test perspective-n-point." RESET_COLOR);
     LogFixPercision(3);
 
-    // 构造 3D 点云
+    // Generate 3d point cloud.
     std::vector<Vec3> pts_3d;
     for (uint32_t i = 1; i < 10; i++) {
         for (uint32_t j = 1; j < 10; j++) {
@@ -20,21 +20,21 @@ int main(int argc, char **argv) {
         }
     }
 
-    // 定义相机位姿（相对于世界坐标系）
+    // Define camera pose of camera view.
     Mat3 R_wc = Mat3::Identity();
     Vec3 p_wc = Vec3(1, -3, 0);
     Quat q_wc(R_wc);
     ReportInfo("true q_wc is " << LogQuat(q_wc));
     ReportInfo("true p_wc is " << LogVec(p_wc));
 
-    // 将 3D 点云通过两帧位姿映射到对应的归一化平面上，构造匹配点对
+    // Generate observations.
     std::vector<Vec2> pts_2d;
     for (uint32_t i = 0; i < pts_3d.size(); i++) {
         Vec3 p_c = R_wc.transpose() * (pts_3d[i] - p_wc);
         pts_2d.emplace_back(Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)));
     }
 
-    // 随机给匹配点增加 outliers
+    // Add outliers.
     std::vector<int> outliers_indice;
     for (uint32_t i = 0; i < pts_3d.size() / 100; i++) {
         uint32_t idx = rand() % pts_3d.size();
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     float cost_time;
     clock_t begin, end;
 
-    ReportInfo(GREEN ">> Test pnp using all points." RESET_COLOR);
+    ReportColorInfo(">> Test pnp using all points.");
     res_q_wc.setIdentity();
     res_p_wc.setZero();
     pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::PnpMethod::kUseAll;
@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
     ReportInfo("cost time is " << cost_time << " ms");
     ReportInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
 
-    ReportInfo(GREEN ">> Test pnp using ransac method." RESET_COLOR);
+    ReportColorInfo(">> Test pnp using ransac method.");
     res_q_wc.setIdentity();
     res_p_wc.setZero();
     pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::PnpMethod::kRansac;
@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
     ReportInfo("cost time is " << cost_time << " ms");
     ReportInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
 
-    ReportInfo(GREEN ">> Test pnp using huber kernel." RESET_COLOR);
+    ReportColorInfo(">> Test pnp using huber kernel.");
     res_q_wc.setIdentity();
     res_p_wc.setZero();
     pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::PnpMethod::kHuber;
@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
     ReportInfo("cost time is " << cost_time << " ms");
     ReportInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
 
-    ReportInfo(GREEN ">> Test pnp using cauchy kernel." RESET_COLOR);
+    ReportColorInfo(">> Test pnp using cauchy kernel.");
     res_q_wc.setIdentity();
     res_p_wc.setZero();
     pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::PnpMethod::kCauchy;

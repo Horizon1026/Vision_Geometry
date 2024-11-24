@@ -8,7 +8,7 @@
 
 
 int main(int argc, char **argv) {
-    ReportInfo(YELLOW ">> Relative Rotation Module Test" RESET_COLOR);
+    ReportInfo(YELLOW ">> Test pure relative rotation estimator." RESET_COLOR);
     LogFixPercision(8);
 
     // Create 3d point cloud.

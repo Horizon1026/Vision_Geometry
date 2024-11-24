@@ -14,8 +14,11 @@ endif()
 if ( NOT TARGET lib_vision_geometry_pnp )
     add_subdirectory( src/perspective_n_point ${PROJECT_SOURCE_DIR}/build/lib_vision_geometry_pnp )
 endif()
-if ( NOT TARGET lib_vision_geometry_triangulation )
-    add_subdirectory( src/triangulation ${PROJECT_SOURCE_DIR}/build/lib_vision_geometry_triangulation )
+if ( NOT TARGET lib_vision_geometry_point_triangulator )
+    add_subdirectory( src/point_triangulator ${PROJECT_SOURCE_DIR}/build/lib_vision_geometry_point_triangulator )
+endif()
+if ( NOT TARGET lib_vision_geometry_line_triangulator )
+    add_subdirectory( src/line_triangulator ${PROJECT_SOURCE_DIR}/build/lib_vision_geometry_line_triangulator )
 endif()
 if ( NOT TARGET lib_vision_geometry_relative_rotation )
     add_subdirectory( src/relative_rotation ${PROJECT_SOURCE_DIR}/build/lib_vision_geometry_relative_rotation )
@@ -42,12 +45,20 @@ target_link_libraries( test_pnp
     lib_vision_geometry_pnp
 )
 
-# Add test_triangulation.
-add_executable( test_triangulation
-    test/test_triangulation.cpp
+# Add test_point_triangulator.
+add_executable( test_point_triangulator
+    test/test_point_triangulator.cpp
 )
-target_link_libraries( test_triangulation
-    lib_vision_geometry_triangulation
+target_link_libraries( test_point_triangulator
+    lib_vision_geometry_point_triangulator
+)
+
+# Add test_line_triangulator.
+add_executable( test_line_triangulator
+    test/test_line_triangulator.cpp
+)
+target_link_libraries( test_line_triangulator
+    lib_vision_geometry_line_triangulator
 )
 
 # Add test_epipolar.

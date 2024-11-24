@@ -1,5 +1,5 @@
 #include "geometry_epipolar.h"
-#include "geometry_triangulation.h"
+#include "point_triangulator.h"
 #include "slam_basic_math.h"
 #include "slam_operations.h"
 
@@ -246,8 +246,8 @@ bool EpipolarSolver::RecoverPoseFromEssential(const std::vector<Vec2> &ref_norm_
     };
 
     // Triangulization points to find which pose is right.
-    Triangulator solver;
-    solver.options().kMethod = Triangulator::TriangulationMethod::kAnalytic;
+    PointTriangulator solver;
+    solver.options().kMethod = PointTriangulator::TriangulationMethod::kAnalytic;
 
     for (Statis &item : statis) {
         std::vector<Quat> q_rc = { Quat::Identity(), item.q_cr.inverse() };

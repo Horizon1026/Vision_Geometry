@@ -15,9 +15,9 @@ if ( NOT TARGET lib_slam_utility_log )
     add_subdirectory( ${SLAM_UTILITY_PATH}/src/log ${PROJECT_SOURCE_DIR}/build/lib_slam_utility_log )
 endif()
 
-# Add component 'triangulation' in vision geometry.
-if ( NOT TARGET lib_vision_geometry_triangulation )
-    add_subdirectory( ../triangulation ${PROJECT_SOURCE_DIR}/build/lib_vision_geometry_triangulation )
+# Add component 'point_triangulator' in vision geometry.
+if ( NOT TARGET lib_vision_geometry_point_triangulator )
+    add_subdirectory( ../point_triangulator ${PROJECT_SOURCE_DIR}/build/lib_vision_geometry_point_triangulator )
 endif()
 
 add_library( lib_vision_geometry_epipolar ${AUX_SRC_VISION_GEOMETRY_EPIPOLAR} )
@@ -28,5 +28,5 @@ target_link_libraries( lib_vision_geometry_epipolar
     lib_slam_utility_operate
     lib_slam_utility_log
 
-    lib_vision_geometry_triangulation
+    lib_vision_geometry_point_triangulator
 )
