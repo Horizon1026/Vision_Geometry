@@ -17,6 +17,9 @@ public:
     };
 
     struct TriangulationOptions {
+        uint32_t kMaxIteration = 10;
+        uint32_t kMaxUsedCameraView = 10;
+        float kMaxConvergeStep = 1e-6f;
         TriangulationMethod kMethod = TriangulationMethod::kAnalytic;
     };
 
@@ -24,10 +27,10 @@ public:
     LineTriangulator() = default;
     virtual ~LineTriangulator() = default;
 
-    bool Triangulate(const std::vector<Quat> &q_wc,
-                     const std::vector<Vec3> &p_wc,
-                     const std::vector<LineSegment2D> &line_in_norm_plane,
-                     LinePlucker3D &line_in_w);
+    bool Triangulate(const std::vector<Quat> &all_q_wc,
+                     const std::vector<Vec3> &all_p_wc,
+                     const std::vector<LineSegment2D> &lines_in_norm_plane,
+                     LinePlucker3D &plucker_in_w);
 
     // Reference for member variables.
     TriangulationOptions &options() { return options_; }
@@ -35,10 +38,15 @@ public:
     const TriangulationOptions &options() const { return options_; }
 
 private:
-    bool TriangulateAnalytic(const std::vector<Quat> &q_wc,
-                             const std::vector<Vec3> &p_wc,
-                             const std::vector<LineSegment2D> &line_in_norm_plane,
-                             LinePlucker3D &line_in_w);
+    bool TriangulateAnalytic(const std::vector<Quat> &all_q_wc,
+                             const std::vector<Vec3> &all_p_wc,
+                             const std::vector<LineSegment2D> &lines_in_norm_plane,
+                             LinePlucker3D &plucker_in_w);
+    bool TriangulateIterative(const std::vector<Quat> &all_q_wc,
+                              const std::vector<Vec3> &all_p_wc,
+                              const std::vector<LineSegment2D> &lines_in_norm_plane,
+                              LinePlucker3D &plucker_in_w);
+
 
 private:
     TriangulationOptions options_;

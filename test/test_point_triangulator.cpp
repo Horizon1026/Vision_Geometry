@@ -9,15 +9,15 @@ int main(int argc, char **argv) {
     ReportInfo(YELLOW ">> Test point triangulator." RESET_COLOR);
     LogFixPercision(3);
 
-    const uint32_t poseNums = 16;      // 相机数目
+    const uint32_t number_of_camera_views = 16;      // 相机数目
     const Vec3 p_w{2, 2, 2};
     std::vector<Vec2> observe_vec;
     std::vector<Quat> q_wc_vec;
     std::vector<Vec3> p_wc_vec;
 
     const float radius = 8;
-    for (uint32_t n = 0; n < poseNums; ++n) {
-        float theta = n * 2 * M_PI / (poseNums * 16); // 1/16 圆弧
+    for (uint32_t n = 0; n < number_of_camera_views; ++n) {
+        float theta = n * 2 * M_PI / (number_of_camera_views * 16); // 1/16 圆弧
         // 绕 z 轴 旋转
         Mat3 R_cw;
         R_cw = Eigen::AngleAxis<float>(theta, Vec3::UnitZ());

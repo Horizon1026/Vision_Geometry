@@ -59,6 +59,7 @@ add_executable( test_line_triangulator
 )
 target_link_libraries( test_line_triangulator
     lib_vision_geometry_line_triangulator
+    lib_3d_visualizor
 )
 
 # Add test_epipolar.
