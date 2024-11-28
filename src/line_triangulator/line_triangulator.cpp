@@ -105,8 +105,9 @@ bool LineTriangulator::TriangulateIterative(const std::vector<Quat> &all_q_wc,
             const Vec3 u1 = plucker_in_w.normal_vector().normalized();
             const Vec3 u2 = plucker_in_w.direction_vector().normalized();
             const Vec3 u3 = u1.cross(u2);
-            const float w1 = plucker_in_w.normal_vector().norm();
-            const float w2 = plucker_in_w.direction_vector().norm();
+            const Vec2 w = Vec2(plucker_in_w.normal_vector().norm(), plucker_in_w.direction_vector().norm()).normalized();
+            const float w1 = w(0);
+            const float w2 = w(1);
             jacobian_plucker_to_orthonormal.block<3, 1>(0, 1) = - w1 * u3;
             jacobian_plucker_to_orthonormal.block<3, 1>(0, 2) = w1 * u2;
             jacobian_plucker_to_orthonormal.block<3, 1>(0, 3) = - w2 * u1;
