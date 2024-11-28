@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     LogFixPercision(3);
 
     // Generate several camera views and one line.
-    const uint32_t number_of_camera_views = 5;
+    const uint32_t number_of_camera_views = 2;
     const Vec3 p1_w{0, -2, 5};
     const Vec3 p2_w{0, 2, 8};
     const LinePlucker3D truth_line_w(LineSegment3D(p1_w, p2_w));
@@ -41,12 +41,13 @@ int main(int argc, char **argv) {
     // Triangulate line.
     LineTriangulator solver;
     solver.options().kMethod = LineTriangulator::TriangulationMethod::kIterative;
-    LinePlucker3D line_w(LineSegment3D(p1_w + Vec3::Random(), p2_w + Vec3::Random()));
-    ReportInfo("Initialized line in plucker is " << LogVec(line_w.param()));
-    solver.Triangulate(q_wc_vec, p_wc_vec, observe_vec, line_w);
+    const LinePlucker3D noised_line_w(LineSegment3D(p1_w + Vec3::Random(), p2_w + Vec3::Random()));
+    LinePlucker3D estimated_line_w(noised_line_w);
+    ReportInfo("Initialized line in plucker is " << LogVec(estimated_line_w.param()));
+    solver.Triangulate(q_wc_vec, p_wc_vec, observe_vec, estimated_line_w);
 
     // Report result.
-    ReportInfo("Estimated line in plucker is " << LogVec(line_w.param()));
+    ReportInfo("Estimated line in plucker is " << LogVec(estimated_line_w.param()));
     ReportInfo("Truth line in plucker is " << LogVec(truth_line_w.param()));
 
     // Visualize.
@@ -99,8 +100,13 @@ int main(int argc, char **argv) {
     });
     // Draw result of triangulation.
     Visualizor3D::lines().emplace_back(LineType{
-        .p_w_i = line_w.GetPointOnLine(-1),
-        .p_w_j = line_w.GetPointOnLine(1),
+        .p_w_i = noised_line_w.GetPointOnLine(-1),
+        .p_w_j = noised_line_w.GetPointOnLine(1),
+        .color = RgbColor::kPink,
+    });
+    Visualizor3D::lines().emplace_back(LineType{
+        .p_w_i = estimated_line_w.GetPointOnLine(-1),
+        .p_w_j = estimated_line_w.GetPointOnLine(1),
         .color = RgbColor::kCyan,
     });
     while (!Visualizor3D::ShouldQuit()) {
