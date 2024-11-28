@@ -104,11 +104,14 @@ bool LineTriangulator::TriangulateIterative(const std::vector<Quat> &all_q_wc,
             Mat6x4 jacobian_plucker_to_orthonormal = Mat6x4::Zero();
             const Vec3 u1 = plucker_in_w.normal_vector().normalized();
             const Vec3 u2 = plucker_in_w.direction_vector().normalized();
+            const Vec3 u3 = u1.cross(u2);
             const float w1 = plucker_in_w.normal_vector().norm();
             const float w2 = plucker_in_w.direction_vector().norm();
-            jacobian_plucker_to_orthonormal.block<3, 3>(0, 0) = - Utility::SkewSymmetricMatrix(w1 * u1);
-            jacobian_plucker_to_orthonormal.block<3, 3>(3, 0) = - Utility::SkewSymmetricMatrix(w2 * u2);
+            jacobian_plucker_to_orthonormal.block<3, 1>(0, 1) = - w1 * u3;
+            jacobian_plucker_to_orthonormal.block<3, 1>(0, 2) = w1 * u2;
             jacobian_plucker_to_orthonormal.block<3, 1>(0, 3) = - w2 * u1;
+            jacobian_plucker_to_orthonormal.block<3, 1>(3, 1) = w2 * u3;
+            jacobian_plucker_to_orthonormal.block<3, 1>(3, 2) = - w2 * u1;
             jacobian_plucker_to_orthonormal.block<3, 1>(3, 3) = w1 * u2;
             // Compute full jacobian.
             const Mat2x4 jacobian = jacobian_residual_line_in_c *
