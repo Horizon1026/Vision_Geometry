@@ -68,17 +68,17 @@ bool LineTriangulator::TriangulateIterative(const std::vector<Quat> &all_q_wc,
         Vec4 bias = Vec4::Zero();
         for (uint32_t i = 0; i < lines_in_norm_plane.size(); ++i) {
             BREAK_IF(i >= options_.kMaxUsedCameraView);
-            const LinePlucker3D plucker_in_c = plucker_in_w.TransformTo(all_q_wc[i], all_p_wc[i]);
-            const Vec3 l = plucker_in_c.ProjectToNormalPlane();
-            const float l_2_2 = l.head<2>().squaredNorm();
-            const float l_1_2 = std::sqrt(l_2_2);
-            const float l_3_2 = l_2_2 * l_1_2;
-
             const Mat3 R_wc(all_q_wc[i]);
             const Vec3 p_wc = all_p_wc[i];
             const auto &line_in_norm_plane = lines_in_norm_plane[i];
             const Vec3 s_point = line_in_norm_plane.start_point_homogeneous();
             const Vec3 e_point = line_in_norm_plane.end_point_homogeneous();
+
+            const LinePlucker3D plucker_in_c = plucker_in_w.TransformTo(all_q_wc[i], all_p_wc[i]);
+            const Vec3 l = plucker_in_c.ProjectToNormalPlane();
+            const float l_2_2 = l.head<2>().squaredNorm();
+            const float l_1_2 = std::sqrt(l_2_2);
+            const float l_3_2 = l_2_2 * l_1_2;
 
             // Compute residual. Define it by distance from point to line.
             const Vec2 residual = Vec2(s_point.dot(l) / l_1_2,

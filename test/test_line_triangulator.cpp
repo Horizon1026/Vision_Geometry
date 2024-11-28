@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
     // Triangulate line.
     LineTriangulator solver;
     solver.options().kMethod = LineTriangulator::TriangulationMethod::kIterative;
-    const LinePlucker3D noised_line_w(LineSegment3D(p1_w + Vec3::Random(), p2_w + Vec3::Random()));
+    const LinePlucker3D noised_line_w(LineSegment3D(p1_w + Vec3::Random() * 0.5f, p2_w + Vec3::Random() * 0.5f));
     LinePlucker3D estimated_line_w(noised_line_w);
     ReportInfo("Initialized line in plucker is " << LogVec(estimated_line_w.param()));
     solver.Triangulate(q_wc_vec, p_wc_vec, observe_vec, estimated_line_w);
