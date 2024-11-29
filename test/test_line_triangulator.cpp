@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     LogFixPercision(3);
 
     // Generate several camera views and one line.
-    const uint32_t number_of_camera_views = 2;
+    const uint32_t number_of_camera_views = 5;
     const Vec3 p1_w{0, -2, 5};
     const Vec3 p2_w{0, 2, 8};
     const LinePlucker3D truth_line_w(LineSegment3D(p1_w, p2_w));
@@ -41,6 +41,7 @@ int main(int argc, char **argv) {
     // Triangulate line.
     LineTriangulator solver;
     solver.options().kMethod = LineTriangulator::TriangulationMethod::kIterative;
+    solver.options().kMaxIteration = 5;
     const LinePlucker3D noised_line_w(LineSegment3D(p1_w + Vec3::Random() * 0.5f, p2_w + Vec3::Random() * 0.5f));
     LinePlucker3D estimated_line_w(noised_line_w);
     ReportInfo("Initialized line in plucker is " << LogVec(estimated_line_w.param()));
