@@ -62,35 +62,43 @@ bool LineTriangulator::TriangulateIterative(const std::vector<Quat> &all_q_wc,
         ReportWarn("[Triangulator] Initial plucker is wrong. Do analytical triangulation to initialize it.");
     }
 
-    // TODO: Something wrong here.
+    // Reference: https://github.com/shishenghuang/MyG2O
     for (uint32_t iter = 0; iter < options_.kMaxIteration; ++iter) {
+        const Mat3 matrix_U = plucker_in_w.matrix_U();
+        const Mat3x2 matrix_W = plucker_in_w.matrix_W();
+        const Vec3 u1 = matrix_U.col(0);
+        const Vec3 u2 = matrix_U.col(1);
+        const float w1 = matrix_W(0, 0);
+        const float w2 = matrix_W(1, 1);
+
         Mat4 hessian = Mat4::Zero();
         Vec4 bias = Vec4::Zero();
         for (uint32_t i = 0; i < lines_in_norm_plane.size(); ++i) {
             BREAK_IF(i >= options_.kMaxUsedCameraView);
             const Mat3 R_cw(all_q_wc[i].inverse());
-            const Vec3 p_wc = all_p_wc[i];
+            const Vec3 p_cw(- R_cw * all_p_wc[i]);
             const auto &line_in_norm_plane = lines_in_norm_plane[i];
             const Vec3 s_point = line_in_norm_plane.start_point_homogeneous();
             const Vec3 e_point = line_in_norm_plane.end_point_homogeneous();
 
             const LinePlucker3D plucker_in_c = plucker_in_w.TransformTo(all_p_wc[i], all_q_wc[i]);
             const Vec3 l = plucker_in_c.ProjectToNormalPlane();
-            const float l_2_2 = l.head<2>().squaredNorm();
+            const float l_2_2 = l(0) * l(0) + l(1) * l(1);
             const float l_1_2 = std::sqrt(l_2_2);
             const float l_3_2 = l_2_2 * l_1_2;
+            const float sl = s_point.dot(l);
+            const float el = e_point.dot(l);
 
             // Compute residual. Define it by distance from point to line.
-            const Vec2 residual = Vec2(s_point.dot(l) / l_1_2,
-                                       e_point.dot(l) / l_1_2);
+            const Vec2 residual = Vec2(sl / l_1_2, el / l_1_2);
 
             // Compute jacobian of d_residual to d_line_in_c.
             Mat2x3 jacobian_residual_line_in_c = Mat2x3::Zero();
-            jacobian_residual_line_in_c << s_point.x() / l_1_2 - l[0] * s_point.dot(l) / l_3_2,
-                                           s_point.y() / l_1_2 - l[1] * s_point.dot(l) / l_3_2,
+            jacobian_residual_line_in_c << s_point.x() / l_1_2 - l[0] * sl / l_3_2,
+                                           s_point.y() / l_1_2 - l[1] * sl / l_3_2,
                                            1.0f / l_1_2,
-                                           e_point.x() / l_1_2 - l[0] * e_point.dot(l) / l_3_2,
-                                           e_point.y() / l_1_2 - l[1] * e_point.dot(l) / l_3_2,
+                                           e_point.x() / l_1_2 - l[0] * el / l_3_2,
+                                           e_point.y() / l_1_2 - l[1] * el / l_3_2,
                                            1.0f / l_1_2;
             // Compute jacobian of d_line_in_c to d_plucker_in_c.
             Mat3x6 jacobian_line_to_plucker = Mat3x6::Zero();
@@ -98,12 +106,14 @@ bool LineTriangulator::TriangulateIterative(const std::vector<Quat> &all_q_wc,
             // Compute jacobian of d_plucker_in_c to d_plucker_in_w.
             Mat6 jacobian_plucker_c_to_w = Mat6::Zero();
             jacobian_plucker_c_to_w.block<3, 3>(0, 0) = R_cw;
-            jacobian_plucker_c_to_w.block<3, 3>(0, 3) = - R_cw * Utility::SkewSymmetricMatrix(p_wc);
+            jacobian_plucker_c_to_w.block<3, 3>(0, 3) = Utility::SkewSymmetricMatrix(p_cw) * R_cw;
             jacobian_plucker_c_to_w.block<3, 3>(3, 3) = R_cw;
             // Compute jacobian of d_plucker_in_w to d_orthonormal_in_w.
             Mat6x4 jacobian_plucker_to_orthonormal = Mat6x4::Zero();
-            jacobian_plucker_to_orthonormal.block<3, 3>(0, 0).setIdentity();
-            jacobian_plucker_to_orthonormal.block<3, 1>(3, 3) = Utility::SkewSymmetricMatrix(plucker_in_w.normal_vector().normalized()) * plucker_in_w.direction_vector();
+            jacobian_plucker_to_orthonormal.block<3, 3>(0, 0) = - Utility::SkewSymmetricMatrix(w1 * u1);
+            jacobian_plucker_to_orthonormal.block<3, 3>(3, 0) = - Utility::SkewSymmetricMatrix(w2 * u2);
+            jacobian_plucker_to_orthonormal.block<3, 1>(0, 3) = - w2 * u1;
+            jacobian_plucker_to_orthonormal.block<3, 1>(3, 3) = w1 * u2;
             // Compute full jacobian.
             const Mat2x4 jacobian = jacobian_residual_line_in_c *
                                     jacobian_line_to_plucker *
