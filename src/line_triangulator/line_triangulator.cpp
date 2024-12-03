@@ -64,12 +64,8 @@ bool LineTriangulator::TriangulateIterative(const std::vector<Quat> &all_q_wc,
 
     // Reference: https://github.com/shishenghuang/MyG2O
     for (uint32_t iter = 0; iter < options_.kMaxIteration; ++iter) {
-        const Mat3 matrix_U = plucker_in_w.matrix_U();
-        const Mat3x2 matrix_W = plucker_in_w.matrix_W();
-        const Vec3 u1 = matrix_U.col(0);
-        const Vec3 u2 = matrix_U.col(1);
-        const float w1 = matrix_W(0, 0);
-        const float w2 = matrix_W(1, 1);
+        // Compute jacobian of d_plucker_in_w to d_orthonormal_in_w.
+        const Mat6x4 jacobian_plucker_to_orthonormal = plucker_in_w.LinearizeTo4Dof();
 
         Mat4 hessian = Mat4::Zero();
         Vec4 bias = Vec4::Zero();
@@ -108,12 +104,6 @@ bool LineTriangulator::TriangulateIterative(const std::vector<Quat> &all_q_wc,
             jacobian_plucker_c_to_w.block<3, 3>(0, 0) = R_cw;
             jacobian_plucker_c_to_w.block<3, 3>(0, 3) = Utility::SkewSymmetricMatrix(p_cw) * R_cw;
             jacobian_plucker_c_to_w.block<3, 3>(3, 3) = R_cw;
-            // Compute jacobian of d_plucker_in_w to d_orthonormal_in_w.
-            Mat6x4 jacobian_plucker_to_orthonormal = Mat6x4::Zero();
-            jacobian_plucker_to_orthonormal.block<3, 3>(0, 0) = - Utility::SkewSymmetricMatrix(w1 * u1);
-            jacobian_plucker_to_orthonormal.block<3, 3>(3, 0) = - Utility::SkewSymmetricMatrix(w2 * u2);
-            jacobian_plucker_to_orthonormal.block<3, 1>(0, 3) = - w2 * u1;
-            jacobian_plucker_to_orthonormal.block<3, 1>(3, 3) = w1 * u2;
             // Compute full jacobian.
             const Mat2x4 jacobian = jacobian_residual_line_in_c *
                                     jacobian_line_to_plucker *
