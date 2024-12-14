@@ -5,7 +5,7 @@ project( vision_geometry )
 set( CMAKE_BUILD_TYPE "Release" )
 set( CMAKE_CXX_FLAGS "-std=c++17 -O3 -Wall" )
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
-set( CMAKE_CXX_STANDARD 17 )
+set( CMAKE_CXX_STANDARD 20 )
 
 # Add all relative components of vision geometry.
 if ( NOT TARGET lib_vision_geometry_epipolar )
