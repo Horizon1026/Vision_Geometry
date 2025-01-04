@@ -19,6 +19,7 @@ public:
         uint32_t kMaxUsedCameraView = 10;
         float kMinValidDepth = 1e-3f;
         float kMaxConvergeStep = 1e-6f;
+        float kMaxToleranceReprojectionError = 0.1f;
         TriangulationMethod kMethod = TriangulationMethod::kAnalytic;
     };
 
@@ -28,7 +29,7 @@ public:
 
     bool Triangulate(const std::vector<Quat> &q_wc,
                      const std::vector<Vec3> &p_wc,
-                     const std::vector<Vec2> &norm_uv,
+                     const std::vector<Vec2> &norm_xy,
                      Vec3 &p_w);
 
     static float GetParallexAngle(const Quat &q_wci, const Vec3 &p_wci,
@@ -43,15 +44,16 @@ public:
 private:
     bool TriangulateAnalytic(const std::vector<Quat> &q_wc,
                              const std::vector<Vec3> &p_wc,
-                             const std::vector<Vec2> &norm_uv,
+                             const std::vector<Vec2> &norm_xy,
                              Vec3 &p_w);
     bool TriangulateIterative(const std::vector<Quat> &q_wc,
                               const std::vector<Vec3> &p_wc,
-                              const std::vector<Vec2> &norm_uv,
+                              const std::vector<Vec2> &norm_xy,
                               Vec3 &p_w);
-    bool CheckDepthInMultiView(const std::vector<Quat> &q_wc,
-                               const std::vector<Vec3> &p_wc,
-                               const Vec3 &p_w);
+    bool CheckResultInMultiView(const std::vector<Quat> &q_wc,
+                                const std::vector<Vec3> &p_wc,
+                                const std::vector<Vec2> &norm_xy,
+                                const Vec3 &p_w);
 
 private:
     TriangulationOptions options_;

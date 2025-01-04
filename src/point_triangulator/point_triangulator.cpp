@@ -6,17 +6,17 @@ namespace VISION_GEOMETRY {
 
 bool PointTriangulator::Triangulate(const std::vector<Quat> &q_wc,
                                     const std::vector<Vec3> &p_wc,
-                                    const std::vector<Vec2> &norm_uv,
+                                    const std::vector<Vec2> &norm_xy,
                                     Vec3 &p_w) {
     RETURN_FALSE_IF(q_wc.size() < 2);
-    RETURN_FALSE_IF(q_wc.size() != p_wc.size() || q_wc.size() != norm_uv.size());
+    RETURN_FALSE_IF(q_wc.size() != p_wc.size() || q_wc.size() != norm_xy.size());
     switch (options_.kMethod) {
         default:
         case TriangulationMethod::kAnalytic: {
-            return TriangulateAnalytic(q_wc, p_wc, norm_uv, p_w);
+            return TriangulateAnalytic(q_wc, p_wc, norm_xy, p_w);
         }
         case TriangulationMethod::kIterative: {
-            return TriangulateIterative(q_wc, p_wc, norm_uv, p_w);
+            return TriangulateIterative(q_wc, p_wc, norm_xy, p_w);
         }
     }
     return false;
@@ -24,26 +24,26 @@ bool PointTriangulator::Triangulate(const std::vector<Quat> &q_wc,
 
 bool PointTriangulator::TriangulateAnalytic(const std::vector<Quat> &q_wc,
                                             const std::vector<Vec3> &p_wc,
-                                            const std::vector<Vec2> &norm_uv,
+                                            const std::vector<Vec2> &norm_xy,
                                             Vec3 &p_w) {
     const uint32_t used_camera_num = options_.kMaxUsedCameraView < q_wc.size() ? options_.kMaxUsedCameraView : q_wc.size();
     Eigen::Matrix<float, Eigen::Dynamic, 4> A = Eigen::Matrix<float, Eigen::Dynamic, 4>::Zero(used_camera_num * 2, 4);
     for (uint32_t i = 0; i < used_camera_num; ++i) {
         auto pose = Utility::TransformMatrix<float>(q_wc[i].inverse(), - (q_wc[i].inverse() * p_wc[i]));
-        A.row(2 * i) = norm_uv[i][0] * pose.row(2) - pose.row(0);
-        A.row(2 * i + 1) = norm_uv[i][1] * pose.row(2) - pose.row(1);
+        A.row(2 * i) = norm_xy[i][0] * pose.row(2) - pose.row(0);
+        A.row(2 * i + 1) = norm_xy[i][1] * pose.row(2) - pose.row(1);
     }
 
     const Vec4 x = A.jacobiSvd(Eigen::ComputeFullV).matrixV().rightCols<1>();
     RETURN_FALSE_IF(std::fabs(x(3)) < kZero);
     p_w = x.head<3>() / x(3);
 
-    return CheckDepthInMultiView(q_wc, p_wc, p_w);
+    return CheckResultInMultiView(q_wc, p_wc, norm_xy, p_w);
 }
 
 bool PointTriangulator::TriangulateIterative(const std::vector<Quat> &q_wc,
                                              const std::vector<Vec3> &p_wc,
-                                             const std::vector<Vec2> &norm_uv,
+                                             const std::vector<Vec2> &norm_xy,
                                              Vec3 &p_w) {
     uint32_t used_camera_num = options_.kMaxUsedCameraView < q_wc.size() ? options_.kMaxUsedCameraView : q_wc.size();
 
@@ -58,7 +58,7 @@ bool PointTriangulator::TriangulateIterative(const std::vector<Quat> &q_wc,
             const float inv_depth2 = inv_depth * inv_depth;
 
             // Compute residual and jacobian.
-            const Vec2 residual = Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)) - norm_uv[i];
+            const Vec2 residual = Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)) - norm_xy[i];
             Mat2x3 jacobian_2d_3d;
             jacobian_2d_3d << inv_depth, 0, - p_c(0) * inv_depth2,
                               0, inv_depth, - p_c(1) * inv_depth2;
@@ -74,15 +74,18 @@ bool PointTriangulator::TriangulateIterative(const std::vector<Quat> &q_wc,
         BREAK_IF(dx.norm() < options_.kMaxConvergeStep);
     }
 
-    return CheckDepthInMultiView(q_wc, p_wc, p_w);
+    return CheckResultInMultiView(q_wc, p_wc, norm_xy, p_w);
 }
 
-bool PointTriangulator::CheckDepthInMultiView(const std::vector<Quat> &q_wc,
-                                              const std::vector<Vec3> &p_wc,
-                                              const Vec3 &p_w) {
+bool PointTriangulator::CheckResultInMultiView(const std::vector<Quat> &q_wc,
+                                               const std::vector<Vec3> &p_wc,
+                                               const std::vector<Vec2> &norm_xy,
+                                               const Vec3 &p_w) {
     for (uint32_t i = 0; i < q_wc.size(); ++i) {
         const Vec3 p_c = q_wc[i].inverse() * (p_w - p_wc[i]);
         RETURN_FALSE_IF(p_c.z() < 0);
+        const Vec2 pred_norm_xy = p_c.head<2>() / p_c.z();
+        RETURN_FALSE_IF((norm_xy[i] - pred_norm_xy).norm() > options_.kMaxToleranceReprojectionError);
     }
 
     return true;
