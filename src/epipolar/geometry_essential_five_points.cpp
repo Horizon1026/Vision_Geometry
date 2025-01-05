@@ -78,7 +78,7 @@ bool EpipolarSolver::EstimateEssentialUseFivePoints(const std::vector<Vec2> &ref
 
     // Compute all essential matrix with roots.
     for (uint32_t i = 0; i < roots.size(); ++i) {
-        if (std::fabs(roots[i].imag()) > kZero) {
+        if (std::fabs(roots[i].imag()) > kZerofloat) {
             continue;
         }
 
@@ -100,7 +100,7 @@ bool EpipolarSolver::EstimateEssentialUseFivePoints(const std::vector<Vec2> &ref
         // w is fixed as 1.0f.
         Eigen::Map<Eigen::Matrix<float, 3, 3, Eigen::RowMajor>> Bz(bz[0]);
         Vec3 xy = Bz.jacobiSvd(Eigen::ComputeFullV).matrixV().rightCols<1>();
-        if (std::fabs(xy(2)) < kZero) {
+        if (std::fabs(xy(2)) < kZerofloat) {
             continue;
         }
         const float x = xy(0) / xy(2);

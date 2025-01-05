@@ -45,7 +45,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlane(const std::vector<Vec3> &all_re
             // Compute residual.
             Vec3 plane_vector = (ref_p_w_1 - ref_p_w_0).cross(ref_p_w_2 - ref_p_w_0);
             const float norm = plane_vector.norm();
-            CONTINUE_IF(norm < kZero);
+            CONTINUE_IF(norm < kZerofloat);
             plane_vector /= norm;
             const float residual = (transformed_cur_p_w - ref_p_w_0).dot(plane_vector);
             CONTINUE_IF(residual > options_.kMaxValidRelativePointDistance);

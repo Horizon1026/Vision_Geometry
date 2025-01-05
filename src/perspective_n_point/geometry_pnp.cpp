@@ -43,7 +43,7 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
     for (uint32_t i = 0; i < p_w.size(); ++i) {
         if (status[i] == static_cast<uint8_t>(PnpResult::kUnsolved)) {
             const Vec3 p_c = q_wc.inverse() * (p_w[i] - p_wc);
-            if (p_c(2) > kZero) {
+            if (p_c(2) > kZerofloat) {
                 const float residual = (norm_uv[i] - p_c.head<2>() / p_c(2)).norm();
                 if (residual < options_.kMaxPnpResidual) {
                     status[i] = static_cast<uint8_t>(PnpResult::kSolved);

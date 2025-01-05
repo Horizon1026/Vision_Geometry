@@ -35,7 +35,7 @@ bool PointTriangulator::TriangulateAnalytic(const std::vector<Quat> &q_wc,
     }
 
     const Vec4 x = A.jacobiSvd(Eigen::ComputeFullV).matrixV().rightCols<1>();
-    RETURN_FALSE_IF(std::fabs(x(3)) < kZero);
+    RETURN_FALSE_IF(std::fabs(x(3)) < kZerofloat);
     p_w = x.head<3>() / x(3);
 
     return CheckResultInMultiView(q_wc, p_wc, norm_xy, p_w);
