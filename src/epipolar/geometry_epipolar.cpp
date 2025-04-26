@@ -247,7 +247,7 @@ bool EpipolarSolver::RecoverPoseFromEssential(const std::vector<Vec2> &ref_norm_
 
     // Triangulization points to find which pose is right.
     PointTriangulator solver;
-    solver.options().kMethod = PointTriangulator::TriangulationMethod::kAnalytic;
+    solver.options().kMethod = PointTriangulator::Method::kAnalytic;
 
     for (Statis &item : statis) {
         std::vector<Quat> q_rc = { Quat::Identity(), item.q_cr.inverse() };

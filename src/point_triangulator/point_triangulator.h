@@ -9,18 +9,18 @@ namespace VISION_GEOMETRY {
 class PointTriangulator {
 
 public:
-    enum class TriangulationMethod: uint8_t {
+    enum class Method: uint8_t {
         kAnalytic = 0,
         kIterative = 1,
     };
 
-    struct TriangulationOptions {
+    struct Options {
         uint32_t kMaxIteration = 10;
         uint32_t kMaxUsedCameraView = 10;
         float kMinValidDepth = 1e-3f;
         float kMaxConvergeStep = 1e-6f;
         float kMaxToleranceReprojectionError = 0.1f;
-        TriangulationMethod kMethod = TriangulationMethod::kAnalytic;
+        Method kMethod = Method::kAnalytic;
     };
 
 public:
@@ -37,9 +37,9 @@ public:
                                   const Vec2 &norm_xy_i, const Vec2 &norm_xy_j);
 
     // Reference for member variables.
-    TriangulationOptions &options() { return options_; }
+    Options &options() { return options_; }
     // Const reference for member variables.
-    const TriangulationOptions &options() const { return options_; }
+    const Options &options() const { return options_; }
 
 private:
     bool TriangulateAnalytic(const std::vector<Quat> &q_wc,
@@ -56,7 +56,7 @@ private:
                                 const Vec3 &p_w);
 
 private:
-    TriangulationOptions options_;
+    Options options_;
 };
 
 }

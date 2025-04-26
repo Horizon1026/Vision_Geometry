@@ -12,10 +12,10 @@ bool PointTriangulator::Triangulate(const std::vector<Quat> &q_wc,
     RETURN_FALSE_IF(q_wc.size() != p_wc.size() || q_wc.size() != norm_xy.size());
     switch (options_.kMethod) {
         default:
-        case TriangulationMethod::kAnalytic: {
+        case Method::kAnalytic: {
             return TriangulateAnalytic(q_wc, p_wc, norm_xy, p_w);
         }
-        case TriangulationMethod::kIterative: {
+        case Method::kIterative: {
             return TriangulateIterative(q_wc, p_wc, norm_xy, p_w);
         }
     }

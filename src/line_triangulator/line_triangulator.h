@@ -10,17 +10,17 @@ namespace VISION_GEOMETRY {
 class LineTriangulator {
 
 public:
-    enum class TriangulationMethod: uint8_t {
+    enum class Method: uint8_t {
         kAnalytic = 0,
         kOrdinaryLeastSquare = 1,
         kIterative = 2,
     };
 
-    struct TriangulationOptions {
+    struct Options {
         uint32_t kMaxIteration = 10;
         uint32_t kMaxUsedCameraView = 10;
         float kMaxConvergeStep = 1e-6f;
-        TriangulationMethod kMethod = TriangulationMethod::kAnalytic;
+        Method kMethod = Method::kAnalytic;
     };
 
 public:
@@ -33,9 +33,9 @@ public:
                      LinePlucker3D &plucker_in_w);
 
     // Reference for member variables.
-    TriangulationOptions &options() { return options_; }
+    Options &options() { return options_; }
     // Const reference for member variables.
-    const TriangulationOptions &options() const { return options_; }
+    const Options &options() const { return options_; }
 
 private:
     bool TriangulateAnalytic(const std::vector<Quat> &all_q_wc,
@@ -49,7 +49,7 @@ private:
 
 
 private:
-    TriangulationOptions options_;
+    Options options_;
 };
 
 }

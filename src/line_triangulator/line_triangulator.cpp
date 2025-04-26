@@ -15,10 +15,10 @@ bool LineTriangulator::Triangulate(const std::vector<Quat> &all_q_wc,
 
     switch (options_.kMethod) {
         default:
-        case TriangulationMethod::kAnalytic: {
+        case Method::kAnalytic: {
             return TriangulateAnalytic(all_q_wc, all_p_wc, lines_in_norm_plane, plucker_in_w);
         }
-        case TriangulationMethod::kIterative: {
+        case Method::kIterative: {
             return TriangulateIterative(all_q_wc, all_p_wc, lines_in_norm_plane, plucker_in_w);
         }
     }

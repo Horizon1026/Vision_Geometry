@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
 
     ReportColorInfo(">> Test point_triangulator using analytic method.");
     Vec3 res_p_w;
-    solver.options().kMethod = VISION_GEOMETRY::PointTriangulator::TriangulationMethod::kAnalytic;
+    solver.options().kMethod = VISION_GEOMETRY::PointTriangulator::Method::kAnalytic;
     begin = clock();
     solver.Triangulate(q_wc_vec, p_wc_vec, observe_vec, res_p_w);
     end = clock();
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     ReportColorInfo(">> Test point_triangulator using iterative method.");
     Vec3 p_w_noise = Vec3(0.5f, 0.5f, 0.5f);
     res_p_w = p_w + p_w_noise;;
-    solver.options().kMethod = VISION_GEOMETRY::PointTriangulator::TriangulationMethod::kIterative;
+    solver.options().kMethod = VISION_GEOMETRY::PointTriangulator::Method::kIterative;
     begin = clock();
     solver.Triangulate(q_wc_vec, p_wc_vec, observe_vec, res_p_w);
     end = clock();
