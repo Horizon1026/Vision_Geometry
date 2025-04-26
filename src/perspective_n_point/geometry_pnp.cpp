@@ -12,13 +12,13 @@ bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w,
                              Vec3 &p_wc,
                              std::vector<uint8_t> &status) {
     switch (options_.kMethod) {
-        case PnpMethod::kRansac: {
+        case Method::kRansac: {
             return EstimatePoseRansac(p_w, norm_uv, q_wc, p_wc, status);
         }
 
-        case PnpMethod::kUseAll:
-        case PnpMethod::kHuber:
-        case PnpMethod::kCauchy: {
+        case Method::kUseAll:
+        case Method::kHuber:
+        case Method::kCauchy: {
             return EstimatePoseUseAll(p_w, norm_uv, q_wc, p_wc, status);
         }
 
@@ -36,19 +36,19 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
     RETURN_FALSE_IF_FALSE(EstimatePoseUseAll(p_w, norm_uv, q_wc, p_wc));
 
     if (status.size() != p_w.size()) {
-        status.resize(p_w.size(), static_cast<uint8_t>(PnpResult::kUnsolved));
+        status.resize(p_w.size(), static_cast<uint8_t>(Result::kUnsolved));
     }
 
     // Check those features that haven't been solved.
     for (uint32_t i = 0; i < p_w.size(); ++i) {
-        if (status[i] == static_cast<uint8_t>(PnpResult::kUnsolved)) {
+        if (status[i] == static_cast<uint8_t>(Result::kUnsolved)) {
             const Vec3 p_c = q_wc.inverse() * (p_w[i] - p_wc);
             if (p_c(2) > kZerofloat) {
                 const float residual = (norm_uv[i] - p_c.head<2>() / p_c(2)).norm();
                 if (residual < options_.kMaxPnpResidual) {
-                    status[i] = static_cast<uint8_t>(PnpResult::kSolved);
+                    status[i] = static_cast<uint8_t>(Result::kSolved);
                 } else {
-                    status[i] = static_cast<uint8_t>(PnpResult::kLargeResidual);
+                    status[i] = static_cast<uint8_t>(Result::kLargeResidual);
                 }
             }
         }
@@ -93,19 +93,19 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
 
             switch (options_.kMethod) {
                 default:
-                case PnpMethod::kUseAll: {
+                case Method::kUseAll: {
                     H += jacobian.transpose() * jacobian;
                     b += - jacobian.transpose() * residual;
                     break;
                 }
-                case PnpMethod::kHuber: {
+                case Method::kHuber: {
                     const float r_norm = residual.norm();
                     const float kernel = this->Huber(1.0f, r_norm);
                     H += jacobian.transpose() * jacobian * kernel;
                     b += - jacobian.transpose() * residual * kernel;
                     break;
                 }
-                case PnpMethod::kCauchy: {
+                case Method::kCauchy: {
                     const float r_norm = residual.norm();
                     const float kernel = this->Cauchy(1.0f, r_norm);
                     H += jacobian.transpose() * jacobian * kernel;
@@ -207,17 +207,17 @@ void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w,
                                Vec3 &p_wc,
                                std::vector<uint8_t> &status) {
     if (status.size() != norm_uv.size()) {
-        status.resize(norm_uv.size(), static_cast<uint8_t>(PnpResult::kUnsolved));
+        status.resize(norm_uv.size(), static_cast<uint8_t>(Result::kUnsolved));
     }
 
     for (uint32_t i = 0; i < p_w.size(); ++i) {
-        if (status[i] == static_cast<uint8_t>(PnpResult::kUnsolved) || status[i] == static_cast<uint8_t>(PnpResult::kSolved)) {
+        if (status[i] == static_cast<uint8_t>(Result::kUnsolved) || status[i] == static_cast<uint8_t>(Result::kSolved)) {
             Vec3 p_c = q_wc.inverse() * (p_w[i] - p_wc);
             Vec2 r = Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)) - norm_uv[i];
             if (r.squaredNorm() >= options_.kMaxConvergeResidual) {
-                status[i] = static_cast<uint8_t>(PnpResult::kLargeResidual);
+                status[i] = static_cast<uint8_t>(Result::kLargeResidual);
             } else {
-                status[i] = static_cast<uint8_t>(PnpResult::kSolved);
+                status[i] = static_cast<uint8_t>(Result::kSolved);
             }
         }
     }

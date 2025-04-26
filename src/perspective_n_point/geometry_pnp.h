@@ -9,20 +9,20 @@ namespace VISION_GEOMETRY {
 class PnpSolver {
 
 public:
-    enum class PnpMethod : uint8_t {
+    enum class Method : uint8_t {
         kUseAll = 0,
         kRansac = 1,
         kHuber = 2,
         kCauchy = 3,
     };
 
-    enum class PnpResult : uint8_t {
+    enum class Result : uint8_t {
         kUnsolved = 0,
         kSolved = 1,
         kLargeResidual = 2,
     };
 
-    struct PnpOptions {
+    struct Options {
         uint32_t kMaxSolvePointsNumber = 200;
         uint32_t kMaxIteration = 10;
         float kMaxConvergeStep = 1e-6f;
@@ -30,7 +30,7 @@ public:
         float kMinRansacInlierRatio = 0.9f;
         float kMaxPnpResidual = 1e-3f;
         float kMinValidDepth = 1e-3f;
-        PnpMethod kMethod = PnpMethod::kRansac;
+        Method kMethod = Method::kRansac;
     };
 
 public:
@@ -44,10 +44,10 @@ public:
                       std::vector<uint8_t> &status);
 
     // Reference for member variables.
-    PnpOptions &options() { return options_;}
+    Options &options() { return options_;}
 
     // Const reference for member variables.
-    const PnpOptions &options() const { return options_;}
+    const Options &options() const { return options_;}
 
 private:
     bool EstimatePoseUseAll(const std::vector<Vec3> &p_w,
@@ -93,7 +93,7 @@ private:
     }
 
 private:
-    PnpOptions options_;
+    Options options_;
 };
 }
 

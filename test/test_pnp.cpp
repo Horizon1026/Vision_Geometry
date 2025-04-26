@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
     ReportColorInfo(">> Test pnp using all points.");
     res_q_wc.setIdentity();
     res_p_wc.setZero();
-    pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::PnpMethod::kUseAll;
+    pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::Method::kUseAll;
     begin = clock();
     pnpSolver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
     end = clock();
@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
     ReportColorInfo(">> Test pnp using ransac method.");
     res_q_wc.setIdentity();
     res_p_wc.setZero();
-    pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::PnpMethod::kRansac;
+    pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::Method::kRansac;
     begin = clock();
     pnpSolver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
     end = clock();
@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
     ReportColorInfo(">> Test pnp using huber kernel.");
     res_q_wc.setIdentity();
     res_p_wc.setZero();
-    pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::PnpMethod::kHuber;
+    pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::Method::kHuber;
     begin = clock();
     pnpSolver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
     end = clock();
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
     ReportColorInfo(">> Test pnp using cauchy kernel.");
     res_q_wc.setIdentity();
     res_p_wc.setZero();
-    pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::PnpMethod::kCauchy;
+    pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::Method::kCauchy;
     begin = clock();
     pnpSolver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
     end = clock();
