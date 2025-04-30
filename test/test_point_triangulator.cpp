@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
 
     ReportColorInfo(">> Test computation of parallex angle.");
     for (uint32_t i = 1; i < q_wc_vec.size(); ++i) {
-        const float parallex_angle = solver.GetParallexAngle(q_wc_vec[0], p_wc_vec[0], q_wc_vec[i], p_wc_vec[i], observe_vec[0], observe_vec[i]);
+        const float parallex_angle = solver.GetCosineOfParallexAngle(q_wc_vec[0], p_wc_vec[0], q_wc_vec[i], p_wc_vec[i], observe_vec[0], observe_vec[i]);
         ReportInfo("Feature " << LogVec(p_w) << " has parallex angle [" << parallex_angle << "] between camera pose 0 and pose " << i << "");
     }
 
