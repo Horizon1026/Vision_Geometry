@@ -32,9 +32,9 @@ public:
                      const std::vector<Vec2> &norm_xy,
                      Vec3 &p_w);
 
-    static float GetCosineOfParallexAngle(const Quat &q_wci, const Vec3 &p_wci,
-                                          const Quat &q_wcj, const Vec3 &p_wcj,
-                                          const Vec2 &norm_xy_i, const Vec2 &norm_xy_j);
+    static float GetSineOfParallexAngle(const Quat &q_wci, const Vec3 &p_wci,
+                                        const Quat &q_wcj, const Vec3 &p_wcj,
+                                        const Vec2 &norm_xy_i, const Vec2 &norm_xy_j);
 
     // Reference for member variables.
     Options &options() { return options_; }
