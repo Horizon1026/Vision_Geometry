@@ -10,10 +10,11 @@ class PnpSolver {
 
 public:
     enum class Method : uint8_t {
-        kUseAll = 0,
-        kRansac = 1,
-        kHuber = 2,
-        kCauchy = 3,
+        kOptimize = 0,
+        kOptimizeRansac = 1,
+        kOptimizeHuber = 2,
+        kOptimizeCauchy = 3,
+        kDirectLinearTransform = 4,
     };
 
     enum class Result : uint8_t {
@@ -30,7 +31,9 @@ public:
         float kMinRansacInlierRatio = 0.9f;
         float kMaxPnpResidual = 1e-3f;
         float kMinValidDepth = 1e-3f;
-        Method kMethod = Method::kRansac;
+        float kDefaultHuberKernelParameter = 1.0f;
+        float kDefaultCauchyKernelParameter = 1.0f;
+        Method kMethod = Method::kOptimizeRansac;
     };
 
 public:
@@ -38,7 +41,7 @@ public:
     virtual ~PnpSolver() = default;
 
     bool EstimatePose(const std::vector<Vec3> &p_w,
-                      const std::vector<Vec2> &norm_uv,
+                      const std::vector<Vec2> &norm_xy,
                       Quat &q_wc,
                       Vec3 &p_wc,
                       std::vector<uint8_t> &status);
@@ -51,24 +54,30 @@ public:
 
 private:
     bool EstimatePoseUseAll(const std::vector<Vec3> &p_w,
-                            const std::vector<Vec2> &norm_uv,
+                            const std::vector<Vec2> &norm_xy,
                             Quat &q_wc,
                             Vec3 &p_wc,
                             std::vector<uint8_t> &status);
 
     bool EstimatePoseUseAll(const std::vector<Vec3> &p_w,
-                            const std::vector<Vec2> &norm_uv,
+                            const std::vector<Vec2> &norm_xy,
                             Quat &q_wc,
                             Vec3 &p_wc);
 
     bool EstimatePoseRansac(const std::vector<Vec3> &p_w,
-                            const std::vector<Vec2> &norm_uv,
+                            const std::vector<Vec2> &norm_xy,
                             Quat &q_wc,
                             Vec3 &p_wc,
                             std::vector<uint8_t> &status);
 
+    bool EstimatePoseDlt(const std::vector<Vec3> &p_w,
+                         const std::vector<Vec2> &norm_xy,
+                         Quat &q_wc,
+                         Vec3 &p_wc,
+                         std::vector<uint8_t> &status);
+
     void CheckPnpStatus(const std::vector<Vec3> &p_w,
-                        const std::vector<Vec2> &norm_uv,
+                        const std::vector<Vec2> &norm_xy,
                         Quat &q_wc,
                         Vec3 &p_wc,
                         std::vector<uint8_t> &status);

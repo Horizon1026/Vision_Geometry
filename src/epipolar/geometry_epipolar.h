@@ -12,8 +12,6 @@ public:
     enum class EpipolarMethod : uint8_t {
         kUseAll = 0,
         kRansac = 1,
-        kHuber = 2,
-        kCauchy = 3,
     };
 
     enum class EpipolarModel : uint8_t {

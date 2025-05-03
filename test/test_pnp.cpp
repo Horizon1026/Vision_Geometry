@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
     std::vector<int> outliers_indice;
     for (uint32_t i = 0; i < pts_3d.size() / 100; i++) {
         uint32_t idx = rand() % pts_3d.size();
-        pts_2d[idx](0, 0) = 10;
+        pts_2d[idx](0, 0) += 0.1;
         outliers_indice.emplace_back(idx);
     }
 
@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
     ReportColorInfo(">> Test pnp using all points.");
     res_q_wc.setIdentity();
     res_p_wc.setZero();
-    pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::Method::kUseAll;
+    pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::Method::kOptimize;
     begin = clock();
     pnpSolver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
     end = clock();
@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
     ReportColorInfo(">> Test pnp using ransac method.");
     res_q_wc.setIdentity();
     res_p_wc.setZero();
-    pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::Method::kRansac;
+    pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::Method::kOptimizeRansac;
     begin = clock();
     pnpSolver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
     end = clock();
@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
     ReportColorInfo(">> Test pnp using huber kernel.");
     res_q_wc.setIdentity();
     res_p_wc.setZero();
-    pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::Method::kHuber;
+    pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::Method::kOptimizeHuber;
     begin = clock();
     pnpSolver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
     end = clock();
@@ -85,7 +85,18 @@ int main(int argc, char **argv) {
     ReportColorInfo(">> Test pnp using cauchy kernel.");
     res_q_wc.setIdentity();
     res_p_wc.setZero();
-    pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::Method::kCauchy;
+    pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::Method::kOptimizeCauchy;
+    begin = clock();
+    pnpSolver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
+    end = clock();
+    cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
+    ReportInfo("cost time is " << cost_time << " ms");
+    ReportInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
+
+    ReportColorInfo(">> Test pnp using direct linear transform.");
+    res_q_wc.setIdentity();
+    res_p_wc.setZero();
+    pnpSolver.options().kMethod = VISION_GEOMETRY::PnpSolver::Method::kDirectLinearTransform;
     begin = clock();
     pnpSolver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
     end = clock();

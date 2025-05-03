@@ -18,9 +18,7 @@ bool EpipolarSolver::EstimateEssential(const std::vector<Vec2> &ref_norm_xy,
             return EstimateEssentialRansac(ref_norm_xy, cur_norm_xy, essential, status);
         }
 
-        case EpipolarMethod::kUseAll:
-        case EpipolarMethod::kHuber:
-        case EpipolarMethod::kCauchy: {
+        case EpipolarMethod::kUseAll: {
             return EstimateEssentialUseAll(ref_norm_xy, cur_norm_xy, essential, status);
         }
 
@@ -108,10 +106,10 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
     uint32_t cur_score = 0;
 
     std::set<uint32_t> indice;
-    std::vector<Vec2> sub_norm_uv_ref;
-    std::vector<Vec2> sub_norm_uv_cur;
-    sub_norm_uv_ref.reserve(indice_size);
-    sub_norm_uv_cur.reserve(indice_size);
+    std::vector<Vec2> sub_norm_xy_ref;
+    std::vector<Vec2> sub_norm_xy_cur;
+    sub_norm_xy_ref.reserve(indice_size);
+    sub_norm_xy_cur.reserve(indice_size);
 
     std::vector<float> residuals;
     residuals.reserve(ref_norm_xy.size());
@@ -119,8 +117,8 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
     for (uint32_t iter = 0; iter < options_.kMaxIteration; ++iter) {
         // Select samples.
         indice.clear();
-        sub_norm_uv_ref.clear();
-        sub_norm_uv_cur.clear();
+        sub_norm_xy_ref.clear();
+        sub_norm_xy_cur.clear();
 
         while (indice.size() < indice_size) {
             const uint32_t idx = std::rand() % ref_norm_xy.size();
@@ -128,12 +126,12 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
         }
 
         for (auto it = indice.cbegin(); it != indice.cend(); ++it) {
-            sub_norm_uv_ref.emplace_back(ref_norm_xy[*it]);
-            sub_norm_uv_cur.emplace_back(cur_norm_xy[*it]);
+            sub_norm_xy_ref.emplace_back(ref_norm_xy[*it]);
+            sub_norm_xy_cur.emplace_back(cur_norm_xy[*it]);
         }
 
         // Compute essential model.
-        RETURN_FALSE_IF_FALSE(EstimateEssentialUseAll(sub_norm_uv_ref, sub_norm_uv_cur, cur_essential));
+        RETURN_FALSE_IF_FALSE(EstimateEssentialUseAll(sub_norm_xy_ref, sub_norm_xy_cur, cur_essential));
 
         // Apply essential model on all points, statis inliers.
         cur_score = 0;
@@ -254,11 +252,11 @@ bool EpipolarSolver::RecoverPoseFromEssential(const std::vector<Vec2> &ref_norm_
         std::vector<Vec3> p_rc = { Vec3::Identity(), - Vec3(item.q_cr.inverse() * item.p_cr) };
 
         for (uint32_t i = 0; i < ref_norm_xy.size(); ++i) {
-            std::vector<Vec2> norm_uv = { ref_norm_xy[i], cur_norm_xy[i] };
+            std::vector<Vec2> norm_xy = { ref_norm_xy[i], cur_norm_xy[i] };
 
             // Check is point.z positive in ref frame.
             Vec3 p_r;
-            solver.Triangulate(q_rc, p_rc, norm_uv, p_r);
+            solver.Triangulate(q_rc, p_rc, norm_xy, p_r);
             if (p_r.z() > kZerofloat) {
                 // Check is point.z positive in cur frame.
                 Vec3 p_c = item.q_cr * p_r + item.p_cr;
