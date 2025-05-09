@@ -13,7 +13,7 @@ public:
     enum class Method: uint8_t {
         kAnalytic = 0,
         kOrdinaryLeastSquare = 1,
-        kIterative = 2,
+        kOptimize = 2,
     };
 
     struct Options {

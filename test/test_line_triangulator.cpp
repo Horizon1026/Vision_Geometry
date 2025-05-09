@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
 
     // Triangulate line.
     LineTriangulator solver;
-    solver.options().kMethod = LineTriangulator::Method::kIterative;
+    solver.options().kMethod = LineTriangulator::Method::kOptimize;
     solver.options().kMaxIteration = 5;
     const LinePlucker3D noised_line_w(LineSegment3D(p1_w + Vec3::Random(), p2_w + Vec3::Random()));
     LinePlucker3D estimated_line_w(noised_line_w);

@@ -11,7 +11,9 @@ class PointTriangulator {
 public:
     enum class Method: uint8_t {
         kAnalytic = 0,
-        kIterative = 1,
+        kOptimize = 1,
+        kOptimizeHuber = 2,
+        kOptimizeCauchy = 3,
     };
 
     struct Options {
@@ -20,6 +22,8 @@ public:
         float kMinValidDepth = 1e-3f;
         float kMaxConvergeStep = 1e-6f;
         float kMaxToleranceReprojectionError = 0.1f;
+        float kDefaultHuberKernelParameter = 1.0f;
+        float kDefaultCauchyKernelParameter = 1.0f;
         Method kMethod = Method::kAnalytic;
     };
 
@@ -54,6 +58,24 @@ private:
                                 const std::vector<Vec3> &p_wc,
                                 const std::vector<Vec2> &norm_xy,
                                 const Vec3 &p_w);
+    inline float Huber(float param, float x) {
+        float huber = 1.0f;
+        if (x > param) {
+            huber = 2.0f * std::sqrt(x) * param - param * param;
+            huber /= x;
+        }
+        return huber;
+    }
+
+    inline float Cauchy(float param, float x) {
+        float cauchy = 1.0f;
+        float param2 = param * param;
+        if (x > param) {
+            cauchy = param2 * std::log(1.0f / param2 + 1.0f);
+            cauchy /= x;
+        }
+        return cauchy;
+    }
 
 private:
     Options options_;

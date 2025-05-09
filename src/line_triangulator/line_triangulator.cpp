@@ -18,7 +18,7 @@ bool LineTriangulator::Triangulate(const std::vector<Quat> &all_q_wc,
         case Method::kAnalytic: {
             return TriangulateAnalytic(all_q_wc, all_p_wc, lines_in_norm_plane, plucker_in_w);
         }
-        case Method::kIterative: {
+        case Method::kOptimize: {
             return TriangulateIterative(all_q_wc, all_p_wc, lines_in_norm_plane, plucker_in_w);
         }
     }

@@ -15,7 +15,9 @@ bool PointTriangulator::Triangulate(const std::vector<Quat> &q_wc,
         case Method::kAnalytic: {
             return TriangulateAnalytic(q_wc, p_wc, norm_xy, p_w);
         }
-        case Method::kIterative: {
+        case Method::kOptimize:
+        case Method::kOptimizeHuber:
+        case Method::kOptimizeCauchy: {
             return TriangulateIterative(q_wc, p_wc, norm_xy, p_w);
         }
     }
@@ -64,8 +66,29 @@ bool PointTriangulator::TriangulateIterative(const std::vector<Quat> &q_wc,
                               0, inv_depth, - p_c(1) * inv_depth2;
             const Mat2x3 jacobian = jacobian_2d_3d * q_wc[i].inverse().matrix();
 
-            hessian += jacobian.transpose() * jacobian;
-            bias -= jacobian.transpose() * residual;
+            // Complete incremental function.
+            switch (options_.kMethod) {
+                default:
+                case Method::kOptimize: {
+                    hessian += jacobian.transpose() * jacobian;
+                    bias -= jacobian.transpose() * residual;
+                    break;
+                }
+                case Method::kOptimizeHuber: {
+                    const float r_norm = residual.norm();
+                    const float kernel = this->Huber(options_.kDefaultHuberKernelParameter, r_norm);
+                    hessian += jacobian.transpose() * jacobian * kernel;
+                    bias -= jacobian.transpose() * residual * kernel;
+                    break;
+                }
+                case Method::kOptimizeCauchy: {
+                    const float r_norm = residual.norm();
+                    const float kernel = this->Cauchy(options_.kDefaultCauchyKernelParameter, r_norm);
+                    hessian += jacobian.transpose() * jacobian * kernel;
+                    bias -= jacobian.transpose() * residual * kernel;
+                    break;
+                }
+            }
         }
 
         const Vec3 dx = hessian.ldlt().solve(bias);
