@@ -8,30 +8,33 @@
 namespace VISION_GEOMETRY {
 
 bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w,
+                             const std::vector<Quat> &q_ic,
+                             const std::vector<Vec3> &p_ic,
                              const std::vector<Vec2> &norm_xy,
-                             Quat &q_wc,
-                             Vec3 &p_wc,
+                             Quat &q_wi,
+                             Vec3 &p_wi,
                              std::vector<uint8_t> &status) {
     switch (options_.kMethod) {
         case Method::kOptimizeRansac:
-            return EstimatePoseRansac(p_w, norm_xy, q_wc, p_wc, status);
+            return EstimatePoseRansac(p_w, q_ic, p_ic, norm_xy, q_wi, p_wi, status);
         case Method::kOptimize:
         case Method::kOptimizeHuber:
         case Method::kOptimizeCauchy:
-            return EstimatePoseUseAll(p_w, norm_xy, q_wc, p_wc, status);
+            return EstimatePoseUseAll(p_w, q_ic, p_ic, norm_xy, q_wi, p_wi, status);
         case Method::kDirectLinearTransform:
-            return EstimatePoseDlt(p_w, norm_xy, q_wc, p_wc, status);
         default:
             return false;
     }
 }
 
 bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
+                                   const std::vector<Quat> &q_ic,
+                                   const std::vector<Vec3> &p_ic,
                                    const std::vector<Vec2> &norm_xy,
-                                   Quat &q_wc,
-                                   Vec3 &p_wc,
+                                   Quat &q_wi,
+                                   Vec3 &p_wi,
                                    std::vector<uint8_t> &status) {
-    RETURN_FALSE_IF_FALSE(EstimatePoseUseAll(p_w, norm_xy, q_wc, p_wc));
+    RETURN_FALSE_IF_FALSE(EstimatePoseUseAll(p_w, q_ic, p_ic, norm_xy, q_wi, p_wi));
 
     if (status.size() != p_w.size()) {
         status.resize(p_w.size(), static_cast<uint8_t>(Result::kUnsolved));
@@ -40,6 +43,8 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
     // Check those features that haven't been solved.
     for (uint32_t i = 0; i < p_w.size(); ++i) {
         if (status[i] == static_cast<uint8_t>(Result::kUnsolved)) {
+            const Vec3 p_wc = q_wi * p_ic[i] + p_wi;
+            const Quat q_wc = q_wi * q_ic[i];
             const Vec3 p_c = q_wc.inverse() * (p_w[i] - p_wc);
             if (p_c(2) > kZerofloat) {
                 const float residual = (norm_xy[i] - p_c.head<2>() / p_c(2)).norm();
@@ -56,9 +61,11 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
 }
 
 bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
+                                   const std::vector<Quat> &q_ic,
+                                   const std::vector<Vec3> &p_ic,
                                    const std::vector<Vec2> &norm_xy,
-                                   Quat &q_wc,
-                                   Vec3 &p_wc) {
+                                   Quat &q_wi,
+                                   Vec3 &p_wi) {
     RETURN_FALSE_IF(p_w.size() != norm_xy.size() || p_w.empty());
 
     Mat6 H = Mat6::Zero();
@@ -71,7 +78,10 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
         b.setZero();
 
         for (uint32_t i = 0; i < max_points_used_num; ++i) {
-            Vec3 p_c = q_wc.inverse() * (p_w[i] - p_wc);
+            const Vec3 p_wc = q_wi * p_ic[i] + p_wi;
+            const Quat q_wc = q_wi * q_ic[i];
+            const Vec3 p_i = q_wi.inverse() * (p_w[i] - p_wi);
+            const Vec3 p_c = q_wc.inverse() * (p_w[i] - p_wc);
             CONTINUE_IF(p_c.z() < options_.kMinValidDepth || std::isnan(p_c.z()));
             const float inv_depth = 1.0f / p_c.z();
             const float inv_depth2 = inv_depth * inv_depth;
@@ -81,7 +91,7 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
             jacobian_2d_3d << inv_depth, 0, - p_c(0) * inv_depth2,
                               0, inv_depth, - p_c(1) * inv_depth2;
             jacobian.block<2, 3>(0, 0) = jacobian_2d_3d * (- q_wc.inverse().matrix());
-            jacobian.block<2, 3>(0, 3) = jacobian_2d_3d * Utility::SkewSymmetricMatrix(p_c);
+            jacobian.block<2, 3>(0, 3) = jacobian_2d_3d * q_ic[i].inverse().matrix() * Utility::SkewSymmetricMatrix(p_i);
 
             switch (options_.kMethod) {
                 default:
@@ -113,8 +123,8 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
         RETURN_FALSE_IF(std::isnan(norm_dx) == true);
         norm_dx = std::sqrt(norm_dx);
 
-        p_wc += dx.head<3>();
-        q_wc = (q_wc * Utility::DeltaQ(dx.tail<3>())).normalized();
+        p_wi += dx.head<3>();
+        q_wi = (q_wi * Utility::DeltaQ(dx.tail<3>())).normalized();
 
         BREAK_IF(norm_dx < options_.kMaxConvergeStep);
     }
@@ -123,27 +133,35 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w,
 }
 
 bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w,
+                                   const std::vector<Quat> &q_ic,
+                                   const std::vector<Vec3> &p_ic,
                                    const std::vector<Vec2> &norm_xy,
-                                   Quat &q_wc,
-                                   Vec3 &p_wc,
+                                   Quat &q_wi,
+                                   Vec3 &p_wi,
                                    std::vector<uint8_t> &status) {
     RETURN_FALSE_IF(p_w.size() != norm_xy.size() || p_w.empty());
 
-    Quat best_q_wc = q_wc;
-    Vec3 best_p_wc = p_wc;
+    Quat best_q_wi = q_wi;
+    Vec3 best_p_wi = p_wi;
     uint32_t best_score = 0;
     uint32_t score = 0;
 
     std::set<uint32_t> indice;
     std::vector<Vec3> sub_pts3d;
+    std::vector<Quat> sub_q_ic;
+    std::vector<Vec3> sub_p_ic;
     std::vector<Vec2> sub_pts2d;
     sub_pts3d.reserve(3);
+    sub_q_ic.reserve(3);
+    sub_p_ic.reserve(3);
     sub_pts2d.reserve(3);
 
     for (uint32_t iter = 0; iter < options_.kMaxIteration; ++iter) {
         // Select 3 points randomly.
         indice.clear();
         sub_pts3d.clear();
+        sub_q_ic.clear();
+        sub_p_ic.clear();
         sub_pts2d.clear();
 
         while (indice.size() < 3) {
@@ -152,17 +170,21 @@ bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w,
 
         for (auto it = indice.begin(); it != indice.end(); ++it) {
             sub_pts3d.emplace_back(p_w[*it]);
+            sub_q_ic.emplace_back(q_ic[*it]);
+            sub_p_ic.emplace_back(p_ic[*it]);
             sub_pts2d.emplace_back(norm_xy[*it]);
         }
 
         // Compute pnp model with 3 points.
-        q_wc = best_q_wc;
-        p_wc = best_p_wc;
-        EstimatePoseUseAll(sub_pts3d, sub_pts2d, q_wc, p_wc);
+        q_wi = best_q_wi;
+        p_wi = best_p_wi;
+        EstimatePoseUseAll(sub_pts3d, sub_q_ic, sub_p_ic, sub_pts2d, q_wi, p_wi);
 
         // Apply pnp model on all points, statis inliers.
         score = 0;
         for (uint32_t i = 0; i < p_w.size(); ++i) {
+            const Vec3 p_wc = q_wi * p_ic[i] + p_wi;
+            const Quat q_wc = q_wi * q_ic[i];
             const Vec3 p_c = q_wc.inverse() * (p_w[i] - p_wc);
             const Vec2 r = Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)) - norm_xy[i];
             if (r.squaredNorm() < options_.kMaxConvergeResidual) {
@@ -172,62 +194,23 @@ bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w,
 
         if (score > best_score) {
             best_score = score;
-            best_q_wc = q_wc;
-            best_p_wc = p_wc;
+            best_q_wi = q_wi;
+            best_p_wi = p_wi;
         }
 
         BREAK_IF(float(score) / float(p_w.size()) > options_.kMinRansacInlierRatio);
     }
 
-    CheckPnpStatus(p_w, norm_xy, q_wc, p_wc, status);
-    return true;
-}
-
-bool PnpSolver::EstimatePoseDlt(const std::vector<Vec3> &p_w,
-                                const std::vector<Vec2> &norm_xy,
-                                Quat &q_wc,
-                                Vec3 &p_wc,
-                                std::vector<uint8_t> &status) {
-    RETURN_FALSE_IF(p_w.size() != norm_xy.size() || p_w.empty());
-
-    Mat A = Mat::Zero(2 * p_w.size(), 12);
-    for (uint32_t i = 0; i < p_w.size(); ++i) {
-        A.row(2 * i) << - p_w[i].x(), - p_w[i].y(), - p_w[i].z(), -1, 0, 0, 0, 0,
-            norm_xy[i].x() * p_w[i].x(), norm_xy[i].x() * p_w[i].y(),
-            norm_xy[i].x() * p_w[i].z(), norm_xy[i].x();
-        A.row(2 * i + 1) << 0, 0, 0, 0, - p_w[i].x(), - p_w[i].y(), - p_w[i].z(), -1,
-            norm_xy[i].y() * p_w[i].x(), norm_xy[i].y() * p_w[i].y(),
-            norm_xy[i].y() * p_w[i].z(), norm_xy[i].y();
-    }
-
-    Eigen::JacobiSVD<Mat> svd(A, Eigen::ComputeFullV);
-    const Vec v = svd.matrixV().col(11);
-    Mat3x4 P = Mat3x4::Zero();
-    P << v(0), v(1), v(2), v(3), v(4), v(5), v(6), v(7), v(8), v(9), v(10), v(11);
-
-    // Normalize rotation matrix.
-    Mat3 R = P.block<3, 3>(0, 0);
-    Eigen::JacobiSVD<Mat3> svd_r(R, Eigen::ComputeFullU | Eigen::ComputeFullV);
-    R = svd_r.matrixU() * svd_r.matrixV().transpose();
-    if (R.determinant() < 0) {
-        R = - R;
-    }
-
-    // Compute translation.
-    const float scale = 1.0f / svd_r.singularValues().mean();
-    const Vec3 t = P.block<3, 1>(0, 3) * scale;
-
-    q_wc = Quat(R).normalized();
-    p_wc = - R.transpose() * t;
-
-    status.resize(p_w.size(), static_cast<uint8_t>(Result::kSolved));
+    CheckPnpStatus(p_w, q_ic, p_ic, norm_xy, q_wi, p_wi, status);
     return true;
 }
 
 void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w,
+                               const std::vector<Quat> &q_ic,
+                               const std::vector<Vec3> &p_ic,
                                const std::vector<Vec2> &norm_xy,
-                               Quat &q_wc,
-                               Vec3 &p_wc,
+                               Quat &q_wi,
+                               Vec3 &p_wi,
                                std::vector<uint8_t> &status) {
     if (status.size() != norm_xy.size()) {
         status.resize(norm_xy.size(), static_cast<uint8_t>(Result::kUnsolved));
@@ -235,8 +218,10 @@ void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w,
 
     for (uint32_t i = 0; i < p_w.size(); ++i) {
         if (status[i] == static_cast<uint8_t>(Result::kUnsolved) || status[i] == static_cast<uint8_t>(Result::kSolved)) {
-            Vec3 p_c = q_wc.inverse() * (p_w[i] - p_wc);
-            Vec2 r = Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)) - norm_xy[i];
+            const Vec3 p_wc = q_wi * p_ic[i] + p_wi;
+            const Quat q_wc = q_wi * q_ic[i];
+            const Vec3 p_c = q_wc.inverse() * (p_w[i] - p_wc);
+            const Vec2 r = Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)) - norm_xy[i];
             if (r.squaredNorm() >= options_.kMaxConvergeResidual) {
                 status[i] = static_cast<uint8_t>(Result::kLargeResidual);
             } else {
