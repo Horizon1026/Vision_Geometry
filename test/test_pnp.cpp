@@ -28,8 +28,8 @@ void TestPnpOnce(const std::string method_name,
     ReportInfo("cost time is " << cost_time << " ms");
     ReportInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
 }
-void TestPnpOnce(const std::string method_name,
-                 const PnpSolver::Method method,
+void TestPnpOnce(const std::string &method_name,
+                 const PnpSolver::Method &method,
                  const std::vector<Vec3> &pts_3d,
                  const std::vector<Quat> &all_q_ic,
                  const std::vector<Vec3> &all_p_ic,
@@ -48,7 +48,7 @@ void TestPnpOnce(const std::string method_name,
     solver.EstimatePose(pts_3d, all_q_ic, all_p_ic, pts_2d, res_q_wi, res_p_wi, status);
     end = clock();
     cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
-    ReportInfo("cost time is " << cost_time << " ms");
+    ReportInfo("cost time " << cost_time << " ms");
     ReportInfo("res_q_wi is " << LogQuat(res_q_wi) << ", res_p_wi is " << LogVec(res_p_wi));
 }
 

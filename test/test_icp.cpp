@@ -94,8 +94,6 @@ int main(int argc, char **argv) {
                 .radius = 2,
             });
         }
-
-
     }
 
     return 0;
