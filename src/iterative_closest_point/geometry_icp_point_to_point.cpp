@@ -88,7 +88,7 @@ bool IcpSolver::EstimatePoseByPointPairs(const std::vector<Vec3> &all_ref_p_w,
     }
 
     // Decompose covariance to sove relative pose.
-    Eigen::JacobiSVD<Mat3> svd(covariance, Eigen::ComputeThinU | Eigen::ComputeThinV);
+    Eigen::JacobiSVD<Mat3> svd(covariance, Eigen::ComputeFullU | Eigen::ComputeFullV);
     Mat3 R_rc = svd.matrixV() * svd.matrixU().transpose();
     q_rc = Quat(R_rc).normalized();
     if (R_rc.determinant() < 0) {
