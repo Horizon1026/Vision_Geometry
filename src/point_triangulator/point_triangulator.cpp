@@ -117,8 +117,8 @@ bool PointTriangulator::CheckResultInMultiView(const std::vector<Quat> &q_wc,
 float PointTriangulator::GetSineOfParallexAngle(const Quat &q_wci, const Vec3 &p_wci,
                                                 const Quat &q_wcj, const Vec3 &p_wcj,
                                                 const Vec2 &norm_xy_i, const Vec2 &norm_xy_j) {
-    const Vec3 norm_xyz_i = Vec3(norm_xy_i.x(), norm_xy_i.y(), 1.0f);
-    const Vec3 norm_xyz_j = Vec3(norm_xy_j.x(), norm_xy_j.y(), 1.0f);
+    const Vec3 norm_xyz_i = Vec3(norm_xy_i.x(), norm_xy_i.y(), 1.0f).normalized();
+    const Vec3 norm_xyz_j = Vec3(norm_xy_j.x(), norm_xy_j.y(), 1.0f).normalized();
     const Quat q_cjci = q_wcj.inverse() * q_wci;
     return (norm_xyz_j.cross(q_cjci * norm_xyz_i)).norm();
 }
