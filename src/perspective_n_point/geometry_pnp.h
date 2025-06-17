@@ -45,6 +45,11 @@ public:
                       Quat &q_wc,
                       Vec3 &p_wc,
                       std::vector<uint8_t> &status);
+    void CheckPnpStatus(const std::vector<Vec3> &p_w,
+                        const std::vector<Vec2> &norm_xy,
+                        Quat &q_wc,
+                        Vec3 &p_wc,
+                        std::vector<uint8_t> &status);
     bool EstimatePose(const std::vector<Vec3> &p_w,
                       const std::vector<Quat> &q_ic,
                       const std::vector<Vec3> &p_ic,
@@ -52,6 +57,13 @@ public:
                       Quat &q_wi,
                       Vec3 &p_wi,
                       std::vector<uint8_t> &status);
+    void CheckPnpStatus(const std::vector<Vec3> &p_w,
+                        const std::vector<Quat> &q_ic,
+                        const std::vector<Vec3> &p_ic,
+                        const std::vector<Vec2> &norm_xy,
+                        Quat &q_wi,
+                        Vec3 &p_wi,
+                        std::vector<uint8_t> &status);
 
     // Reference for member variables.
     Options &options() { return options_;}
@@ -79,11 +91,6 @@ private:
                          Quat &q_wc,
                          Vec3 &p_wc,
                          std::vector<uint8_t> &status);
-    void CheckPnpStatus(const std::vector<Vec3> &p_w,
-                        const std::vector<Vec2> &norm_xy,
-                        Quat &q_wc,
-                        Vec3 &p_wc,
-                        std::vector<uint8_t> &status);
 
     bool EstimatePoseUseAll(const std::vector<Vec3> &p_w,
                             const std::vector<Quat> &q_ic,
@@ -105,13 +112,6 @@ private:
                             Quat &q_wi,
                             Vec3 &p_wi,
                             std::vector<uint8_t> &status);
-    void CheckPnpStatus(const std::vector<Vec3> &p_w,
-                        const std::vector<Quat> &q_ic,
-                        const std::vector<Vec3> &p_ic,
-                        const std::vector<Vec2> &norm_xy,
-                        Quat &q_wi,
-                        Vec3 &p_wi,
-                        std::vector<uint8_t> &status);
 
     inline float Huber(float param, float x) {
         float huber = 1.0f;
