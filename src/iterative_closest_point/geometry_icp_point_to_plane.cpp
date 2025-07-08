@@ -65,6 +65,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlane(const std::vector<Vec3> &all_re
         const Vec3 dp_rc = dx.head<3>();
         const Quat dq_rc = Quat(1, 0.5f * dx(3), 0.5f * dx(4), 0.5f * dx(5)).normalized();
         q_rc = q_rc * dq_rc;
+        q_rc.normalize();
         p_rc += dp_rc;
 
         // Check if converged.
