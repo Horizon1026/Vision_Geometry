@@ -12,14 +12,23 @@ bool IcpSolver::EstimatePose(const std::vector<Vec3> &all_ref_p_w,
 
     switch (options_.kMethod) {
         default:
-        case IcpMethod::kPointToPoint:
-            return EstimatePoseByMethodPointToPoint(all_ref_p_w, all_cur_p_w, q_rc, p_rc);
+        case IcpMethod::kPointToPoint: {
+            return options_.kUseNanoFlannKdTree ?
+                EstimatePoseByMethodPointToPointWithNanoFlann(all_ref_p_w, all_cur_p_w, q_rc, p_rc) :
+                EstimatePoseByMethodPointToPointWithKdtree(all_ref_p_w, all_cur_p_w, q_rc, p_rc);
+        }
 
-        case IcpMethod::kPointToLine:
-            return EstimatePoseByMethodPointToLine(all_ref_p_w, all_cur_p_w, q_rc, p_rc);
+        case IcpMethod::kPointToLine: {
+            return options_.kUseNanoFlannKdTree ?
+                EstimatePoseByMethodPointToLineWithNanoFlann(all_ref_p_w, all_cur_p_w, q_rc, p_rc) :
+                EstimatePoseByMethodPointToLineWithKdtree(all_ref_p_w, all_cur_p_w, q_rc, p_rc);
+        }
 
-        case IcpMethod::kPointToPlane:
-            return EstimatePoseByMethodPointToPlane(all_ref_p_w, all_cur_p_w, q_rc, p_rc);
+        case IcpMethod::kPointToPlane: {
+            return options_.kUseNanoFlannKdTree ?
+                EstimatePoseByMethodPointToPlaneWithNanoFlann(all_ref_p_w, all_cur_p_w, q_rc, p_rc) :
+                EstimatePoseByMethodPointToPlaneWithKdtree(all_ref_p_w, all_cur_p_w, q_rc, p_rc);
+        }
     }
 
     return true;

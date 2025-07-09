@@ -20,6 +20,11 @@ if( NOT TARGET lib_kd_tree )
     add_subdirectory( ${SLAM_UTILITY_PATH}/src/data_struct/kd_tree ${PROJECT_SOURCE_DIR}/build/lib_kd_tree )
 endif()
 
+# Add all relative components of slam utility data type.
+if( NOT TARGET lib_plane )
+    add_subdirectory( ${SLAM_UTILITY_PATH}/src/data_type/plane ${PROJECT_SOURCE_DIR}/build/lib_plane )
+endif()
+
 add_library( lib_vision_geometry_icp ${AUX_SRC_VISION_GEOMETRY_ICP} )
 target_include_directories( lib_vision_geometry_icp PUBLIC . )
 target_link_libraries( lib_vision_geometry_icp
@@ -29,4 +34,5 @@ target_link_libraries( lib_vision_geometry_icp
     lib_slam_utility_log
 
     lib_kd_tree
+    lib_plane
 )
