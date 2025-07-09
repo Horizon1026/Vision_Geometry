@@ -12,13 +12,13 @@ bool IcpSolver::EstimatePoseByMethodPointToLineWithNanoFlann(const std::vector<V
                                                              const std::vector<Vec3> &all_cur_p_w,
                                                              Quat &q_rc,
                                                              Vec3 &p_rc) {
+    const int32_t num_of_points_to_search = 2;
     // Convert all reference points into kd-tree.
     NanoFlannKdTree ref_kd_tree(3, all_ref_p_w, 1);
     // Prepare something for knn search.
-    const int32_t num_results = 1;
-    std::vector<size_t> ret_indexes(num_results);
-    std::vector<float> out_dists_sqr(num_results);
-    nanoflann::KNNResultSet<float> search_result(num_results);
+    std::vector<size_t> ret_indexes(num_of_points_to_search);
+    std::vector<float> out_dists_sqr(num_of_points_to_search);
+    nanoflann::KNNResultSet<float> search_result(num_of_points_to_search);
 
     // Iterate to estimate relative pose between two point clouds.
     Mat6 hessian = Mat6::Zero();
@@ -70,6 +70,7 @@ bool IcpSolver::EstimatePoseByMethodPointToLineWithKdtree(const std::vector<Vec3
                                                           const std::vector<Vec3> &all_cur_p_w,
                                                           Quat &q_rc,
                                                           Vec3 &p_rc) {
+    const int32_t num_of_points_to_search = 2;
     // Convert all reference points into kd-tree.
     std::vector<int32_t> sorted_point_indices(all_ref_p_w.size(), 0);
     for (uint32_t i = 0; i < sorted_point_indices.size(); ++i) {
@@ -91,8 +92,8 @@ bool IcpSolver::EstimatePoseByMethodPointToLineWithKdtree(const std::vector<Vec3
 
             // Extract two points closest to target point.
             std::multimap<float, int32_t> result_of_nn_search;
-            ref_kd_tree_ptr->SearchKnn(ref_kd_tree_ptr, all_ref_p_w, transformed_cur_p_w, 2, result_of_nn_search);
-            CONTINUE_IF(result_of_nn_search.size() != 2);
+            ref_kd_tree_ptr->SearchKnn(ref_kd_tree_ptr, all_ref_p_w, transformed_cur_p_w, num_of_points_to_search, result_of_nn_search);
+            CONTINUE_IF(result_of_nn_search.size() != num_of_points_to_search);
             auto it = result_of_nn_search.begin();
             const Vec3 &ref_p_w_0 = all_ref_p_w[it->second];
             const Vec3 &ref_p_w_1 = all_ref_p_w[std::next(it)->second];
