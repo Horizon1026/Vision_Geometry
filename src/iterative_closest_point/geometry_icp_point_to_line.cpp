@@ -97,12 +97,13 @@ bool IcpSolver::EstimatePoseByMethodPointToLineWithKdtree(const std::vector<Vec3
             auto it = result_of_nn_search.begin();
             const Vec3 &ref_p_w_0 = all_ref_p_w[it->second];
             const Vec3 &ref_p_w_1 = all_ref_p_w[std::next(it)->second];
+            CONTINUE_IF((ref_p_w_0 - transformed_cur_p_w).norm() > options_.kMaxValidRelativePointDistance);
+            CONTINUE_IF((ref_p_w_1 - transformed_cur_p_w).norm() > options_.kMaxValidRelativePointDistance);
 
             // Compute residual.
             const Vec3 diff_ref_p_w = ref_p_w_0 - ref_p_w_1;
             CONTINUE_IF(diff_ref_p_w.norm() < kZerofloat);
             const Vec3 residual = (transformed_cur_p_w - ref_p_w_0).cross(transformed_cur_p_w - ref_p_w_1) / diff_ref_p_w.norm();
-            CONTINUE_IF(residual.norm() > options_.kMaxValidRelativePointDistance);
 
             // Compute jacobian.
             Mat3x6 jacobian = Mat3x6::Zero();

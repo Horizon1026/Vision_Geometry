@@ -38,10 +38,10 @@ bool IcpSolver::EstimatePoseByMethodPointToPointWithNanoFlann(const std::vector<
             search_result.init(&ret_indexes[0], &out_dists_sqr[0]);
             CONTINUE_IF(!ref_kd_tree.index->findNeighbors(search_result, &transformed_cur_p_w[0]));
             searched_points.clear();
-            for (const auto &index: ret_indexes) {
-                searched_points.emplace_back(all_ref_p_w[index]);
+            for (uint32_t i = 0; i < ret_indexes.size(); ++i) {
+                CONTINUE_IF(out_dists_sqr[i] > options_.kMaxValidRelativePointDistance);
+                searched_points.emplace_back(all_ref_p_w[ret_indexes[i]]);
             }
-            CONTINUE_IF(out_dists_sqr[0] > options_.kMaxValidRelativePointDistance);
 
             const Vec3 &nearest_ref_p_w = all_ref_p_w[ret_indexes[0]];
             sub_ref_p_w.emplace_back(nearest_ref_p_w);
@@ -92,10 +92,10 @@ bool IcpSolver::EstimatePoseByMethodPointToPointWithKdtree(const std::vector<Vec
             const Vec3 transformed_cur_p_w = q_rc * cur_p_w + p_rc;
             std::multimap<float, int32_t> result_of_nn_search;
             ref_kd_tree_ptr->SearchKnn(ref_kd_tree_ptr, all_ref_p_w, transformed_cur_p_w, 1, result_of_nn_search);
-            const auto &pair = *result_of_nn_search.begin();
-            CONTINUE_IF(pair.first > options_.kMaxValidRelativePointDistance);
+            const auto &[distance, index] = *result_of_nn_search.begin();
+            CONTINUE_IF(distance > options_.kMaxValidRelativePointDistance);
 
-            const Vec3 &nearest_ref_p_w = all_ref_p_w[pair.second];
+            const Vec3 &nearest_ref_p_w = all_ref_p_w[index];
             sub_ref_p_w.emplace_back(nearest_ref_p_w);
             sub_cur_p_w.emplace_back(cur_p_w);
         }

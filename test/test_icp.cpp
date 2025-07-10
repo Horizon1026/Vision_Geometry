@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
     Vec3 p_rc = Vec3::Zero();
     VISION_GEOMETRY::IcpSolver icp_solver;
     icp_solver.options().kMethod = VISION_GEOMETRY::IcpSolver::IcpMethod::kPointToPlane;
-    icp_solver.options().kUseNanoFlannKdTree = true;
+    icp_solver.options().kUseNanoFlannKdTree = false;
     icp_solver.options().kMaxValidRelativePointDistance = 5.0f;
     icp_solver.options().kMaxIteration = 1;
 

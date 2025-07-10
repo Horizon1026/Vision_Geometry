@@ -13,7 +13,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<
                                                               const std::vector<Vec3> &all_cur_p_w,
                                                               Quat &q_rc,
                                                               Vec3 &p_rc) {
-    const int32_t num_of_points_to_search = 3;
+    const int32_t num_of_points_to_search = 5;
 
     // Convert all reference points into kd-tree.
     NanoFlannKdTree ref_kd_tree(3, all_ref_p_w, 1);
@@ -39,8 +39,9 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<
             search_result.init(&ret_indexes[0], &out_dists_sqr[0]);
             CONTINUE_IF(!ref_kd_tree.index->findNeighbors(search_result, &transformed_cur_p_w[0]));
             searched_points.clear();
-            for (const auto &index: ret_indexes) {
-                searched_points.emplace_back(all_ref_p_w[index]);
+            for (uint32_t i = 0; i < ret_indexes.size(); ++i) {
+                CONTINUE_IF(out_dists_sqr[i] > options_.kMaxValidRelativePointDistance);
+                searched_points.emplace_back(all_ref_p_w[ret_indexes[i]]);
             }
 
             // Fit plane model.
@@ -49,7 +50,6 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<
 
             // Compute residual.
             const float residual = plane.GetDistanceToPlane(transformed_cur_p_w);
-            CONTINUE_IF(std::fabs(residual) > options_.kMaxValidRelativePointDistance);
 
             // Compute jacobian.
             Mat1x6 jacobian = Mat1x6::Zero();
@@ -80,7 +80,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec
                                                            const std::vector<Vec3> &all_cur_p_w,
                                                            Quat &q_rc,
                                                            Vec3 &p_rc) {
-    const int32_t num_of_points_to_search = 3;
+    const int32_t num_of_points_to_search = 5;
     // Convert all reference points into kd-tree.
     std::vector<int32_t> sorted_point_indices(all_ref_p_w.size(), 0);
     for (uint32_t i = 0; i < sorted_point_indices.size(); ++i) {
@@ -108,8 +108,9 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec
             CONTINUE_IF(result_of_nn_search.size() != num_of_points_to_search);
 
             searched_points.clear();
-            for (const auto &pair : result_of_nn_search) {
-                searched_points.emplace_back(all_ref_p_w[pair.second]);
+            for (const auto &[distance, index]: result_of_nn_search) {
+                CONTINUE_IF(distance > options_.kMaxValidRelativePointDistance);
+                searched_points.emplace_back(all_ref_p_w[index]);
             }
 
             // Fit plane model.
@@ -118,7 +119,6 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec
 
             // Compute residual.
             const float residual = plane.GetDistanceToPlane(transformed_cur_p_w);
-            CONTINUE_IF(std::fabs(residual) > options_.kMaxValidRelativePointDistance);
 
             // Compute jacobian.
             Mat1x6 jacobian = Mat1x6::Zero();
