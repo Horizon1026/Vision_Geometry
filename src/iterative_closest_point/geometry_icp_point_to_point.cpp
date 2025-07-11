@@ -33,7 +33,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPointWithNanoFlann(const std::vector<
         sub_cur_p_w.clear();
 
         // Extract relative point pairs by kd-tree.
-        for (const auto &cur_p_w : all_cur_p_w) {
+        for (const auto &cur_p_w: all_cur_p_w) {
             const Vec3 transformed_cur_p_w = q_rc * cur_p_w + p_rc;
             search_result.init(&ret_indexes[0], &out_dists_sqr[0]);
             CONTINUE_IF(!ref_kd_tree.index->findNeighbors(search_result, &transformed_cur_p_w[0]));
@@ -88,7 +88,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPointWithKdtree(const std::vector<Vec
         sub_cur_p_w.clear();
 
         // Extract relative point pairs by kd-tree.
-        for (const auto &cur_p_w : all_cur_p_w) {
+        for (const auto &cur_p_w: all_cur_p_w) {
             const Vec3 transformed_cur_p_w = q_rc * cur_p_w + p_rc;
             std::multimap<float, int32_t> result_of_nn_search;
             ref_kd_tree_ptr->SearchKnn(ref_kd_tree_ptr, all_ref_p_w, transformed_cur_p_w, 1, result_of_nn_search);
@@ -128,10 +128,10 @@ bool IcpSolver::EstimatePoseByPointPairs(const std::vector<Vec3> &all_ref_p_w,
     // Compute centroids of two point clouds.
     Vec3 ref_mid = Vec3::Zero();
     Vec3 cur_mid = Vec3::Zero();
-    for (const auto &p_w : all_ref_p_w) {
+    for (const auto &p_w: all_ref_p_w) {
         ref_mid += p_w;
     }
-    for (const auto &p_w : all_cur_p_w) {
+    for (const auto &p_w: all_cur_p_w) {
         cur_mid += p_w;
     }
     ref_mid /= static_cast<float>(size);

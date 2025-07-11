@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
     Vec3 p_rc = Vec3::Zero();
     VISION_GEOMETRY::IcpSolver icp_solver;
     icp_solver.options().kMethod = VISION_GEOMETRY::IcpSolver::IcpMethod::kPointToPlane;
-    icp_solver.options().kUseNanoFlannKdTree = false;
+    icp_solver.options().kUseNanoFlannKdTree = true;
     icp_solver.options().kMaxValidRelativePointDistance = 5.0f;
     icp_solver.options().kMaxIteration = 1;
 
@@ -77,21 +77,21 @@ int main(int argc, char **argv) {
 
         // Visualize.
         Visualizor3D::Clear();
-        for (const auto &point : ref_p_w) {
+        for (const auto &point: ref_p_w) {
             Visualizor3D::points().emplace_back(PointType{
                 .p_w = point,
                 .color = RgbColor::kRed,
                 .radius = 1,
             });
         }
-        for (const auto &point : cur_p_w) {
+        for (const auto &point: cur_p_w) {
             Visualizor3D::points().emplace_back(PointType{
                 .p_w = point,
                 .color = RgbColor::kGreen,
                 .radius = 1,
             });
         }
-        for (const auto &point : cur_p_w) {
+        for (const auto &point: cur_p_w) {
             Visualizor3D::points().emplace_back(PointType{
                 .p_w = q_rc * point + p_rc,
                 .color = RgbColor::kOrange,

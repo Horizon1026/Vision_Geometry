@@ -25,6 +25,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<
     searched_points.reserve(num_of_points_to_search);
 
     // Iterate to estimate relative pose between two point clouds.
+    const Mat3 R_rc = q_rc.toRotationMatrix();
     Mat6 hessian = Mat6::Zero();
     Vec6 bias = Vec6::Zero();
     for (uint32_t iter = 0; iter < options_.kMaxIteration; ++iter) {
@@ -32,10 +33,10 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<
         bias.setZero();
 
         // Iterate each current point to construct incremental function.
-        for (const auto &cur_p_w : all_cur_p_w) {
+        for (const auto &cur_p_w: all_cur_p_w) {
             const Vec3 transformed_cur_p_w = q_rc * cur_p_w + p_rc;
 
-            // Extract three points closest to target point.
+            // Extract points closest to target point.
             search_result.init(&ret_indexes[0], &out_dists_sqr[0]);
             CONTINUE_IF(!ref_kd_tree.index->findNeighbors(search_result, &transformed_cur_p_w[0]));
             searched_points.clear();
@@ -54,7 +55,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<
             // Compute jacobian.
             Mat1x6 jacobian = Mat1x6::Zero();
             jacobian.block<1, 3>(0, 0) = plane.normal_vector().transpose();
-            jacobian.block<1, 3>(0, 3) = - plane.normal_vector().transpose() * Utility::SkewSymmetricMatrix(transformed_cur_p_w);
+            jacobian.block<1, 3>(0, 3) = - plane.normal_vector().transpose() * R_rc * Utility::SkewSymmetricMatrix(cur_p_w);
 
             // Construct hessian and bias.
             hessian += jacobian.transpose() * jacobian;
@@ -92,6 +93,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec
     searched_points.reserve(num_of_points_to_search);
 
     // Iterate to estimate relative pose between two point clouds.
+    const Mat3 R_rc = q_rc.toRotationMatrix();
     Mat6 hessian = Mat6::Zero();
     Vec6 bias = Vec6::Zero();
     for (uint32_t iter = 0; iter < options_.kMaxIteration; ++iter) {
@@ -99,10 +101,10 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec
         bias.setZero();
 
         // Iterate each current point to construct incremental function.
-        for (const auto &cur_p_w : all_cur_p_w) {
+        for (const auto &cur_p_w: all_cur_p_w) {
             const Vec3 transformed_cur_p_w = q_rc * cur_p_w + p_rc;
 
-            // Extract three points closest to target point.
+            // Extract points closest to target point.
             std::multimap<float, int32_t> result_of_nn_search;
             ref_kd_tree_ptr->SearchKnn(ref_kd_tree_ptr, all_ref_p_w, transformed_cur_p_w, num_of_points_to_search, result_of_nn_search);
             CONTINUE_IF(result_of_nn_search.size() != num_of_points_to_search);
@@ -123,7 +125,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec
             // Compute jacobian.
             Mat1x6 jacobian = Mat1x6::Zero();
             jacobian.block<1, 3>(0, 0) = plane.normal_vector().transpose();
-            jacobian.block<1, 3>(0, 3) = - plane.normal_vector().transpose() * Utility::SkewSymmetricMatrix(transformed_cur_p_w);
+            jacobian.block<1, 3>(0, 3) = - plane.normal_vector().transpose() * R_rc * Utility::SkewSymmetricMatrix(cur_p_w);
 
             // Construct hessian and bias.
             hessian += jacobian.transpose() * jacobian;

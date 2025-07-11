@@ -171,7 +171,7 @@ void RelativeRotation::EstimatePoseUseAll(const SummationTerms &terms,
     Vec3 eigen_values = Vec3::Zero();
     Mat3 eigen_vectors = Mat3::Zero();
     uint32_t idx = 0;
-    for (const auto &eigen_value_vector : eigen_values_vectors) {
+    for (const auto &eigen_value_vector: eigen_values_vectors) {
         eigen_values(idx) = eigen_value_vector.first;
         eigen_vectors.col(idx) = eigen_value_vector.second;
         ++idx;

@@ -28,7 +28,7 @@ bool IcpSolver::EstimatePoseByMethodPointToLineWithNanoFlann(const std::vector<V
         bias.setZero();
 
         // Iterate each current point to construct incremental function.
-        for (const auto &cur_p_w : all_cur_p_w) {
+        for (const auto &cur_p_w: all_cur_p_w) {
             const Vec3 transformed_cur_p_w = q_rc * cur_p_w + p_rc;
             search_result.init(&ret_indexes[0], &out_dists_sqr[0]);
             CONTINUE_IF(!ref_kd_tree.index->findNeighbors(search_result, &transformed_cur_p_w[0]));
@@ -87,7 +87,7 @@ bool IcpSolver::EstimatePoseByMethodPointToLineWithKdtree(const std::vector<Vec3
         bias.setZero();
 
         // Iterate each current point to construct incremental function.
-        for (const auto &cur_p_w : all_cur_p_w) {
+        for (const auto &cur_p_w: all_cur_p_w) {
             const Vec3 transformed_cur_p_w = q_rc * cur_p_w + p_rc;
 
             // Extract two points closest to target point.
