@@ -3,7 +3,7 @@ cmake_minimum_required( VERSION 3.0 )
 project( vision_geometry )
 
 set( CMAKE_BUILD_TYPE "Debug" )
-set( CMAKE_CXX_FLAGS "-std=c++17 -O3 -Wall" )
+set( CMAKE_CXX_FLAGS "-std=c++17 -O3 -Wall -pthread" )
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 set( CMAKE_CXX_STANDARD 20 )
 

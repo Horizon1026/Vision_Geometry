@@ -16,7 +16,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPointWithNanoFlann(const std::vector<
     NanoFlannKdTree ref_kd_tree(3, all_ref_p_w, 1);
     // Prepare something for knn search.
     const int32_t num_results = 1;
-    std::vector<size_t> ret_indexes(num_results);
+    std::vector<uint64_t> ret_indexes(num_results);
     std::vector<float> out_dists_sqr(num_results);
     nanoflann::KNNResultSet<float> search_result(num_results);
     std::vector<Vec3> searched_points;
