@@ -23,8 +23,8 @@ void LoadLidarScan(const std::string &file_name, const Vec3 &offset, std::vector
     std::string one_line;
     Vec3 pos = Vec3::Zero();
     while (std::getline(file, one_line) && !one_line.empty()) {
-        std::istringstream imu_data(one_line);
-        imu_data >> pos.x() >> pos.y() >> pos.z();
+        std::istringstream point_position(one_line);
+        point_position >> pos.x() >> pos.y() >> pos.z();
         point_cloud.emplace_back(pos + offset);
     }
     file.close();
@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
     std::vector<Vec3> ref_p_w;
     std::vector<Vec3> cur_p_w;
     LoadLidarScan("../examples/cur_lidar_scan.txt", Vec3::Zero(), cur_p_w);
-    LoadLidarScan("../examples/ref_lidar_scan.txt", Vec3(5, 2, 1), ref_p_w);
+    LoadLidarScan("../examples/ref_lidar_scan.txt", Vec3(3, 2, 1), ref_p_w);
 
     // Estimate pose by icp solver.
     Quat q_rc = Quat::Identity();
@@ -47,6 +47,7 @@ int main(int argc, char **argv) {
     icp_solver.options().kMethod = VISION_GEOMETRY::IcpSolver::IcpMethod::kPointToPlane;
     icp_solver.options().kUseNanoFlannKdTree = true;
     icp_solver.options().kMaxValidRelativePointDistance = 5.0f;
+    icp_solver.options().kMaxUsedPoints = 4000;
     icp_solver.options().kMaxIteration = 1;
 
     uint32_t cnt = 0;

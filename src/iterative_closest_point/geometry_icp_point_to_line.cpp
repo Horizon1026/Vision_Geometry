@@ -12,13 +12,14 @@ bool IcpSolver::EstimatePoseByMethodPointToLineWithNanoFlann(const std::vector<V
                                                              const std::vector<Vec3> &all_cur_p_w,
                                                              Quat &q_rc,
                                                              Vec3 &p_rc) {
-    const int32_t num_of_points_to_search = 2;
     // Convert all reference points into kd-tree.
     NanoFlannKdTree ref_kd_tree(3, all_ref_p_w, 1);
     // Prepare something for knn search.
+    const int32_t num_of_points_to_search = 2;
     std::vector<uint64_t> ret_indexes(num_of_points_to_search);
     std::vector<float> out_dists_sqr(num_of_points_to_search);
     nanoflann::KNNResultSet<float> search_result(num_of_points_to_search);
+    const uint32_t index_step = GetIndexStep(all_cur_p_w.size());
 
     // Iterate to estimate relative pose between two point clouds.
     Mat6 hessian = Mat6::Zero();
@@ -28,7 +29,8 @@ bool IcpSolver::EstimatePoseByMethodPointToLineWithNanoFlann(const std::vector<V
         bias.setZero();
 
         // Iterate each current point to construct incremental function.
-        for (const auto &cur_p_w: all_cur_p_w) {
+        for (uint32_t i = 0; i < all_cur_p_w.size(); i += index_step) {
+            const Vec3 &cur_p_w = all_cur_p_w[i];
             const Vec3 transformed_cur_p_w = q_rc * cur_p_w + p_rc;
             search_result.init(&ret_indexes[0], &out_dists_sqr[0]);
             CONTINUE_IF(!ref_kd_tree.index->findNeighbors(search_result, &transformed_cur_p_w[0]));
@@ -70,7 +72,6 @@ bool IcpSolver::EstimatePoseByMethodPointToLineWithKdtree(const std::vector<Vec3
                                                           const std::vector<Vec3> &all_cur_p_w,
                                                           Quat &q_rc,
                                                           Vec3 &p_rc) {
-    const int32_t num_of_points_to_search = 2;
     // Convert all reference points into kd-tree.
     std::vector<int32_t> sorted_point_indices(all_ref_p_w.size(), 0);
     for (uint32_t i = 0; i < sorted_point_indices.size(); ++i) {
@@ -78,6 +79,8 @@ bool IcpSolver::EstimatePoseByMethodPointToLineWithKdtree(const std::vector<Vec3
     }
     std::unique_ptr<KdTreeNode<float, 3>> ref_kd_tree_ptr = std::make_unique<KdTreeNode<float, 3>>();
     ref_kd_tree_ptr->Construct(all_ref_p_w, sorted_point_indices, ref_kd_tree_ptr);
+    const int32_t num_of_points_to_search = 2;
+    const uint32_t index_step = GetIndexStep(all_cur_p_w.size());
 
     // Iterate to estimate relative pose between two point clouds.
     Mat6 hessian = Mat6::Zero();
@@ -87,7 +90,8 @@ bool IcpSolver::EstimatePoseByMethodPointToLineWithKdtree(const std::vector<Vec3
         bias.setZero();
 
         // Iterate each current point to construct incremental function.
-        for (const auto &cur_p_w: all_cur_p_w) {
+        for (uint32_t i = 0; i < all_cur_p_w.size(); i += index_step) {
+            const Vec3 &cur_p_w = all_cur_p_w[i];
             const Vec3 transformed_cur_p_w = q_rc * cur_p_w + p_rc;
 
             // Extract two points closest to target point.

@@ -26,14 +26,15 @@ bool IcpSolver::EstimatePoseByMethodPointToPointWithNanoFlann(const std::vector<
     q_rc.normalize();
     std::vector<Vec3> sub_ref_p_w = all_ref_p_w;
     std::vector<Vec3> sub_cur_p_w = all_cur_p_w;
-
+    const uint32_t index_step = GetIndexStep(all_cur_p_w.size());
     for (uint32_t iter = 0; iter < options_.kMaxIteration; ++iter) {
         // Transform current points by current relative pose.
         sub_ref_p_w.clear();
         sub_cur_p_w.clear();
 
         // Extract relative point pairs by kd-tree.
-        for (const auto &cur_p_w: all_cur_p_w) {
+        for (uint32_t i = 0; i < all_cur_p_w.size(); i += index_step) {
+            const Vec3 &cur_p_w = all_cur_p_w[i];
             const Vec3 transformed_cur_p_w = q_rc * cur_p_w + p_rc;
             search_result.init(&ret_indexes[0], &out_dists_sqr[0]);
             CONTINUE_IF(!ref_kd_tree.index->findNeighbors(search_result, &transformed_cur_p_w[0]));
@@ -81,14 +82,15 @@ bool IcpSolver::EstimatePoseByMethodPointToPointWithKdtree(const std::vector<Vec
     q_rc.normalize();
     std::vector<Vec3> sub_ref_p_w = all_ref_p_w;
     std::vector<Vec3> sub_cur_p_w = all_cur_p_w;
-
+    const uint32_t index_step = GetIndexStep(all_cur_p_w.size());
     for (uint32_t iter = 0; iter < options_.kMaxIteration; ++iter) {
         // Transform current points by current relative pose.
         sub_ref_p_w.clear();
         sub_cur_p_w.clear();
 
         // Extract relative point pairs by kd-tree.
-        for (const auto &cur_p_w: all_cur_p_w) {
+        for (uint32_t i = 0; i < all_cur_p_w.size(); i += index_step) {
+            const Vec3 &cur_p_w = all_cur_p_w[i];
             const Vec3 transformed_cur_p_w = q_rc * cur_p_w + p_rc;
             std::multimap<float, int32_t> result_of_nn_search;
             ref_kd_tree_ptr->SearchKnn(ref_kd_tree_ptr, all_ref_p_w, transformed_cur_p_w, 1, result_of_nn_search);

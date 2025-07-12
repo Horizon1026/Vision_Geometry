@@ -17,6 +17,7 @@ public:
 
     struct IcpOptions {
         uint32_t kMaxIteration = 100;
+        uint32_t kMaxUsedPoints = 800;
         float kMaxValidRelativePointDistance = 5.0f;
         float kMaxConvergedStepLength = 1e-4f;
         bool kUseNanoFlannKdTree = true;
@@ -72,6 +73,10 @@ private:
                                                     const std::vector<Vec3> &all_cur_p_w,
                                                     Quat &q_rc,
                                                     Vec3 &p_rc);
+
+    uint32_t GetIndexStep(const uint32_t num_of_points) {
+        return std::max(static_cast<uint32_t>(1), static_cast<uint32_t>(num_of_points / options_.kMaxUsedPoints));
+    }
 
 private:
     IcpOptions options_;
