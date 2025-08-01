@@ -257,10 +257,10 @@ bool EpipolarSolver::RecoverPoseFromEssential(const std::vector<Vec2> &ref_norm_
             // Check is point.z positive in ref frame.
             Vec3 p_r;
             solver.Triangulate(q_rc, p_rc, norm_xy, p_r);
-            if (p_r.z() > kZerofloat) {
+            if (p_r.z() > kZeroFloat) {
                 // Check is point.z positive in cur frame.
                 Vec3 p_c = item.q_cr * p_r + item.p_cr;
-                if (p_c.z() > kZerofloat) {
+                if (p_c.z() > kZeroFloat) {
                     ++item.score;
                 }
             }
