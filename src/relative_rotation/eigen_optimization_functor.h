@@ -22,12 +22,8 @@ struct OptimizationFunctor {
     const int m_inputs;
     const int m_values;
 
-    OptimizationFunctor()
-        : m_inputs(InputsAtCompileTime)
-        , m_values(ValuesAtCompileTime) {}
-    OptimizationFunctor(int inputs, int values)
-        : m_inputs(inputs)
-        , m_values(values) {}
+    OptimizationFunctor(): m_inputs(InputsAtCompileTime), m_values(ValuesAtCompileTime) {}
+    OptimizationFunctor(int inputs, int values): m_inputs(inputs), m_values(values) {}
 
     int inputs() const { return m_inputs; }
 

@@ -74,12 +74,10 @@ private:
 };
 
 /* Eigen Solver Step Definition. */
-struct EigenSolverStep : OptimizationFunctor<float> {
+struct EigenSolverStep: OptimizationFunctor<float> {
     const SummationTerms &terms_;
 
-    EigenSolverStep(const SummationTerms &terms)
-        : OptimizationFunctor<float>(3, 3)
-        , terms_(terms) {}
+    EigenSolverStep(const SummationTerms &terms): OptimizationFunctor<float>(3, 3), terms_(terms) {}
 
     int operator()(const Vec &x, Vec &fvec) const {
         Vec3 cayley = x;
