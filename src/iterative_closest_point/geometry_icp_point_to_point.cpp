@@ -1,16 +1,14 @@
 #include "geometry_icp.h"
 #include "kd_tree.h"
+#include "memory"
 #include "nanoflann.h"
 #include "slam_basic_math.h"
-#include "slam_operations.h"
 #include "slam_log_reporter.h"
-#include "memory"
+#include "slam_operations.h"
 
 namespace VISION_GEOMETRY {
 
-bool IcpSolver::EstimatePoseByMethodPointToPointWithNanoFlann(const std::vector<Vec3> &all_ref_p_w,
-                                                              const std::vector<Vec3> &all_cur_p_w,
-                                                              Quat &q_rc,
+bool IcpSolver::EstimatePoseByMethodPointToPointWithNanoFlann(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc,
                                                               Vec3 &p_rc) {
     // Convert all reference points into kd-tree.
     NanoFlannKdTree ref_kd_tree(3, all_ref_p_w, 1);
@@ -66,10 +64,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPointWithNanoFlann(const std::vector<
     return true;
 }
 
-bool IcpSolver::EstimatePoseByMethodPointToPointWithKdtree(const std::vector<Vec3> &all_ref_p_w,
-                                                           const std::vector<Vec3> &all_cur_p_w,
-                                                           Quat &q_rc,
-                                                           Vec3 &p_rc) {
+bool IcpSolver::EstimatePoseByMethodPointToPointWithKdtree(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc) {
     // Convert all reference points into kd-tree.
     std::vector<int32_t> sorted_point_indices(all_ref_p_w.size(), 0);
     for (uint32_t i = 0; i < sorted_point_indices.size(); ++i) {
@@ -119,10 +114,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPointWithKdtree(const std::vector<Vec
     return true;
 }
 
-bool IcpSolver::EstimatePoseByPointPairs(const std::vector<Vec3> &all_ref_p_w,
-                                         const std::vector<Vec3> &all_cur_p_w,
-                                         Quat &q_rc,
-                                         Vec3 &p_rc) {
+bool IcpSolver::EstimatePoseByPointPairs(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc) {
     RETURN_FALSE_IF(all_ref_p_w.empty());
     RETURN_FALSE_IF(all_ref_p_w.size() != all_cur_p_w.size());
     const int32_t size = static_cast<int32_t>(all_ref_p_w.size());
@@ -153,7 +145,7 @@ bool IcpSolver::EstimatePoseByPointPairs(const std::vector<Vec3> &all_ref_p_w,
     q_rc = Quat(R_rc).normalized();
     if (R_rc.determinant() < 0) {
         Mat3 matrix_v = svd.matrixV();
-        matrix_v(2, 2) = - matrix_v(2, 2);
+        matrix_v(2, 2) = -matrix_v(2, 2);
         R_rc = matrix_v * svd.matrixU().transpose();
         q_rc = Quat(R_rc).normalized();
     }
@@ -162,4 +154,4 @@ bool IcpSolver::EstimatePoseByPointPairs(const std::vector<Vec3> &all_ref_p_w,
     return true;
 }
 
-}
+}  // namespace VISION_GEOMETRY

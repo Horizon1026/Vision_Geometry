@@ -3,8 +3,8 @@
 
 #include "line_segment.h"
 #include "line_triangulator.h"
-#include "slam_log_reporter.h"
 #include "slam_basic_math.h"
+#include "slam_log_reporter.h"
 
 #include "visualizor_3d.h"
 
@@ -18,8 +18,8 @@ int main(int argc, char **argv) {
 
     // Generate several camera views and one line.
     const uint32_t number_of_camera_views = 5;
-    const Vec3 p1_w{0, -2, 5};
-    const Vec3 p2_w{0, 2, 8};
+    const Vec3 p1_w {0, -2, 5};
+    const Vec3 p2_w {0, 2, 8};
     const LinePlucker3D truth_line_w(LineSegment3D(p1_w, p2_w));
     std::vector<LineSegment2D> observe_vec;
     std::vector<Quat> q_wc_vec;
@@ -55,57 +55,57 @@ int main(int argc, char **argv) {
     Visualizor3D::camera_view().p_wc = Vec3(0.26f, -0.65f, -4.39f);
     Visualizor3D::camera_view().q_wc = Quat(0.79f, 0.0f, 0.0f, 0.59f).normalized();
     Visualizor3D::Clear();
-    Visualizor3D::poses().emplace_back(PoseType{
+    Visualizor3D::poses().emplace_back(PoseType {
         .p_wb = Vec3::Zero(),
         .q_wb = Quat::Identity(),
         .scale = 1.0f,
     });
     for (uint32_t i = 0; i < q_wc_vec.size(); ++i) {
-        Visualizor3D::camera_poses().emplace_back(CameraPoseType{
+        Visualizor3D::camera_poses().emplace_back(CameraPoseType {
             .p_wc = p_wc_vec[i],
             .q_wc = q_wc_vec[i],
             .scale = 0.5f,
         });
         // Draw observation of line.
-        Visualizor3D::lines().emplace_back(LineType{
+        Visualizor3D::lines().emplace_back(LineType {
             .p_w_i = q_wc_vec[i] * observe_vec[i].start_point_homogeneous() + p_wc_vec[i],
             .p_w_j = q_wc_vec[i] * observe_vec[i].end_point_homogeneous() + p_wc_vec[i],
             .color = RgbColor::kYellow,
         });
-        Visualizor3D::lines().emplace_back(LineType{
+        Visualizor3D::lines().emplace_back(LineType {
             .p_w_i = p_wc_vec[i],
             .p_w_j = p1_w,
             .color = RgbColor::kSlateGray,
         });
-        Visualizor3D::lines().emplace_back(LineType{
+        Visualizor3D::lines().emplace_back(LineType {
             .p_w_i = p_wc_vec[i],
             .p_w_j = p2_w,
             .color = RgbColor::kSlateGray,
         });
     }
     // Draw groud truth line in world frame.
-    Visualizor3D::lines().emplace_back(LineType{
+    Visualizor3D::lines().emplace_back(LineType {
         .p_w_i = p1_w,
         .p_w_j = p2_w,
         .color = RgbColor::kRed,
     });
-    Visualizor3D::lines().emplace_back(LineType{
+    Visualizor3D::lines().emplace_back(LineType {
         .p_w_i = truth_line_w.GetPointOnLine(-1),
         .p_w_j = truth_line_w.GetPointOnLine(1),
         .color = RgbColor::kRed,
     });
-    Visualizor3D::points().emplace_back(PointType{
+    Visualizor3D::points().emplace_back(PointType {
         .p_w = truth_line_w.GetPointOnLine(0),
         .color = RgbColor::kGreen,
         .radius = 3,
     });
     // Draw result of triangulation.
-    Visualizor3D::lines().emplace_back(LineType{
+    Visualizor3D::lines().emplace_back(LineType {
         .p_w_i = noised_line_w.ProjectPointOnLine(p1_w),
         .p_w_j = noised_line_w.ProjectPointOnLine(p2_w),
         .color = RgbColor::kPink,
     });
-    Visualizor3D::lines().emplace_back(LineType{
+    Visualizor3D::lines().emplace_back(LineType {
         .p_w_i = estimated_line_w.ProjectPointOnLine(p1_w),
         .p_w_j = estimated_line_w.ProjectPointOnLine(p2_w),
         .color = RgbColor::kCyan,

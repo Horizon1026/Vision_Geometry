@@ -1,13 +1,11 @@
+#include "cmath"
 #include "fstream"
 #include "iostream"
-#include "cmath"
 
 #include "geometry_epipolar.h"
 #include "slam_log_reporter.h"
 
-void TestEssentialFivePointsModel(VISION_GEOMETRY::EpipolarSolver &solver,
-                                  std::vector<Vec2> &ref_norm_xy,
-                                  std::vector<Vec2> &cur_norm_xy,
+void TestEssentialFivePointsModel(VISION_GEOMETRY::EpipolarSolver &solver, std::vector<Vec2> &ref_norm_xy, std::vector<Vec2> &cur_norm_xy,
                                   std::vector<uint8_t> &status) {
     clock_t begin, end;
     Mat3 essential;
@@ -21,7 +19,7 @@ void TestEssentialFivePointsModel(VISION_GEOMETRY::EpipolarSolver &solver,
     solver.EstimateEssential(ref_norm_xy, cur_norm_xy, essential, status);
     end = clock();
 
-    float cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
+    float cost_time = static_cast<float>(end - begin) / CLOCKS_PER_SEC * 1000.0f;
     ReportInfo("cost time is " << cost_time << " ms");
     ReportInfo("essential is\n" << essential);
 
@@ -30,9 +28,7 @@ void TestEssentialFivePointsModel(VISION_GEOMETRY::EpipolarSolver &solver,
     ReportInfo("t_cr is " << t_cr.transpose());
 }
 
-void TestEssentialEightPointsModel(VISION_GEOMETRY::EpipolarSolver &solver,
-                                   std::vector<Vec2> &ref_norm_xy,
-                                   std::vector<Vec2> &cur_norm_xy,
+void TestEssentialEightPointsModel(VISION_GEOMETRY::EpipolarSolver &solver, std::vector<Vec2> &ref_norm_xy, std::vector<Vec2> &cur_norm_xy,
                                    std::vector<uint8_t> &status) {
     clock_t begin, end;
     Mat3 essential;
@@ -46,7 +42,7 @@ void TestEssentialEightPointsModel(VISION_GEOMETRY::EpipolarSolver &solver,
     solver.EstimateEssential(ref_norm_xy, cur_norm_xy, essential, status);
     end = clock();
 
-    float cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
+    float cost_time = static_cast<float>(end - begin) / CLOCKS_PER_SEC * 1000.0f;
     ReportInfo("cost time is " << cost_time << " ms");
     ReportInfo("essential is\n" << essential);
 

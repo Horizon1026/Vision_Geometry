@@ -9,9 +9,7 @@
 
 namespace VISION_GEOMETRY {
 
-bool EpipolarSolver::EstimateEssential(const std::vector<Vec2> &ref_norm_xy,
-                                       const std::vector<Vec2> &cur_norm_xy,
-                                       Mat3 &essential,
+bool EpipolarSolver::EstimateEssential(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Mat3 &essential,
                                        std::vector<uint8_t> &status) {
     switch (options_.kMethod) {
         case EpipolarMethod::kRansac: {
@@ -35,10 +33,10 @@ void EpipolarSolver::DecomposeEssentialMatrix(const Mat3 &essential, Mat3 &R0, M
 
     // Make sure the determinants of U and V are both positive.
     if (U.determinant() < 0) {
-        U = - U;
+        U = -U;
     }
     if (Vt.determinant() < 0) {
-        Vt = - Vt;
+        Vt = -Vt;
     }
 
     // R means R(PI / 2).
@@ -48,12 +46,10 @@ void EpipolarSolver::DecomposeEssentialMatrix(const Mat3 &essential, Mat3 &R0, M
     R0 = U * R * Vt;
     R1 = U * R.transpose() * Vt;
     t0 = U.col(2);
-    t1 = - t0;
+    t1 = -t0;
 }
 
-bool EpipolarSolver::EstimateEssentialUseAll(const std::vector<Vec2> &ref_norm_xy,
-                                             const std::vector<Vec2> &cur_norm_xy,
-                                             Mat3 &essential,
+bool EpipolarSolver::EstimateEssentialUseAll(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Mat3 &essential,
                                              std::vector<uint8_t> &status) {
     RETURN_FALSE_IF_FALSE(EstimateEssentialUseAll(ref_norm_xy, cur_norm_xy, essential));
 
@@ -64,9 +60,7 @@ bool EpipolarSolver::EstimateEssentialUseAll(const std::vector<Vec2> &ref_norm_x
     return true;
 }
 
-bool EpipolarSolver::EstimateEssentialUseAll(const std::vector<Vec2> &ref_norm_xy,
-                                             const std::vector<Vec2> &cur_norm_xy,
-                                             Mat3 &essential) {
+bool EpipolarSolver::EstimateEssentialUseAll(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Mat3 &essential) {
     switch (options_.kModel) {
         case EpipolarModel::kFivePoints:
             RETURN_FALSE_IF_FALSE(EstimateEssentialUseFivePoints(ref_norm_xy, cur_norm_xy, essential));
@@ -81,9 +75,7 @@ bool EpipolarSolver::EstimateEssentialUseAll(const std::vector<Vec2> &ref_norm_x
     return true;
 }
 
-bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_xy,
-                                             const std::vector<Vec2> &cur_norm_xy,
-                                             Mat3 &essential,
+bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Mat3 &essential,
                                              std::vector<uint8_t> &status) {
     if (ref_norm_xy.size() != cur_norm_xy.size() || ref_norm_xy.size() < 8) {
         return false;
@@ -136,7 +128,7 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
         // Apply essential model on all points, statis inliers.
         cur_score = 0;
         ComputeEssentialModelResidual(ref_norm_xy, cur_norm_xy, cur_essential, residuals);
-        for (const float &residual : residuals) {
+        for (const float &residual: residuals) {
             if (residual < options_.kMaxEpipolarResidual) {
                 ++cur_score;
             }
@@ -159,9 +151,7 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
     return true;
 }
 
-void EpipolarSolver::ComputeEssentialModelResidual(const std::vector<Vec2> &ref_norm_xy,
-                                                   const std::vector<Vec2> &cur_norm_xy,
-                                                   const Mat3 &essential,
+void EpipolarSolver::ComputeEssentialModelResidual(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, const Mat3 &essential,
                                                    std::vector<float> &residuals) {
     if (residuals.size() != ref_norm_xy.size()) {
         residuals.resize(ref_norm_xy.size());
@@ -175,23 +165,19 @@ void EpipolarSolver::ComputeEssentialModelResidual(const std::vector<Vec2> &ref_
     }
 }
 
-float EpipolarSolver::ComputeEssentialModelResidualSummary(const std::vector<Vec2> &ref_norm_xy,
-                                                           const std::vector<Vec2> &cur_norm_xy,
-                                                           const Mat3 &essential) {
+float EpipolarSolver::ComputeEssentialModelResidualSummary(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, const Mat3 &essential) {
     std::vector<float> residuals;
     residuals.resize(ref_norm_xy.size());
     ComputeEssentialModelResidual(ref_norm_xy, cur_norm_xy, essential, residuals);
 
     float sum_residual = 0.0f;
-    for (const float &residual : residuals) {
+    for (const float &residual: residuals) {
         sum_residual += residual;
     }
     return sum_residual / static_cast<float>(ref_norm_xy.size());
 }
 
-void EpipolarSolver::CheckEssentialPairsStatus(const std::vector<Vec2> &ref_norm_xy,
-                                               const std::vector<Vec2> &cur_norm_xy,
-                                               Mat3 &essential,
+void EpipolarSolver::CheckEssentialPairsStatus(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Mat3 &essential,
                                                std::vector<uint8_t> &status) {
     if (status.size() != ref_norm_xy.size()) {
         status.resize(ref_norm_xy.size(), static_cast<uint8_t>(EpipolarResult::kUnsolved));
@@ -212,10 +198,7 @@ void EpipolarSolver::CheckEssentialPairsStatus(const std::vector<Vec2> &ref_norm
     }
 }
 
-bool EpipolarSolver::RecoverPoseFromEssential(const std::vector<Vec2> &ref_norm_xy,
-                                              const std::vector<Vec2> &cur_norm_xy,
-                                              const Mat3 &essential,
-                                              Mat3 &R_cr,
+bool EpipolarSolver::RecoverPoseFromEssential(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, const Mat3 &essential, Mat3 &R_cr,
                                               Vec3 &t_cr) {
     if (ref_norm_xy.size() != cur_norm_xy.size() || ref_norm_xy.empty()) {
         return false;
@@ -237,22 +220,22 @@ bool EpipolarSolver::RecoverPoseFromEssential(const std::vector<Vec2> &ref_norm_
         Vec3 p_cr = Vec3::Zero();
     };
     std::array<Statis, 4> statis = {
-        Statis{ 0, q0, t0 },
-        Statis{ 0, q0, t1 },
-        Statis{ 0, q1, t0 },
-        Statis{ 0, q1, t1 },
+        Statis {0, q0, t0},
+        Statis {0, q0, t1},
+        Statis {0, q1, t0},
+        Statis {0, q1, t1},
     };
 
     // Triangulization points to find which pose is right.
     PointTriangulator solver;
     solver.options().kMethod = PointTriangulator::Method::kAnalytic;
 
-    for (Statis &item : statis) {
-        std::vector<Quat> q_rc = { Quat::Identity(), item.q_cr.inverse() };
-        std::vector<Vec3> p_rc = { Vec3::Identity(), - Vec3(item.q_cr.inverse() * item.p_cr) };
+    for (Statis &item: statis) {
+        std::vector<Quat> q_rc = {Quat::Identity(), item.q_cr.inverse()};
+        std::vector<Vec3> p_rc = {Vec3::Identity(), -Vec3(item.q_cr.inverse() * item.p_cr)};
 
         for (uint32_t i = 0; i < ref_norm_xy.size(); ++i) {
-            std::vector<Vec2> norm_xy = { ref_norm_xy[i], cur_norm_xy[i] };
+            std::vector<Vec2> norm_xy = {ref_norm_xy[i], cur_norm_xy[i]};
 
             // Check is point.z positive in ref frame.
             Vec3 p_r;
@@ -269,7 +252,7 @@ bool EpipolarSolver::RecoverPoseFromEssential(const std::vector<Vec2> &ref_norm_
 
     // Select the most correct pose.
     uint32_t max_score = 0;
-    for (Statis &item : statis) {
+    for (Statis &item: statis) {
         if (item.score >= max_score) {
             R_cr = Mat3(item.q_cr);
             t_cr = item.p_cr;
@@ -280,4 +263,4 @@ bool EpipolarSolver::RecoverPoseFromEssential(const std::vector<Vec2> &ref_norm_
     return true;
 }
 
-}
+}  // namespace VISION_GEOMETRY

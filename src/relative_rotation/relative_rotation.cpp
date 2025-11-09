@@ -1,21 +1,18 @@
 #include "relative_rotation.h"
 #include "slam_basic_math.h"
-#include "slam_operations.h"
 #include "slam_log_reporter.h"
+#include "slam_operations.h"
 
 namespace VISION_GEOMETRY {
 
-bool RelativeRotation::EstimateRotationByBnb(const std::vector<Vec2> &ref_norm_xy,
-                                             const std::vector<Vec2> &cur_norm_xy,
-                                             Quat &q_cr) {
+bool RelativeRotation::EstimateRotationByBnb(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Quat &q_cr) {
     RETURN_FALSE_IF(ref_norm_xy.empty());
     RETURN_FALSE_IF(ref_norm_xy.size() != cur_norm_xy.size());
 
     // Compute the step of pitch, roll, yaw.
-    const Vec3 step_deg = Vec3(
-        options_.kHalfBoundOfPitchInDeg * 2.0f / static_cast<float>(options_.kDivisionsOfPitch - 1),
-        options_.kHalfBoundOfRollInDeg * 2.0f / static_cast<float>(options_.kDivisionsOfRoll - 1),
-        options_.kHalfBoundOfYawInDeg * 2.0f / static_cast<float>(options_.kDivisionsOfYaw - 1));
+    const Vec3 step_deg = Vec3(options_.kHalfBoundOfPitchInDeg * 2.0f / static_cast<float>(options_.kDivisionsOfPitch - 1),
+                               options_.kHalfBoundOfRollInDeg * 2.0f / static_cast<float>(options_.kDivisionsOfRoll - 1),
+                               options_.kHalfBoundOfYawInDeg * 2.0f / static_cast<float>(options_.kDivisionsOfYaw - 1));
 
     // Compute the mid value by initial rotation.
     q_cr.normalize();
@@ -55,9 +52,7 @@ bool RelativeRotation::EstimateRotationByBnb(const std::vector<Vec2> &ref_norm_x
     return true;
 }
 
-bool RelativeRotation::EstimateRotation(const std::vector<Vec2> &ref_norm_xy,
-                                        const std::vector<Vec2> &cur_norm_xy,
-                                        Quat &q_cr) {
+bool RelativeRotation::EstimateRotation(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Quat &q_cr) {
     RETURN_FALSE_IF(ref_norm_xy.empty());
     RETURN_FALSE_IF(ref_norm_xy.size() != cur_norm_xy.size());
     q_cr.normalize();
@@ -72,10 +67,7 @@ bool RelativeRotation::EstimateRotation(const std::vector<Vec2> &ref_norm_xy,
     return true;
 }
 
-bool RelativeRotation::EstimatePose(const std::vector<Vec2> &ref_norm_xy,
-                                    const std::vector<Vec2> &cur_norm_xy,
-                                    Quat &q_cr,
-                                    Vec3 &t_cr) {
+bool RelativeRotation::EstimatePose(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Quat &q_cr, Vec3 &t_cr) {
     RETURN_FALSE_IF(ref_norm_xy.empty());
     RETURN_FALSE_IF(ref_norm_xy.size() != cur_norm_xy.size());
     q_cr.normalize();
@@ -93,15 +85,13 @@ bool RelativeRotation::EstimatePose(const std::vector<Vec2> &ref_norm_xy,
     const Vec3 temp_f_c = q_cr * f_r;
     const Vec3 optical_flow = f_c - temp_f_c;
     if (optical_flow.dot(t_cr) < 0) {
-        t_cr = - t_cr;
+        t_cr = -t_cr;
     }
 
     return true;
 }
 
-void RelativeRotation::ComputeSummationTerms(const std::vector<Vec2> &ref_norm_xy,
-                                             const std::vector<Vec2> &cur_norm_xy,
-                                             SummationTerms &terms) {
+void RelativeRotation::ComputeSummationTerms(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, SummationTerms &terms) {
     for (uint32_t i = 0; i < ref_norm_xy.size(); ++i) {
         const Vec3 f_r = Vec3(ref_norm_xy[i].x(), ref_norm_xy[i].y(), 1.0f);
         const Vec3 f_c = Vec3(cur_norm_xy[i].x(), cur_norm_xy[i].y(), 1.0f);
@@ -117,8 +107,7 @@ void RelativeRotation::ComputeSummationTerms(const std::vector<Vec2> &ref_norm_x
     }
 }
 
-Vec3 RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
-                                              Quat &q_cr) {
+Vec3 RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms, Quat &q_cr) {
     // Prepare for optimizaiton.
     const int n = 3;
     Vec x(n);
@@ -142,9 +131,7 @@ Vec3 RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms,
     return cayley;
 }
 
-void RelativeRotation::EstimatePoseUseAll(const SummationTerms &terms,
-                                          Quat &q_cr,
-                                          Vec3 &t_cr) {
+void RelativeRotation::EstimatePoseUseAll(const SummationTerms &terms, Quat &q_cr, Vec3 &t_cr) {
     // Estiamte rotation with cayley format.
     Vec3 cayley = EstimateRotationUseAll(terms, q_cr);
 
@@ -181,10 +168,7 @@ void RelativeRotation::EstimatePoseUseAll(const SummationTerms &terms,
     t_cr = eigen_values.head<2>().norm() * eigen_vectors.col(2);
 }
 
-void RelativeRotation::ComputeMWithJacobians(const SummationTerms &terms,
-                                             const Vec3 &cayley,
-                                             Jacobians &jacobians,
-                                             Mat3 &M) {
+void RelativeRotation::ComputeMWithJacobians(const SummationTerms &terms, const Vec3 &cayley, Jacobians &jacobians, Mat3 &M) {
     const Mat3 &R = Utility::ConvertCayleyToReducedRotationMatrix(cayley);
 
     Mat3 &M_jac1 = jacobians.jac_1;
@@ -223,253 +207,253 @@ void RelativeRotation::ComputeMWithJacobians(const SummationTerms &terms,
     R_jac3(2, 1) = 2.0f * cayley(1);
     R_jac3(2, 2) = 2.0f * cayley(2);
 
-    //Fill the matrix M using the precomputed summation terms. Plus Jacobian.
+    // Fill the matrix M using the precomputed summation terms. Plus Jacobian.
     M.setZero();
     float temp = R.row(2) * terms.yy * R.row(2).transpose();
-    M(0,0) = temp;
+    M(0, 0) = temp;
     temp = -2.0 * R.row(2) * terms.yz * R.row(1).transpose();
-    M(0,0) += temp;
+    M(0, 0) += temp;
     temp = R.row(1) * terms.zz * R.row(1).transpose();
-    M(0,0) += temp;
+    M(0, 0) += temp;
     temp = 2.0 * R_jac1.row(2) * terms.yy * R.row(2).transpose();
-    M_jac1(0,0)  = temp;
+    M_jac1(0, 0) = temp;
     temp = -2.0 * R_jac1.row(2) * terms.yz * R.row(1).transpose();
-    M_jac1(0,0) += temp;
+    M_jac1(0, 0) += temp;
     temp = -2.0 * R.row(2) * terms.yz * R_jac1.row(1).transpose();
-    M_jac1(0,0) += temp;
+    M_jac1(0, 0) += temp;
     temp = 2.0 * R_jac1.row(1) * terms.zz * R.row(1).transpose();
-    M_jac1(0,0) += temp;
+    M_jac1(0, 0) += temp;
     temp = 2.0 * R_jac2.row(2) * terms.yy * R.row(2).transpose();
-    M_jac2(0,0)  = temp;
+    M_jac2(0, 0) = temp;
     temp = -2.0 * R_jac2.row(2) * terms.yz * R.row(1).transpose();
-    M_jac2(0,0) += temp;
+    M_jac2(0, 0) += temp;
     temp = -2.0 * R.row(2) * terms.yz * R_jac2.row(1).transpose();
-    M_jac2(0,0) += temp;
+    M_jac2(0, 0) += temp;
     temp = 2.0 * R_jac2.row(1) * terms.zz * R.row(1).transpose();
-    M_jac2(0,0) += temp;
+    M_jac2(0, 0) += temp;
     temp = 2.0 * R_jac3.row(2) * terms.yy * R.row(2).transpose();
-    M_jac3(0,0)  = temp;
+    M_jac3(0, 0) = temp;
     temp = -2.0 * R_jac3.row(2) * terms.yz * R.row(1).transpose();
-    M_jac3(0,0) += temp;
+    M_jac3(0, 0) += temp;
     temp = -2.0 * R.row(2) * terms.yz * R_jac3.row(1).transpose();
-    M_jac3(0,0) += temp;
+    M_jac3(0, 0) += temp;
     temp = 2.0 * R_jac3.row(1) * terms.zz * R.row(1).transpose();
-    M_jac3(0,0) += temp;
+    M_jac3(0, 0) += temp;
 
-    temp =      R.row(2) * terms.yz * R.row(0).transpose();
-    M(0,1)  = temp;
+    temp = R.row(2) * terms.yz * R.row(0).transpose();
+    M(0, 1) = temp;
     temp = -1.0 * R.row(2) * terms.xy * R.row(2).transpose();
-    M(0,1) += temp;
+    M(0, 1) += temp;
     temp = -1.0 * R.row(1) * terms.zz * R.row(0).transpose();
-    M(0,1) += temp;
-    temp =      R.row(1) * terms.zx * R.row(2).transpose();
-    M(0,1) += temp;
+    M(0, 1) += temp;
+    temp = R.row(1) * terms.zx * R.row(2).transpose();
+    M(0, 1) += temp;
     temp = R_jac1.row(2) * terms.yz * R.row(0).transpose();
-    M_jac1(0,1)  = temp;
+    M_jac1(0, 1) = temp;
     temp = R.row(2) * terms.yz * R_jac1.row(0).transpose();
-    M_jac1(0,1) += temp;
+    M_jac1(0, 1) += temp;
     temp = -2.0 * R_jac1.row(2) * terms.xy * R.row(2).transpose();
-    M_jac1(0,1) += temp;
+    M_jac1(0, 1) += temp;
     temp = -R_jac1.row(1) * terms.zz * R.row(0).transpose();
-    M_jac1(0,1) += temp;
+    M_jac1(0, 1) += temp;
     temp = -R.row(1) * terms.zz * R_jac1.row(0).transpose();
-    M_jac1(0,1) += temp;
+    M_jac1(0, 1) += temp;
     temp = R_jac1.row(1) * terms.zx * R.row(2).transpose();
-    M_jac1(0,1) += temp;
+    M_jac1(0, 1) += temp;
     temp = R.row(1) * terms.zx * R_jac1.row(2).transpose();
-    M_jac1(0,1) += temp;
+    M_jac1(0, 1) += temp;
     temp = R_jac2.row(2) * terms.yz * R.row(0).transpose();
-    M_jac2(0,1)  = temp;
+    M_jac2(0, 1) = temp;
     temp = R.row(2) * terms.yz * R_jac2.row(0).transpose();
-    M_jac2(0,1) += temp;
+    M_jac2(0, 1) += temp;
     temp = -2.0 * R_jac2.row(2) * terms.xy * R.row(2).transpose();
-    M_jac2(0,1) += temp;
+    M_jac2(0, 1) += temp;
     temp = -R_jac2.row(1) * terms.zz * R.row(0).transpose();
-    M_jac2(0,1) += temp;
+    M_jac2(0, 1) += temp;
     temp = -R.row(1) * terms.zz * R_jac2.row(0).transpose();
-    M_jac2(0,1) += temp;
+    M_jac2(0, 1) += temp;
     temp = R_jac2.row(1) * terms.zx * R.row(2).transpose();
-    M_jac2(0,1) += temp;
+    M_jac2(0, 1) += temp;
     temp = R.row(1) * terms.zx * R_jac2.row(2).transpose();
-    M_jac2(0,1) += temp;
+    M_jac2(0, 1) += temp;
     temp = R_jac3.row(2) * terms.yz * R.row(0).transpose();
-    M_jac3(0,1)  = temp;
+    M_jac3(0, 1) = temp;
     temp = R.row(2) * terms.yz * R_jac3.row(0).transpose();
-    M_jac3(0,1) += temp;
+    M_jac3(0, 1) += temp;
     temp = -2.0 * R_jac3.row(2) * terms.xy * R.row(2).transpose();
-    M_jac3(0,1) += temp;
+    M_jac3(0, 1) += temp;
     temp = -R_jac3.row(1) * terms.zz * R.row(0).transpose();
-    M_jac3(0,1) += temp;
+    M_jac3(0, 1) += temp;
     temp = -R.row(1) * terms.zz * R_jac3.row(0).transpose();
-    M_jac3(0,1) += temp;
+    M_jac3(0, 1) += temp;
     temp = R_jac3.row(1) * terms.zx * R.row(2).transpose();
-    M_jac3(0,1) += temp;
+    M_jac3(0, 1) += temp;
     temp = R.row(1) * terms.zx * R_jac3.row(2).transpose();
-    M_jac3(0,1) += temp;
+    M_jac3(0, 1) += temp;
 
-    temp =      R.row(2) * terms.xy * R.row(1).transpose();
-    M(0,2)  = temp;
+    temp = R.row(2) * terms.xy * R.row(1).transpose();
+    M(0, 2) = temp;
     temp = -1.0 * R.row(2) * terms.yy * R.row(0).transpose();
-    M(0,2) += temp;
+    M(0, 2) += temp;
     temp = -1.0 * R.row(1) * terms.zx * R.row(1).transpose();
-    M(0,2) += temp;
-    temp =      R.row(1) * terms.yz * R.row(0).transpose();
-    M(0,2) += temp;
+    M(0, 2) += temp;
+    temp = R.row(1) * terms.yz * R.row(0).transpose();
+    M(0, 2) += temp;
     temp = R_jac1.row(2) * terms.xy * R.row(1).transpose();
-    M_jac1(0,2)  = temp;
+    M_jac1(0, 2) = temp;
     temp = R.row(2) * terms.xy * R_jac1.row(1).transpose();
-    M_jac1(0,2) += temp;
+    M_jac1(0, 2) += temp;
     temp = -R_jac1.row(2) * terms.yy * R.row(0).transpose();
-    M_jac1(0,2) += temp;
+    M_jac1(0, 2) += temp;
     temp = -R.row(2) * terms.yy * R_jac1.row(0).transpose();
-    M_jac1(0,2) += temp;
+    M_jac1(0, 2) += temp;
     temp = -2.0 * R_jac1.row(1) * terms.zx * R.row(1).transpose();
-    M_jac1(0,2) += temp;
+    M_jac1(0, 2) += temp;
     temp = R_jac1.row(1) * terms.yz * R.row(0).transpose();
-    M_jac1(0,2) += temp;
+    M_jac1(0, 2) += temp;
     temp = R.row(1) * terms.yz * R_jac1.row(0).transpose();
-    M_jac1(0,2) += temp;
+    M_jac1(0, 2) += temp;
     temp = R_jac2.row(2) * terms.xy * R.row(1).transpose();
-    M_jac2(0,2)  = temp;
+    M_jac2(0, 2) = temp;
     temp = R.row(2) * terms.xy * R_jac2.row(1).transpose();
-    M_jac2(0,2) += temp;
+    M_jac2(0, 2) += temp;
     temp = -R_jac2.row(2) * terms.yy * R.row(0).transpose();
-    M_jac2(0,2) += temp;
+    M_jac2(0, 2) += temp;
     temp = -R.row(2) * terms.yy * R_jac2.row(0).transpose();
-    M_jac2(0,2) += temp;
+    M_jac2(0, 2) += temp;
     temp = -2.0 * R_jac2.row(1) * terms.zx * R.row(1).transpose();
-    M_jac2(0,2) += temp;
+    M_jac2(0, 2) += temp;
     temp = R_jac2.row(1) * terms.yz * R.row(0).transpose();
-    M_jac2(0,2) += temp;
+    M_jac2(0, 2) += temp;
     temp = R.row(1) * terms.yz * R_jac2.row(0).transpose();
-    M_jac2(0,2) += temp;
+    M_jac2(0, 2) += temp;
     temp = R_jac3.row(2) * terms.xy * R.row(1).transpose();
-    M_jac3(0,2)  = temp;
+    M_jac3(0, 2) = temp;
     temp = R.row(2) * terms.xy * R_jac3.row(1).transpose();
-    M_jac3(0,2) += temp;
+    M_jac3(0, 2) += temp;
     temp = -R_jac3.row(2) * terms.yy * R.row(0).transpose();
-    M_jac3(0,2) += temp;
+    M_jac3(0, 2) += temp;
     temp = -R.row(2) * terms.yy * R_jac3.row(0).transpose();
-    M_jac3(0,2) += temp;
+    M_jac3(0, 2) += temp;
     temp = -2.0 * R_jac3.row(1) * terms.zx * R.row(1).transpose();
-    M_jac3(0,2) += temp;
+    M_jac3(0, 2) += temp;
     temp = R_jac3.row(1) * terms.yz * R.row(0).transpose();
-    M_jac3(0,2) += temp;
+    M_jac3(0, 2) += temp;
     temp = R.row(1) * terms.yz * R_jac3.row(0).transpose();
-    M_jac3(0,2) += temp;
+    M_jac3(0, 2) += temp;
 
-    temp =      R.row(0) * terms.zz * R.row(0).transpose();
-    M(1,1)  = temp;
+    temp = R.row(0) * terms.zz * R.row(0).transpose();
+    M(1, 1) = temp;
     temp = -2.0 * R.row(0) * terms.zx * R.row(2).transpose();
-    M(1,1) += temp;
-    temp =      R.row(2) * terms.xx * R.row(2).transpose();
-    M(1,1) += temp;
+    M(1, 1) += temp;
+    temp = R.row(2) * terms.xx * R.row(2).transpose();
+    M(1, 1) += temp;
     temp = 2.0 * R_jac1.row(0) * terms.zz * R.row(0).transpose();
-    M_jac1(1,1)  = temp;
+    M_jac1(1, 1) = temp;
     temp = -2.0 * R_jac1.row(0) * terms.zx * R.row(2).transpose();
-    M_jac1(1,1) += temp;
+    M_jac1(1, 1) += temp;
     temp = -2.0 * R.row(0) * terms.zx * R_jac1.row(2).transpose();
-    M_jac1(1,1) += temp;
+    M_jac1(1, 1) += temp;
     temp = 2.0 * R_jac1.row(2) * terms.xx * R.row(2).transpose();
-    M_jac1(1,1) += temp;
+    M_jac1(1, 1) += temp;
     temp = 2.0 * R_jac2.row(0) * terms.zz * R.row(0).transpose();
-    M_jac2(1,1)  = temp;
+    M_jac2(1, 1) = temp;
     temp = -2.0 * R_jac2.row(0) * terms.zx * R.row(2).transpose();
-    M_jac2(1,1) += temp;
+    M_jac2(1, 1) += temp;
     temp = -2.0 * R.row(0) * terms.zx * R_jac2.row(2).transpose();
-    M_jac2(1,1) += temp;
+    M_jac2(1, 1) += temp;
     temp = 2.0 * R_jac2.row(2) * terms.xx * R.row(2).transpose();
-    M_jac2(1,1) += temp;
+    M_jac2(1, 1) += temp;
     temp = 2.0 * R_jac3.row(0) * terms.zz * R.row(0).transpose();
-    M_jac3(1,1)  = temp;
+    M_jac3(1, 1) = temp;
     temp = -2.0 * R_jac3.row(0) * terms.zx * R.row(2).transpose();
-    M_jac3(1,1) += temp;
+    M_jac3(1, 1) += temp;
     temp = -2.0 * R.row(0) * terms.zx * R_jac3.row(2).transpose();
-    M_jac3(1,1) += temp;
+    M_jac3(1, 1) += temp;
     temp = 2.0 * R_jac3.row(2) * terms.xx * R.row(2).transpose();
-    M_jac3(1,1) += temp;
+    M_jac3(1, 1) += temp;
 
-    temp =      R.row(0) * terms.zx * R.row(1).transpose();
-    M(1,2)  = temp;
+    temp = R.row(0) * terms.zx * R.row(1).transpose();
+    M(1, 2) = temp;
     temp = -1.0 * R.row(0) * terms.yz * R.row(0).transpose();
-    M(1,2) += temp;
+    M(1, 2) += temp;
     temp = -1.0 * R.row(2) * terms.xx * R.row(1).transpose();
-    M(1,2) += temp;
-    temp =      R.row(2) * terms.xy * R.row(0).transpose();
-    M(1,2) += temp;
+    M(1, 2) += temp;
+    temp = R.row(2) * terms.xy * R.row(0).transpose();
+    M(1, 2) += temp;
     temp = R_jac1.row(0) * terms.zx * R.row(1).transpose();
-    M_jac1(1,2)  = temp;
+    M_jac1(1, 2) = temp;
     temp = R.row(0) * terms.zx * R_jac1.row(1).transpose();
-    M_jac1(1,2) += temp;
+    M_jac1(1, 2) += temp;
     temp = -2.0 * R_jac1.row(0) * terms.yz * R.row(0).transpose();
-    M_jac1(1,2) += temp;
+    M_jac1(1, 2) += temp;
     temp = -R_jac1.row(2) * terms.xx * R.row(1).transpose();
-    M_jac1(1,2) += temp;
+    M_jac1(1, 2) += temp;
     temp = -R.row(2) * terms.xx * R_jac1.row(1).transpose();
-    M_jac1(1,2) += temp;
+    M_jac1(1, 2) += temp;
     temp = R_jac1.row(2) * terms.xy * R.row(0).transpose();
-    M_jac1(1,2) += temp;
+    M_jac1(1, 2) += temp;
     temp = R.row(2) * terms.xy * R_jac1.row(0).transpose();
-    M_jac1(1,2) += temp;
+    M_jac1(1, 2) += temp;
     temp = R_jac2.row(0) * terms.zx * R.row(1).transpose();
-    M_jac2(1,2)  = temp;
+    M_jac2(1, 2) = temp;
     temp = R.row(0) * terms.zx * R_jac2.row(1).transpose();
-    M_jac2(1,2) += temp;
+    M_jac2(1, 2) += temp;
     temp = -2.0 * R_jac2.row(0) * terms.yz * R.row(0).transpose();
-    M_jac2(1,2) += temp;
+    M_jac2(1, 2) += temp;
     temp = -R_jac2.row(2) * terms.xx * R.row(1).transpose();
-    M_jac2(1,2) += temp;
+    M_jac2(1, 2) += temp;
     temp = -R.row(2) * terms.xx * R_jac2.row(1).transpose();
-    M_jac2(1,2) += temp;
+    M_jac2(1, 2) += temp;
     temp = R_jac2.row(2) * terms.xy * R.row(0).transpose();
-    M_jac2(1,2) += temp;
+    M_jac2(1, 2) += temp;
     temp = R.row(2) * terms.xy * R_jac2.row(0).transpose();
-    M_jac2(1,2) += temp;
+    M_jac2(1, 2) += temp;
     temp = R_jac3.row(0) * terms.zx * R.row(1).transpose();
-    M_jac3(1,2)  = temp;
+    M_jac3(1, 2) = temp;
     temp = R.row(0) * terms.zx * R_jac3.row(1).transpose();
-    M_jac3(1,2) += temp;
+    M_jac3(1, 2) += temp;
     temp = -2.0 * R_jac3.row(0) * terms.yz * R.row(0).transpose();
-    M_jac3(1,2) += temp;
+    M_jac3(1, 2) += temp;
     temp = -R_jac3.row(2) * terms.xx * R.row(1).transpose();
-    M_jac3(1,2) += temp;
+    M_jac3(1, 2) += temp;
     temp = -R.row(2) * terms.xx * R_jac3.row(1).transpose();
-    M_jac3(1,2) += temp;
+    M_jac3(1, 2) += temp;
     temp = R_jac3.row(2) * terms.xy * R.row(0).transpose();
-    M_jac3(1,2) += temp;
+    M_jac3(1, 2) += temp;
     temp = R.row(2) * terms.xy * R_jac3.row(0).transpose();
-    M_jac3(1,2) += temp;
+    M_jac3(1, 2) += temp;
 
-    temp =      R.row(1) * terms.xx * R.row(1).transpose();
-    M(2,2)  = temp;
+    temp = R.row(1) * terms.xx * R.row(1).transpose();
+    M(2, 2) = temp;
     temp = -2.0 * R.row(0) * terms.xy * R.row(1).transpose();
-    M(2,2) += temp;
-    temp =      R.row(0) * terms.yy * R.row(0).transpose();
-    M(2,2) += temp;
+    M(2, 2) += temp;
+    temp = R.row(0) * terms.yy * R.row(0).transpose();
+    M(2, 2) += temp;
     temp = 2.0 * R_jac1.row(1) * terms.xx * R.row(1).transpose();
-    M_jac1(2,2)  = temp;
+    M_jac1(2, 2) = temp;
     temp = -2.0 * R_jac1.row(0) * terms.xy * R.row(1).transpose();
-    M_jac1(2,2) += temp;
+    M_jac1(2, 2) += temp;
     temp = -2.0 * R.row(0) * terms.xy * R_jac1.row(1).transpose();
-    M_jac1(2,2) += temp;
+    M_jac1(2, 2) += temp;
     temp = 2.0 * R_jac1.row(0) * terms.yy * R.row(0).transpose();
-    M_jac1(2,2) += temp;
+    M_jac1(2, 2) += temp;
     temp = 2.0 * R_jac2.row(1) * terms.xx * R.row(1).transpose();
-    M_jac2(2,2)  = temp;
+    M_jac2(2, 2) = temp;
     temp = -2.0 * R_jac2.row(0) * terms.xy * R.row(1).transpose();
-    M_jac2(2,2) += temp;
+    M_jac2(2, 2) += temp;
     temp = -2.0 * R.row(0) * terms.xy * R_jac2.row(1).transpose();
-    M_jac2(2,2) += temp;
+    M_jac2(2, 2) += temp;
     temp = 2.0 * R_jac2.row(0) * terms.yy * R.row(0).transpose();
-    M_jac2(2,2) += temp;
+    M_jac2(2, 2) += temp;
     temp = 2.0 * R_jac3.row(1) * terms.xx * R.row(1).transpose();
-    M_jac3(2,2)  = temp;
+    M_jac3(2, 2) = temp;
     temp = -2.0 * R_jac3.row(0) * terms.xy * R.row(1).transpose();
-    M_jac3(2,2) += temp;
+    M_jac3(2, 2) += temp;
     temp = -2.0 * R.row(0) * terms.xy * R_jac3.row(1).transpose();
-    M_jac3(2,2) += temp;
+    M_jac3(2, 2) += temp;
     temp = 2.0 * R_jac3.row(0) * terms.yy * R.row(0).transpose();
-    M_jac3(2,2) += temp;
+    M_jac3(2, 2) += temp;
 
     M(1, 0) = M(0, 1);
     M(2, 0) = M(0, 2);
@@ -485,17 +469,13 @@ void RelativeRotation::ComputeMWithJacobians(const SummationTerms &terms,
     M_jac3(2, 1) = M_jac3(1, 2);
 }
 
-float RelativeRotation::ComputeSmallestEigenValueWithM(const SummationTerms &terms,
-                                                       const Vec3 &cayley,
-                                                       Mat3 &M) {
+float RelativeRotation::ComputeSmallestEigenValueWithM(const SummationTerms &terms, const Vec3 &cayley, Mat3 &M) {
     ComputeM(terms, cayley, M);
 
-    //Retrieve the smallest Eigenvalue by the following closed form solution
-    float b = - M(0, 0) - M(1, 1) - M(2, 2);
-    float c = - pow(M(0, 2), 2) - pow(M(1, 2), 2) - pow(M(0, 1), 2) +
-        M(0, 0) * M(1, 1) + M(0, 0) * M(2, 2) + M(1, 1) * M(2, 2);
-    float d = M(1, 1) * pow(M(0, 2), 2) + M(0, 0) * pow(M(1, 2), 2) + M(2, 2) * pow(M(0, 1), 2) -
-        M(0, 0) * M(1, 1) * M(2, 2) - 2 * M(0, 1) * M(1, 2) * M(0, 2);
+    // Retrieve the smallest Eigenvalue by the following closed form solution
+    float b = -M(0, 0) - M(1, 1) - M(2, 2);
+    float c = -pow(M(0, 2), 2) - pow(M(1, 2), 2) - pow(M(0, 1), 2) + M(0, 0) * M(1, 1) + M(0, 0) * M(2, 2) + M(1, 1) * M(2, 2);
+    float d = M(1, 1) * pow(M(0, 2), 2) + M(0, 0) * pow(M(1, 2), 2) + M(2, 2) * pow(M(0, 1), 2) - M(0, 0) * M(1, 1) * M(2, 2) - 2 * M(0, 1) * M(1, 2) * M(0, 2);
 
     float s = 2.0f * pow(b, 3) - 9.0f * b * c + 27.0f * d;
     float t = 4.0f * pow((pow(b, 2) - 3.0f * c), 3);
@@ -508,13 +488,11 @@ float RelativeRotation::ComputeSmallestEigenValueWithM(const SummationTerms &ter
     float w = pow(r, (1.0f / 3.0f));
 
     float k = w * y;
-    float smallestEV = (- b - 2.0f * k) / 3.0f;
+    float smallestEV = (-b - 2.0f * k) / 3.0f;
     return smallestEV;
 }
 
-float RelativeRotation::ComputeSmallestEigenValueAndJacobian(const SummationTerms &terms,
-                                                             const Vec3 &cayley,
-                                                             Mat1x3 &jacobian) {
+float RelativeRotation::ComputeSmallestEigenValueAndJacobian(const SummationTerms &terms, const Vec3 &cayley, Mat1x3 &jacobian) {
     Jacobians jacobians;
     Mat3 M = Mat3::Zero();
     ComputeMWithJacobians(terms, cayley, jacobians, M);
@@ -524,157 +502,130 @@ float RelativeRotation::ComputeSmallestEigenValueAndJacobian(const SummationTerm
 
     // Retrieve the smallest Eigenvalue by the following closed form solution.
     // Plus Jacobian.
-    float b = - M(0, 0) - M(1, 1) - M(2, 2);
-    float b_jac1 = - M_jac1(0, 0) - M_jac1(1, 1) - M_jac1(2, 2);
-    float b_jac2 = - M_jac2(0, 0) - M_jac2(1, 1) - M_jac2(2, 2);
-    float b_jac3 = - M_jac3(0, 0) - M_jac3(1, 1) - M_jac3(2, 2);
-    float c = - pow(M(0, 2), 2) - pow(M(1, 2), 2) - pow(M(0, 1), 2) +
-        M(0, 0) * M(1, 1) + M(0, 0) * M(2, 2) + M(1, 1) * M(2, 2);
-    float c_jac1 = -2.0*M(0,2)*M_jac1(0,2)-2.0*M(1,2)*M_jac1(1,2)-2.0*M(0,1)*M_jac1(0,1)
-        +M_jac1(0,0)*M(1,1)+M(0,0)*M_jac1(1,1)+M_jac1(0,0)*M(2,2)
-        +M(0,0)*M_jac1(2,2)+M_jac1(1,1)*M(2,2)+M(1,1)*M_jac1(2,2);
-    float c_jac2 =
-        -2.0*M(0,2)*M_jac2(0,2)-2.0*M(1,2)*M_jac2(1,2)-2.0*M(0,1)*M_jac2(0,1)
-        +M_jac2(0,0)*M(1,1)+M(0,0)*M_jac2(1,1)+M_jac2(0,0)*M(2,2)
-        +M(0,0)*M_jac2(2,2)+M_jac2(1,1)*M(2,2)+M(1,1)*M_jac2(2,2);
-    float c_jac3 =
-        -2.0*M(0,2)*M_jac3(0,2)-2.0*M(1,2)*M_jac3(1,2)-2.0*M(0,1)*M_jac3(0,1)
-        +M_jac3(0,0)*M(1,1)+M(0,0)*M_jac3(1,1)+M_jac3(0,0)*M(2,2)
-        +M(0,0)*M_jac3(2,2)+M_jac3(1,1)*M(2,2)+M(1,1)*M_jac3(2,2);
-    float d =
-        M(1,1)*pow(M(0,2),2)+M(0,0)*pow(M(1,2),2)+M(2,2)*pow(M(0,1),2)-
-        M(0,0)*M(1,1)*M(2,2)-2*M(0,1)*M(1,2)*M(0,2);
-    float d_jac1 =
-        M_jac1(1,1)*pow(M(0,2),2)+M(1,1)*2*M(0,2)*M_jac1(0,2)
-        +M_jac1(0,0)*pow(M(1,2),2)+M(0,0)*2.0*M(1,2)*M_jac1(1,2)
-        +M_jac1(2,2)*pow(M(0,1),2)+M(2,2)*2.0*M(0,1)*M_jac1(0,1)
-        -M_jac1(0,0)*M(1,1)*M(2,2)-M(0,0)*M_jac1(1,1)*M(2,2)
-        -M(0,0)*M(1,1)*M_jac1(2,2)-2.0*(M_jac1(0,1)*M(1,2)*M(0,2)
-        +M(0,1)*M_jac1(1,2)*M(0,2)+M(0,1)*M(1,2)*M_jac1(0,2));
-    float d_jac2 =
-        M_jac2(1,1)*pow(M(0,2),2)+M(1,1)*2*M(0,2)*M_jac2(0,2)
-        +M_jac2(0,0)*pow(M(1,2),2)+M(0,0)*2.0*M(1,2)*M_jac2(1,2)
-        +M_jac2(2,2)*pow(M(0,1),2)+M(2,2)*2.0*M(0,1)*M_jac2(0,1)
-        -M_jac2(0,0)*M(1,1)*M(2,2)-M(0,0)*M_jac2(1,1)*M(2,2)
-        -M(0,0)*M(1,1)*M_jac2(2,2)-2.0*(M_jac2(0,1)*M(1,2)*M(0,2)
-        +M(0,1)*M_jac2(1,2)*M(0,2)+M(0,1)*M(1,2)*M_jac2(0,2));
-    float d_jac3 =
-        M_jac3(1,1)*pow(M(0,2),2)+M(1,1)*2*M(0,2)*M_jac3(0,2)
-        +M_jac3(0,0)*pow(M(1,2),2)+M(0,0)*2.0*M(1,2)*M_jac3(1,2)
-        +M_jac3(2,2)*pow(M(0,1),2)+M(2,2)*2.0*M(0,1)*M_jac3(0,1)
-        -M_jac3(0,0)*M(1,1)*M(2,2)-M(0,0)*M_jac3(1,1)*M(2,2)
-        -M(0,0)*M(1,1)*M_jac3(2,2)-2.0*(M_jac3(0,1)*M(1,2)*M(0,2)
-        +M(0,1)*M_jac3(1,2)*M(0,2)+M(0,1)*M(1,2)*M_jac3(0,2));
+    float b = -M(0, 0) - M(1, 1) - M(2, 2);
+    float b_jac1 = -M_jac1(0, 0) - M_jac1(1, 1) - M_jac1(2, 2);
+    float b_jac2 = -M_jac2(0, 0) - M_jac2(1, 1) - M_jac2(2, 2);
+    float b_jac3 = -M_jac3(0, 0) - M_jac3(1, 1) - M_jac3(2, 2);
+    float c = -pow(M(0, 2), 2) - pow(M(1, 2), 2) - pow(M(0, 1), 2) + M(0, 0) * M(1, 1) + M(0, 0) * M(2, 2) + M(1, 1) * M(2, 2);
+    float c_jac1 = -2.0 * M(0, 2) * M_jac1(0, 2) - 2.0 * M(1, 2) * M_jac1(1, 2) - 2.0 * M(0, 1) * M_jac1(0, 1) + M_jac1(0, 0) * M(1, 1) +
+                   M(0, 0) * M_jac1(1, 1) + M_jac1(0, 0) * M(2, 2) + M(0, 0) * M_jac1(2, 2) + M_jac1(1, 1) * M(2, 2) + M(1, 1) * M_jac1(2, 2);
+    float c_jac2 = -2.0 * M(0, 2) * M_jac2(0, 2) - 2.0 * M(1, 2) * M_jac2(1, 2) - 2.0 * M(0, 1) * M_jac2(0, 1) + M_jac2(0, 0) * M(1, 1) +
+                   M(0, 0) * M_jac2(1, 1) + M_jac2(0, 0) * M(2, 2) + M(0, 0) * M_jac2(2, 2) + M_jac2(1, 1) * M(2, 2) + M(1, 1) * M_jac2(2, 2);
+    float c_jac3 = -2.0 * M(0, 2) * M_jac3(0, 2) - 2.0 * M(1, 2) * M_jac3(1, 2) - 2.0 * M(0, 1) * M_jac3(0, 1) + M_jac3(0, 0) * M(1, 1) +
+                   M(0, 0) * M_jac3(1, 1) + M_jac3(0, 0) * M(2, 2) + M(0, 0) * M_jac3(2, 2) + M_jac3(1, 1) * M(2, 2) + M(1, 1) * M_jac3(2, 2);
+    float d = M(1, 1) * pow(M(0, 2), 2) + M(0, 0) * pow(M(1, 2), 2) + M(2, 2) * pow(M(0, 1), 2) - M(0, 0) * M(1, 1) * M(2, 2) - 2 * M(0, 1) * M(1, 2) * M(0, 2);
+    float d_jac1 = M_jac1(1, 1) * pow(M(0, 2), 2) + M(1, 1) * 2 * M(0, 2) * M_jac1(0, 2) + M_jac1(0, 0) * pow(M(1, 2), 2) +
+                   M(0, 0) * 2.0 * M(1, 2) * M_jac1(1, 2) + M_jac1(2, 2) * pow(M(0, 1), 2) + M(2, 2) * 2.0 * M(0, 1) * M_jac1(0, 1) -
+                   M_jac1(0, 0) * M(1, 1) * M(2, 2) - M(0, 0) * M_jac1(1, 1) * M(2, 2) - M(0, 0) * M(1, 1) * M_jac1(2, 2) -
+                   2.0 * (M_jac1(0, 1) * M(1, 2) * M(0, 2) + M(0, 1) * M_jac1(1, 2) * M(0, 2) + M(0, 1) * M(1, 2) * M_jac1(0, 2));
+    float d_jac2 = M_jac2(1, 1) * pow(M(0, 2), 2) + M(1, 1) * 2 * M(0, 2) * M_jac2(0, 2) + M_jac2(0, 0) * pow(M(1, 2), 2) +
+                   M(0, 0) * 2.0 * M(1, 2) * M_jac2(1, 2) + M_jac2(2, 2) * pow(M(0, 1), 2) + M(2, 2) * 2.0 * M(0, 1) * M_jac2(0, 1) -
+                   M_jac2(0, 0) * M(1, 1) * M(2, 2) - M(0, 0) * M_jac2(1, 1) * M(2, 2) - M(0, 0) * M(1, 1) * M_jac2(2, 2) -
+                   2.0 * (M_jac2(0, 1) * M(1, 2) * M(0, 2) + M(0, 1) * M_jac2(1, 2) * M(0, 2) + M(0, 1) * M(1, 2) * M_jac2(0, 2));
+    float d_jac3 = M_jac3(1, 1) * pow(M(0, 2), 2) + M(1, 1) * 2 * M(0, 2) * M_jac3(0, 2) + M_jac3(0, 0) * pow(M(1, 2), 2) +
+                   M(0, 0) * 2.0 * M(1, 2) * M_jac3(1, 2) + M_jac3(2, 2) * pow(M(0, 1), 2) + M(2, 2) * 2.0 * M(0, 1) * M_jac3(0, 1) -
+                   M_jac3(0, 0) * M(1, 1) * M(2, 2) - M(0, 0) * M_jac3(1, 1) * M(2, 2) - M(0, 0) * M(1, 1) * M_jac3(2, 2) -
+                   2.0 * (M_jac3(0, 1) * M(1, 2) * M(0, 2) + M(0, 1) * M_jac3(1, 2) * M(0, 2) + M(0, 1) * M(1, 2) * M_jac3(0, 2));
 
-    float s = 2*pow(b,3)-9*b*c+27*d;
-    float t = 4*pow((pow(b,2)-3*c),3);
-    float s_jac1 = 2.0*3.0*pow(b,2)*b_jac1-9.0*b_jac1*c-9.0*b*c_jac1+27.0*d_jac1;
-    float s_jac2 = 2.0*3.0*pow(b,2)*b_jac2-9.0*b_jac2*c-9.0*b*c_jac2+27.0*d_jac2;
-    float s_jac3 = 2.0*3.0*pow(b,2)*b_jac3-9.0*b_jac3*c-9.0*b*c_jac3+27.0*d_jac3;
-    float t_jac1 = 4.0*3.0*pow((pow(b,2)-3.0*c),2)*(2.0*b*b_jac1-3.0*c_jac1);
-    float t_jac2 = 4.0*3.0*pow((pow(b,2)-3.0*c),2)*(2.0*b*b_jac2-3.0*c_jac2);
-    float t_jac3 = 4.0*3.0*pow((pow(b,2)-3.0*c),2)*(2.0*b*b_jac3-3.0*c_jac3);
+    float s = 2 * pow(b, 3) - 9 * b * c + 27 * d;
+    float t = 4 * pow((pow(b, 2) - 3 * c), 3);
+    float s_jac1 = 2.0 * 3.0 * pow(b, 2) * b_jac1 - 9.0 * b_jac1 * c - 9.0 * b * c_jac1 + 27.0 * d_jac1;
+    float s_jac2 = 2.0 * 3.0 * pow(b, 2) * b_jac2 - 9.0 * b_jac2 * c - 9.0 * b * c_jac2 + 27.0 * d_jac2;
+    float s_jac3 = 2.0 * 3.0 * pow(b, 2) * b_jac3 - 9.0 * b_jac3 * c - 9.0 * b * c_jac3 + 27.0 * d_jac3;
+    float t_jac1 = 4.0 * 3.0 * pow((pow(b, 2) - 3.0 * c), 2) * (2.0 * b * b_jac1 - 3.0 * c_jac1);
+    float t_jac2 = 4.0 * 3.0 * pow((pow(b, 2) - 3.0 * c), 2) * (2.0 * b * b_jac2 - 3.0 * c_jac2);
+    float t_jac3 = 4.0 * 3.0 * pow((pow(b, 2) - 3.0 * c), 2) * (2.0 * b * b_jac3 - 3.0 * c_jac3);
 
-    float alpha = acos(s/sqrt(t));
-    float alpha_jac1 =
-        -1.0/sqrt(1.0-(pow(s,2)/t)) *
-        (s_jac1*sqrt(t)-s*0.5*pow(t,-0.5)*t_jac1)/t;
-    float alpha_jac2 =
-        -1.0/sqrt(1.0-(pow(s,2)/t)) *
-        (s_jac2*sqrt(t)-s*0.5*pow(t,-0.5)*t_jac2)/t;
-    float alpha_jac3 =
-        -1.0/sqrt(1.0-(pow(s,2)/t)) *
-        (s_jac3*sqrt(t)-s*0.5*pow(t,-0.5)*t_jac3)/t;
-    float beta = alpha/3;
-    float beta_jac1 = alpha_jac1/3.0;
-    float beta_jac2 = alpha_jac2/3.0;
-    float beta_jac3 = alpha_jac3/3.0;
+    float alpha = acos(s / sqrt(t));
+    float alpha_jac1 = -1.0 / sqrt(1.0 - (pow(s, 2) / t)) * (s_jac1 * sqrt(t) - s * 0.5 * pow(t, -0.5) * t_jac1) / t;
+    float alpha_jac2 = -1.0 / sqrt(1.0 - (pow(s, 2) / t)) * (s_jac2 * sqrt(t) - s * 0.5 * pow(t, -0.5) * t_jac2) / t;
+    float alpha_jac3 = -1.0 / sqrt(1.0 - (pow(s, 2) / t)) * (s_jac3 * sqrt(t) - s * 0.5 * pow(t, -0.5) * t_jac3) / t;
+    float beta = alpha / 3;
+    float beta_jac1 = alpha_jac1 / 3.0;
+    float beta_jac2 = alpha_jac2 / 3.0;
+    float beta_jac3 = alpha_jac3 / 3.0;
     float y = cos(beta);
-    float y_jac1 = -sin(beta)*beta_jac1;
-    float y_jac2 = -sin(beta)*beta_jac2;
-    float y_jac3 = -sin(beta)*beta_jac3;
+    float y_jac1 = -sin(beta) * beta_jac1;
+    float y_jac2 = -sin(beta) * beta_jac2;
+    float y_jac3 = -sin(beta) * beta_jac3;
 
-    float r = 0.5*sqrt(t);
-    float r_jac1 = 0.25*pow(t,-0.5)*t_jac1;
-    float r_jac2 = 0.25*pow(t,-0.5)*t_jac2;
-    float r_jac3 = 0.25*pow(t,-0.5)*t_jac3;
-    float w = pow(r,(1.0/3.0));
-    float w_jac1 = (1.0/3.0)*pow(r,-2.0/3.0)*r_jac1;
-    float w_jac2 = (1.0/3.0)*pow(r,-2.0/3.0)*r_jac2;
-    float w_jac3 = (1.0/3.0)*pow(r,-2.0/3.0)*r_jac3;
+    float r = 0.5 * sqrt(t);
+    float r_jac1 = 0.25 * pow(t, -0.5) * t_jac1;
+    float r_jac2 = 0.25 * pow(t, -0.5) * t_jac2;
+    float r_jac3 = 0.25 * pow(t, -0.5) * t_jac3;
+    float w = pow(r, (1.0 / 3.0));
+    float w_jac1 = (1.0 / 3.0) * pow(r, -2.0 / 3.0) * r_jac1;
+    float w_jac2 = (1.0 / 3.0) * pow(r, -2.0 / 3.0) * r_jac2;
+    float w_jac3 = (1.0 / 3.0) * pow(r, -2.0 / 3.0) * r_jac3;
 
     float k = w * y;
     float k_jac1 = w_jac1 * y + w * y_jac1;
     float k_jac2 = w_jac2 * y + w * y_jac2;
     float k_jac3 = w_jac3 * y + w * y_jac3;
-    float smallestEV = (- b - 2.0f * k) / 3.0f;
-    float smallestEV_jac1 = (- b_jac1 - 2.0f * k_jac1) / 3.0f;
-    float smallestEV_jac2 = (- b_jac2 - 2.0f * k_jac2) / 3.0f;
-    float smallestEV_jac3 = (- b_jac3 - 2.0f * k_jac3) / 3.0f;
+    float smallestEV = (-b - 2.0f * k) / 3.0f;
+    float smallestEV_jac1 = (-b_jac1 - 2.0f * k_jac1) / 3.0f;
+    float smallestEV_jac2 = (-b_jac2 - 2.0f * k_jac2) / 3.0f;
+    float smallestEV_jac3 = (-b_jac3 - 2.0f * k_jac3) / 3.0f;
 
-    jacobian << smallestEV_jac1,
-                smallestEV_jac2,
-                smallestEV_jac3;
+    jacobian << smallestEV_jac1, smallestEV_jac2, smallestEV_jac3;
     return smallestEV;
 }
 
-void RelativeRotation::ComputeM(const SummationTerms &terms,
-                                const Vec3 &cayley,
-                                Mat3 &M) {
+void RelativeRotation::ComputeM(const SummationTerms &terms, const Vec3 &cayley, Mat3 &M) {
     Mat3 R = Utility::ConvertCayleyToReducedRotationMatrix(cayley);
 
     // Fill the matrix M using the precomputed summation terms.
-    float temp = R.row(2)*terms.yy*R.row(2).transpose();
-    M(0,0) = temp;
-    temp = -2.0*R.row(2)*terms.yz*R.row(1).transpose();
-    M(0,0) += temp;
-    temp = R.row(1)*terms.zz*R.row(1).transpose();
-    M(0,0) += temp;
+    float temp = R.row(2) * terms.yy * R.row(2).transpose();
+    M(0, 0) = temp;
+    temp = -2.0 * R.row(2) * terms.yz * R.row(1).transpose();
+    M(0, 0) += temp;
+    temp = R.row(1) * terms.zz * R.row(1).transpose();
+    M(0, 0) += temp;
 
-    temp = R.row(2)*terms.yz*R.row(0).transpose();
-    M(0,1) = temp;
-    temp = -1.0*R.row(2)*terms.xy*R.row(2).transpose();
-    M(0,1) += temp;
-    temp = -1.0*R.row(1)*terms.zz*R.row(0).transpose();
-    M(0,1) += temp;
-    temp = R.row(1)*terms.zx*R.row(2).transpose();
-    M(0,1) += temp;
+    temp = R.row(2) * terms.yz * R.row(0).transpose();
+    M(0, 1) = temp;
+    temp = -1.0 * R.row(2) * terms.xy * R.row(2).transpose();
+    M(0, 1) += temp;
+    temp = -1.0 * R.row(1) * terms.zz * R.row(0).transpose();
+    M(0, 1) += temp;
+    temp = R.row(1) * terms.zx * R.row(2).transpose();
+    M(0, 1) += temp;
 
-    temp = R.row(2)*terms.xy*R.row(1).transpose();
-    M(0,2) = temp;
-    temp = -1.0*R.row(2)*terms.yy*R.row(0).transpose();
-    M(0,2) += temp;
-    temp = -1.0*R.row(1)*terms.zx*R.row(1).transpose();
-    M(0,2) += temp;
-    temp = R.row(1)*terms.yz*R.row(0).transpose();
-    M(0,2) += temp;
+    temp = R.row(2) * terms.xy * R.row(1).transpose();
+    M(0, 2) = temp;
+    temp = -1.0 * R.row(2) * terms.yy * R.row(0).transpose();
+    M(0, 2) += temp;
+    temp = -1.0 * R.row(1) * terms.zx * R.row(1).transpose();
+    M(0, 2) += temp;
+    temp = R.row(1) * terms.yz * R.row(0).transpose();
+    M(0, 2) += temp;
 
-    temp = R.row(0)*terms.zz*R.row(0).transpose();
-    M(1,1) = temp;
-    temp = -2.0*R.row(0)*terms.zx*R.row(2).transpose();
-    M(1,1) += temp;
-    temp = R.row(2)*terms.xx*R.row(2).transpose();
-    M(1,1) += temp;
+    temp = R.row(0) * terms.zz * R.row(0).transpose();
+    M(1, 1) = temp;
+    temp = -2.0 * R.row(0) * terms.zx * R.row(2).transpose();
+    M(1, 1) += temp;
+    temp = R.row(2) * terms.xx * R.row(2).transpose();
+    M(1, 1) += temp;
 
-    temp = R.row(0)*terms.zx*R.row(1).transpose();
-    M(1,2)  = temp;
-    temp = -1.0*R.row(0)*terms.yz*R.row(0).transpose();
-    M(1,2) += temp;
-    temp = -1.0*R.row(2)*terms.xx*R.row(1).transpose();
-    M(1,2) += temp;
-    temp = R.row(2)*terms.xy*R.row(0).transpose();
-    M(1,2) += temp;
+    temp = R.row(0) * terms.zx * R.row(1).transpose();
+    M(1, 2) = temp;
+    temp = -1.0 * R.row(0) * terms.yz * R.row(0).transpose();
+    M(1, 2) += temp;
+    temp = -1.0 * R.row(2) * terms.xx * R.row(1).transpose();
+    M(1, 2) += temp;
+    temp = R.row(2) * terms.xy * R.row(0).transpose();
+    M(1, 2) += temp;
 
-    temp = R.row(1)*terms.xx*R.row(1).transpose();
-    M(2,2) = temp;
-    temp = -2.0*R.row(0)*terms.xy*R.row(1).transpose();
-    M(2,2) += temp;
-    temp = R.row(0)*terms.yy*R.row(0).transpose();
-    M(2,2) += temp;
+    temp = R.row(1) * terms.xx * R.row(1).transpose();
+    M(2, 2) = temp;
+    temp = -2.0 * R.row(0) * terms.xy * R.row(1).transpose();
+    M(2, 2) += temp;
+    temp = R.row(0) * terms.yy * R.row(0).transpose();
+    M(2, 2) += temp;
 
     M(1, 0) = M(0, 1);
     M(2, 0) = M(0, 2);
     M(2, 1) = M(1, 2);
 }
 
-}
+}  // namespace VISION_GEOMETRY

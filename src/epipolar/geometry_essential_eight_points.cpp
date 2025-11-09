@@ -1,15 +1,13 @@
 #include "geometry_epipolar.h"
 #include "slam_basic_math.h"
-#include "slam_operations.h"
 #include "slam_log_reporter.h"
+#include "slam_operations.h"
 
 #include <set>
 
 namespace VISION_GEOMETRY {
 
-bool EpipolarSolver::EstimateEssentialUseEightPoints(const std::vector<Vec2> &ref_norm_xy,
-                                                     const std::vector<Vec2> &cur_norm_xy,
-                                                     Mat3 &essential) {
+bool EpipolarSolver::EstimateEssentialUseEightPoints(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Mat3 &essential) {
     if (ref_norm_xy.size() != cur_norm_xy.size() || ref_norm_xy.size() < 8) {
         return false;
     }
@@ -38,4 +36,4 @@ void EpipolarSolver::RefineEssentialMatrix(Mat3 &essential) {
     essential = svd.matrixU() * Vec3(1, 1, 0).asDiagonal() * svd.matrixV();
 }
 
-}
+}  // namespace VISION_GEOMETRY

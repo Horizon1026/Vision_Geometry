@@ -10,7 +10,7 @@ namespace VISION_GEOMETRY {
 class LineTriangulator {
 
 public:
-    enum class Method: uint8_t {
+    enum class Method : uint8_t {
         kAnalytic = 0,
         kOrdinaryLeastSquare = 1,
         kOptimize = 2,
@@ -27,9 +27,7 @@ public:
     LineTriangulator() = default;
     virtual ~LineTriangulator() = default;
 
-    bool Triangulate(const std::vector<Quat> &all_q_wc,
-                     const std::vector<Vec3> &all_p_wc,
-                     const std::vector<LineSegment2D> &lines_in_norm_plane,
+    bool Triangulate(const std::vector<Quat> &all_q_wc, const std::vector<Vec3> &all_p_wc, const std::vector<LineSegment2D> &lines_in_norm_plane,
                      LinePlucker3D &plucker_in_w);
 
     // Reference for member variables.
@@ -38,13 +36,9 @@ public:
     const Options &options() const { return options_; }
 
 private:
-    bool TriangulateAnalytic(const std::vector<Quat> &all_q_wc,
-                             const std::vector<Vec3> &all_p_wc,
-                             const std::vector<LineSegment2D> &lines_in_norm_plane,
+    bool TriangulateAnalytic(const std::vector<Quat> &all_q_wc, const std::vector<Vec3> &all_p_wc, const std::vector<LineSegment2D> &lines_in_norm_plane,
                              LinePlucker3D &plucker_in_w);
-    bool TriangulateIterative(const std::vector<Quat> &all_q_wc,
-                              const std::vector<Vec3> &all_p_wc,
-                              const std::vector<LineSegment2D> &lines_in_norm_plane,
+    bool TriangulateIterative(const std::vector<Quat> &all_q_wc, const std::vector<Vec3> &all_p_wc, const std::vector<LineSegment2D> &lines_in_norm_plane,
                               LinePlucker3D &plucker_in_w);
 
 
@@ -52,6 +46,6 @@ private:
     Options options_;
 };
 
-}
+}  // namespace VISION_GEOMETRY
 
-#endif // end of _VISION_GEOMETRY_LINE_TRIANGULATOR_H_
+#endif  // end of _VISION_GEOMETRY_LINE_TRIANGULATOR_H_

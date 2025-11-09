@@ -1,6 +1,6 @@
+#include "cmath"
 #include "fstream"
 #include "iostream"
-#include "cmath"
 
 #include "geometry_icp.h"
 #include "slam_log_reporter.h"
@@ -79,21 +79,21 @@ int main(int argc, char **argv) {
         // Visualize.
         Visualizor3D::Clear();
         for (const auto &point: ref_p_w) {
-            Visualizor3D::points().emplace_back(PointType{
+            Visualizor3D::points().emplace_back(PointType {
                 .p_w = point,
                 .color = RgbColor::kRed,
                 .radius = 1,
             });
         }
         for (const auto &point: cur_p_w) {
-            Visualizor3D::points().emplace_back(PointType{
+            Visualizor3D::points().emplace_back(PointType {
                 .p_w = point,
                 .color = RgbColor::kGreen,
                 .radius = 1,
             });
         }
         for (const auto &point: cur_p_w) {
-            Visualizor3D::points().emplace_back(PointType{
+            Visualizor3D::points().emplace_back(PointType {
                 .p_w = q_rc * point + p_rc,
                 .color = RgbColor::kOrange,
                 .radius = 2,

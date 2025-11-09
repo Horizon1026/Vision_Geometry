@@ -1,17 +1,15 @@
 #include "geometry_icp.h"
 #include "kd_tree.h"
+#include "memory"
 #include "nanoflann.h"
 #include "plane.h"
 #include "slam_basic_math.h"
-#include "slam_operations.h"
 #include "slam_log_reporter.h"
-#include "memory"
+#include "slam_operations.h"
 
 namespace VISION_GEOMETRY {
 
-bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<Vec3> &all_ref_p_w,
-                                                              const std::vector<Vec3> &all_cur_p_w,
-                                                              Quat &q_rc,
+bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc,
                                                               Vec3 &p_rc) {
     // Convert all reference points into kd-tree.
     NanoFlannKdTree ref_kd_tree(3, all_ref_p_w, 1);
@@ -56,7 +54,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<
             // Compute jacobian.
             Mat1x6 jacobian = Mat1x6::Zero();
             jacobian.block<1, 3>(0, 0) = plane.normal_vector().transpose();
-            jacobian.block<1, 3>(0, 3) = - plane.normal_vector().transpose() * R_rc * Utility::SkewSymmetricMatrix(cur_p_w);
+            jacobian.block<1, 3>(0, 3) = -plane.normal_vector().transpose() * R_rc * Utility::SkewSymmetricMatrix(cur_p_w);
 
             // Construct hessian and bias.
             hessian += jacobian.transpose() * jacobian;
@@ -78,10 +76,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<
     return true;
 }
 
-bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec3> &all_ref_p_w,
-                                                           const std::vector<Vec3> &all_cur_p_w,
-                                                           Quat &q_rc,
-                                                           Vec3 &p_rc) {
+bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc) {
     // Convert all reference points into kd-tree.
     std::vector<int32_t> sorted_point_indices(all_ref_p_w.size(), 0);
     for (uint32_t i = 0; i < sorted_point_indices.size(); ++i) {
@@ -128,7 +123,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec
             // Compute jacobian.
             Mat1x6 jacobian = Mat1x6::Zero();
             jacobian.block<1, 3>(0, 0) = plane.normal_vector().transpose();
-            jacobian.block<1, 3>(0, 3) = - plane.normal_vector().transpose() * R_rc * Utility::SkewSymmetricMatrix(cur_p_w);
+            jacobian.block<1, 3>(0, 3) = -plane.normal_vector().transpose() * R_rc * Utility::SkewSymmetricMatrix(cur_p_w);
 
             // Construct hessian and bias.
             hessian += jacobian.transpose() * jacobian;
@@ -150,4 +145,4 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec
     return true;
 }
 
-}
+}  // namespace VISION_GEOMETRY

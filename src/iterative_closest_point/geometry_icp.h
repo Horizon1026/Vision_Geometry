@@ -9,7 +9,7 @@ namespace VISION_GEOMETRY {
 class IcpSolver {
 
 public:
-    enum class IcpMethod: uint8_t {
+    enum class IcpMethod : uint8_t {
         kPointToPoint = 0,
         kPointToLine = 1,
         kPointToPlane = 2,
@@ -28,10 +28,7 @@ public:
     explicit IcpSolver() = default;
     virtual ~IcpSolver() = default;
 
-    bool EstimatePose(const std::vector<Vec3> &all_ref_p_w,
-                      const std::vector<Vec3> &all_cur_p_w,
-                      Quat &q_rc,
-                      Vec3 &p_rc);
+    bool EstimatePose(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
 
     // Reference for member variables.
     IcpOptions &options() { return options_; }
@@ -41,38 +38,17 @@ public:
 
 private:
     // Support for method of point-to-point.
-    bool EstimatePoseByMethodPointToPointWithNanoFlann(const std::vector<Vec3> &all_ref_p_w,
-                                                       const std::vector<Vec3> &all_cur_p_w,
-                                                       Quat &q_rc,
-                                                       Vec3 &p_rc);
-    bool EstimatePoseByMethodPointToPointWithKdtree(const std::vector<Vec3> &all_ref_p_w,
-                                                    const std::vector<Vec3> &all_cur_p_w,
-                                                    Quat &q_rc,
-                                                    Vec3 &p_rc);
-    bool EstimatePoseByPointPairs(const std::vector<Vec3> &all_ref_p_w,
-                                  const std::vector<Vec3> &all_cur_p_w,
-                                  Quat &q_rc,
-                                  Vec3 &p_rc);
+    bool EstimatePoseByMethodPointToPointWithNanoFlann(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
+    bool EstimatePoseByMethodPointToPointWithKdtree(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
+    bool EstimatePoseByPointPairs(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
 
     // Support for method of point-to-line.
-    bool EstimatePoseByMethodPointToLineWithNanoFlann(const std::vector<Vec3> &all_ref_p_w,
-                                                      const std::vector<Vec3> &all_cur_p_w,
-                                                      Quat &q_rc,
-                                                      Vec3 &p_rc);
-    bool EstimatePoseByMethodPointToLineWithKdtree(const std::vector<Vec3> &all_ref_p_w,
-                                                   const std::vector<Vec3> &all_cur_p_w,
-                                                   Quat &q_rc,
-                                                   Vec3 &p_rc);
+    bool EstimatePoseByMethodPointToLineWithNanoFlann(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
+    bool EstimatePoseByMethodPointToLineWithKdtree(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
 
     // Support for method of point-to-plane.
-    bool EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<Vec3> &all_ref_p_w,
-                                                       const std::vector<Vec3> &all_cur_p_w,
-                                                       Quat &q_rc,
-                                                       Vec3 &p_rc);
-    bool EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec3> &all_ref_p_w,
-                                                    const std::vector<Vec3> &all_cur_p_w,
-                                                    Quat &q_rc,
-                                                    Vec3 &p_rc);
+    bool EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
+    bool EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
 
     uint32_t GetIndexStep(const uint32_t num_of_points) {
         return std::max(static_cast<uint32_t>(1), static_cast<uint32_t>(num_of_points / options_.kMaxUsedPoints));
@@ -82,6 +58,6 @@ private:
     IcpOptions options_;
 };
 
-}
+}  // namespace VISION_GEOMETRY
 
-#endif // end of _GEOMETRY_ICP_H_
+#endif  // end of _GEOMETRY_ICP_H_

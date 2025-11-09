@@ -40,78 +40,31 @@ public:
     explicit PnpSolver() = default;
     virtual ~PnpSolver() = default;
 
-    bool EstimatePose(const std::vector<Vec3> &p_w,
-                      const std::vector<Vec2> &norm_xy,
-                      Quat &q_wc,
-                      Vec3 &p_wc,
-                      std::vector<uint8_t> &status);
-    void CheckPnpStatus(const std::vector<Vec3> &p_w,
-                        const std::vector<Vec2> &norm_xy,
-                        Quat &q_wc,
-                        Vec3 &p_wc,
-                        std::vector<uint8_t> &status);
-    bool EstimatePose(const std::vector<Vec3> &p_w,
-                      const std::vector<Quat> &q_ic,
-                      const std::vector<Vec3> &p_ic,
-                      const std::vector<Vec2> &norm_xy,
-                      Quat &q_wi,
-                      Vec3 &p_wi,
-                      std::vector<uint8_t> &status);
-    void CheckPnpStatus(const std::vector<Vec3> &p_w,
-                        const std::vector<Quat> &q_ic,
-                        const std::vector<Vec3> &p_ic,
-                        const std::vector<Vec2> &norm_xy,
-                        Quat &q_wi,
-                        Vec3 &p_wi,
-                        std::vector<uint8_t> &status);
+    bool EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status);
+    void CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status);
+    bool EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic, const std::vector<Vec2> &norm_xy, Quat &q_wi,
+                      Vec3 &p_wi, std::vector<uint8_t> &status);
+    void CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic, const std::vector<Vec2> &norm_xy,
+                        Quat &q_wi, Vec3 &p_wi, std::vector<uint8_t> &status);
 
     // Reference for member variables.
-    Options &options() { return options_;}
+    Options &options() { return options_; }
 
     // Const reference for member variables.
-    const Options &options() const { return options_;}
+    const Options &options() const { return options_; }
 
 private:
-    bool EstimatePoseUseAll(const std::vector<Vec3> &p_w,
-                            const std::vector<Vec2> &norm_xy,
-                            Quat &q_wc,
-                            Vec3 &p_wc,
-                            std::vector<uint8_t> &status);
-    bool EstimatePoseUseAll(const std::vector<Vec3> &p_w,
-                            const std::vector<Vec2> &norm_xy,
-                            Quat &q_wc,
-                            Vec3 &p_wc);
-    bool EstimatePoseRansac(const std::vector<Vec3> &p_w,
-                            const std::vector<Vec2> &norm_xy,
-                            Quat &q_wc,
-                            Vec3 &p_wc,
-                            std::vector<uint8_t> &status);
-    bool EstimatePoseDlt(const std::vector<Vec3> &p_w,
-                         const std::vector<Vec2> &norm_xy,
-                         Quat &q_wc,
-                         Vec3 &p_wc,
-                         std::vector<uint8_t> &status);
+    bool EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status);
+    bool EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc);
+    bool EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status);
+    bool EstimatePoseDlt(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status);
 
-    bool EstimatePoseUseAll(const std::vector<Vec3> &p_w,
-                            const std::vector<Quat> &q_ic,
-                            const std::vector<Vec3> &p_ic,
-                            const std::vector<Vec2> &norm_xy,
-                            Quat &q_wi,
-                            Vec3 &p_wi,
-                            std::vector<uint8_t> &status);
-    bool EstimatePoseUseAll(const std::vector<Vec3> &p_w,
-                            const std::vector<Quat> &q_ic,
-                            const std::vector<Vec3> &p_ic,
-                            const std::vector<Vec2> &norm_xy,
-                            Quat &q_wi,
-                            Vec3 &p_wi);
-    bool EstimatePoseRansac(const std::vector<Vec3> &p_w,
-                            const std::vector<Quat> &q_ic,
-                            const std::vector<Vec3> &p_ic,
-                            const std::vector<Vec2> &norm_xy,
-                            Quat &q_wi,
-                            Vec3 &p_wi,
-                            std::vector<uint8_t> &status);
+    bool EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic, const std::vector<Vec2> &norm_xy,
+                            Quat &q_wi, Vec3 &p_wi, std::vector<uint8_t> &status);
+    bool EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic, const std::vector<Vec2> &norm_xy,
+                            Quat &q_wi, Vec3 &p_wi);
+    bool EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic, const std::vector<Vec2> &norm_xy,
+                            Quat &q_wi, Vec3 &p_wi, std::vector<uint8_t> &status);
 
     inline float Huber(float param, float x) {
         float huber = 1.0f;
@@ -135,6 +88,6 @@ private:
 private:
     Options options_;
 };
-}
+}  // namespace VISION_GEOMETRY
 
-#endif // end of _GEOMETRY_PNP_H_
+#endif  // end of _GEOMETRY_PNP_H_

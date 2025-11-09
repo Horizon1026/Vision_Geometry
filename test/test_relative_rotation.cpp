@@ -1,10 +1,10 @@
+#include "cmath"
 #include "fstream"
 #include "iostream"
-#include "cmath"
 
 #include "relative_rotation.h"
-#include "slam_log_reporter.h"
 #include "slam_basic_math.h"
+#include "slam_log_reporter.h"
 
 
 int main(int argc, char **argv) {

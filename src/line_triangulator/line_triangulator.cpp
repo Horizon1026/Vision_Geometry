@@ -1,14 +1,12 @@
 #include "line_triangulator.h"
-#include "slam_basic_math.h"
-#include "slam_operations.h"
-#include "slam_log_reporter.h"
 #include "plane.h"
+#include "slam_basic_math.h"
+#include "slam_log_reporter.h"
+#include "slam_operations.h"
 
 namespace VISION_GEOMETRY {
 
-bool LineTriangulator::Triangulate(const std::vector<Quat> &all_q_wc,
-                                   const std::vector<Vec3> &all_p_wc,
-                                   const std::vector<LineSegment2D> &lines_in_norm_plane,
+bool LineTriangulator::Triangulate(const std::vector<Quat> &all_q_wc, const std::vector<Vec3> &all_p_wc, const std::vector<LineSegment2D> &lines_in_norm_plane,
                                    LinePlucker3D &plucker_in_w) {
     RETURN_FALSE_IF(all_q_wc.size() < 2);
     RETURN_FALSE_IF(all_q_wc.size() != all_p_wc.size() || all_q_wc.size() != lines_in_norm_plane.size());
@@ -25,10 +23,8 @@ bool LineTriangulator::Triangulate(const std::vector<Quat> &all_q_wc,
     return false;
 }
 
-bool LineTriangulator::TriangulateAnalytic(const std::vector<Quat> &all_q_wc,
-                                           const std::vector<Vec3> &all_p_wc,
-                                           const std::vector<LineSegment2D> &lines_in_norm_plane,
-                                           LinePlucker3D &plucker_in_w) {
+bool LineTriangulator::TriangulateAnalytic(const std::vector<Quat> &all_q_wc, const std::vector<Vec3> &all_p_wc,
+                                           const std::vector<LineSegment2D> &lines_in_norm_plane, LinePlucker3D &plucker_in_w) {
     // Generate plane from first camera view.
     const Quat &q_wc1 = all_q_wc[0];
     const Vec3 &p_wc1 = all_p_wc[0];
@@ -46,16 +42,13 @@ bool LineTriangulator::TriangulateAnalytic(const std::vector<Quat> &all_q_wc,
     RETURN_FALSE_IF_FALSE(plane_of_c2.FitPlaneModel(p_wc2, point1_from_c2_in_w, point2_from_c2_in_w));
 
     // Estimate line in plucker.
-    const Mat4 dual_plucker_matrix = plane_of_c1.param() * plane_of_c2.param().transpose() -
-        plane_of_c2.param() * plane_of_c1.param().transpose();
+    const Mat4 dual_plucker_matrix = plane_of_c1.param() * plane_of_c2.param().transpose() - plane_of_c2.param() * plane_of_c1.param().transpose();
     plucker_in_w = LinePlucker3D(dual_plucker_matrix);
     return true;
 }
 
-bool LineTriangulator::TriangulateIterative(const std::vector<Quat> &all_q_wc,
-                                            const std::vector<Vec3> &all_p_wc,
-                                            const std::vector<LineSegment2D> &lines_in_norm_plane,
-                                            LinePlucker3D &plucker_in_w) {
+bool LineTriangulator::TriangulateIterative(const std::vector<Quat> &all_q_wc, const std::vector<Vec3> &all_p_wc,
+                                            const std::vector<LineSegment2D> &lines_in_norm_plane, LinePlucker3D &plucker_in_w) {
     // Try to get initialized parameters.
     if (!plucker_in_w.SelfCheck()) {
         TriangulateAnalytic(all_q_wc, all_p_wc, lines_in_norm_plane, plucker_in_w);
@@ -72,7 +65,7 @@ bool LineTriangulator::TriangulateIterative(const std::vector<Quat> &all_q_wc,
         for (uint32_t i = 0; i < lines_in_norm_plane.size(); ++i) {
             BREAK_IF(i >= options_.kMaxUsedCameraView);
             const Mat3 R_cw(all_q_wc[i].inverse());
-            const Vec3 p_cw(- R_cw * all_p_wc[i]);
+            const Vec3 p_cw(-R_cw * all_p_wc[i]);
             const auto &line_in_norm_plane = lines_in_norm_plane[i];
             const Vec3 s_point = line_in_norm_plane.start_point_homogeneous();
             const Vec3 e_point = line_in_norm_plane.end_point_homogeneous();
@@ -90,12 +83,8 @@ bool LineTriangulator::TriangulateIterative(const std::vector<Quat> &all_q_wc,
 
             // Compute jacobian of d_residual to d_line_in_c.
             Mat2x3 jacobian_residual_line_in_c = Mat2x3::Zero();
-            jacobian_residual_line_in_c << s_point.x() / l_1_2 - l[0] * sl / l_3_2,
-                                           s_point.y() / l_1_2 - l[1] * sl / l_3_2,
-                                           1.0f / l_1_2,
-                                           e_point.x() / l_1_2 - l[0] * el / l_3_2,
-                                           e_point.y() / l_1_2 - l[1] * el / l_3_2,
-                                           1.0f / l_1_2;
+            jacobian_residual_line_in_c << s_point.x() / l_1_2 - l[0] * sl / l_3_2, s_point.y() / l_1_2 - l[1] * sl / l_3_2, 1.0f / l_1_2,
+                e_point.x() / l_1_2 - l[0] * el / l_3_2, e_point.y() / l_1_2 - l[1] * el / l_3_2, 1.0f / l_1_2;
             // Compute jacobian of d_line_in_c to d_plucker_in_c.
             Mat3x6 jacobian_line_to_plucker = Mat3x6::Zero();
             jacobian_line_to_plucker.block<3, 3>(0, 0).setIdentity();
@@ -105,10 +94,7 @@ bool LineTriangulator::TriangulateIterative(const std::vector<Quat> &all_q_wc,
             jacobian_plucker_c_to_w.block<3, 3>(0, 3) = Utility::SkewSymmetricMatrix(p_cw) * R_cw;
             jacobian_plucker_c_to_w.block<3, 3>(3, 3) = R_cw;
             // Compute full jacobian.
-            const Mat2x4 jacobian = jacobian_residual_line_in_c *
-                                    jacobian_line_to_plucker *
-                                    jacobian_plucker_c_to_w *
-                                    jacobian_plucker_to_orthonormal;
+            const Mat2x4 jacobian = jacobian_residual_line_in_c * jacobian_line_to_plucker * jacobian_plucker_c_to_w * jacobian_plucker_to_orthonormal;
 
             // Generate incremental function to solve dx.
             hessian += jacobian.transpose() * jacobian;
@@ -125,4 +111,4 @@ bool LineTriangulator::TriangulateIterative(const std::vector<Quat> &all_q_wc,
     return true;
 }
 
-}
+}  // namespace VISION_GEOMETRY

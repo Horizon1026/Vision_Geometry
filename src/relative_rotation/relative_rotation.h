@@ -45,16 +45,9 @@ public:
     RelativeRotation() = default;
     virtual ~RelativeRotation() = default;
 
-    bool EstimateRotationByBnb(const std::vector<Vec2> &ref_norm_xy,
-                               const std::vector<Vec2> &cur_norm_xy,
-                               Quat &q_cr);
-    bool EstimateRotation(const std::vector<Vec2> &ref_norm_xy,
-                          const std::vector<Vec2> &cur_norm_xy,
-                          Quat &q_cr);
-    bool EstimatePose(const std::vector<Vec2> &ref_norm_xy,
-                      const std::vector<Vec2> &cur_norm_xy,
-                      Quat &q_cr,
-                      Vec3 &t_cr);
+    bool EstimateRotationByBnb(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Quat &q_cr);
+    bool EstimateRotation(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Quat &q_cr);
+    bool EstimatePose(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Quat &q_cr, Vec3 &t_cr);
 
     // Reference for member variables.
     RelativeRotationOptions &options() { return options_; }
@@ -63,32 +56,18 @@ public:
     const RelativeRotationOptions &options() const { return options_; }
 
     // Static functinos.
-    static void ComputeM(const SummationTerms &terms,
-                         const Vec3 &cayley,
-                         Mat3 &M);
-    static void ComputeMWithJacobians(const SummationTerms &terms,
-                                      const Vec3 &cayley,
-                                      Jacobians &jacobians,
-                                      Mat3 &M);
-    static float ComputeSmallestEigenValueAndJacobian(const SummationTerms &terms,
-                                                      const Vec3 &cayley,
-                                                      Mat1x3 &jacobian);
-    static float ComputeSmallestEigenValueWithM(const SummationTerms &terms,
-                                                const Vec3 &cayley,
-                                                Mat3 &M);
+    static void ComputeM(const SummationTerms &terms, const Vec3 &cayley, Mat3 &M);
+    static void ComputeMWithJacobians(const SummationTerms &terms, const Vec3 &cayley, Jacobians &jacobians, Mat3 &M);
+    static float ComputeSmallestEigenValueAndJacobian(const SummationTerms &terms, const Vec3 &cayley, Mat1x3 &jacobian);
+    static float ComputeSmallestEigenValueWithM(const SummationTerms &terms, const Vec3 &cayley, Mat3 &M);
     // Convert feature pairs to summation terms.
-    static void ComputeSummationTerms(const std::vector<Vec2> &ref_norm_xy,
-                                      const std::vector<Vec2> &cur_norm_xy,
-                                      SummationTerms &terms);
+    static void ComputeSummationTerms(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, SummationTerms &terms);
 
 private:
     // Only estimate rotation, and return the cayley format of it.
-    Vec3 EstimateRotationUseAll(const SummationTerms &terms,
-                                Quat &q_cr);
+    Vec3 EstimateRotationUseAll(const SummationTerms &terms, Quat &q_cr);
     // Estimate rotation and translation.
-    void EstimatePoseUseAll(const SummationTerms &terms,
-                            Quat &q_cr,
-                            Vec3 &t_cr);
+    void EstimatePoseUseAll(const SummationTerms &terms, Quat &q_cr, Vec3 &t_cr);
 
 private:
     RelativeRotationOptions options_;
@@ -98,9 +77,9 @@ private:
 struct EigenSolverStep : OptimizationFunctor<float> {
     const SummationTerms &terms_;
 
-    EigenSolverStep(const SummationTerms &terms) :
-        OptimizationFunctor<float>(3, 3),
-        terms_(terms) {}
+    EigenSolverStep(const SummationTerms &terms)
+        : OptimizationFunctor<float>(3, 3)
+        , terms_(terms) {}
 
     int operator()(const Vec &x, Vec &fvec) const {
         Vec3 cayley = x;
@@ -116,6 +95,6 @@ struct EigenSolverStep : OptimizationFunctor<float> {
     }
 };
 
-}
+}  // namespace VISION_GEOMETRY
 
-#endif // end of _RELATIVE_ROTATION_H_
+#endif  // end of _RELATIVE_ROTATION_H_

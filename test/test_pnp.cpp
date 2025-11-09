@@ -1,16 +1,13 @@
+#include "cmath"
 #include "fstream"
 #include "iostream"
-#include "cmath"
 
 #include "geometry_pnp.h"
 #include "slam_log_reporter.h"
 
 using namespace VISION_GEOMETRY;
 
-void TestPnpOnce(const std::string method_name,
-                 const PnpSolver::Method method,
-                 const std::vector<Vec3> &pts_3d,
-                 const std::vector<Vec2> &pts_2d) {
+void TestPnpOnce(const std::string method_name, const PnpSolver::Method method, const std::vector<Vec3> &pts_3d, const std::vector<Vec2> &pts_2d) {
     Quat res_q_wc = Quat::Identity();
     Vec3 res_p_wc = Vec3::Zero();
     std::vector<uint8_t> status;
@@ -24,16 +21,12 @@ void TestPnpOnce(const std::string method_name,
     begin = clock();
     solver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
     end = clock();
-    cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
+    cost_time = static_cast<float>(end - begin) / CLOCKS_PER_SEC * 1000.0f;
     ReportInfo("cost time is " << cost_time << " ms");
     ReportInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
 }
-void TestPnpOnce(const std::string &method_name,
-                 const PnpSolver::Method &method,
-                 const std::vector<Vec3> &pts_3d,
-                 const std::vector<Quat> &all_q_ic,
-                 const std::vector<Vec3> &all_p_ic,
-                 const std::vector<Vec2> &pts_2d) {
+void TestPnpOnce(const std::string &method_name, const PnpSolver::Method &method, const std::vector<Vec3> &pts_3d, const std::vector<Quat> &all_q_ic,
+                 const std::vector<Vec3> &all_p_ic, const std::vector<Vec2> &pts_2d) {
     Quat res_q_wi = Quat::Identity();
     Vec3 res_p_wi = Vec3::Zero();
     std::vector<uint8_t> status;
@@ -47,7 +40,7 @@ void TestPnpOnce(const std::string &method_name,
     begin = clock();
     solver.EstimatePose(pts_3d, all_q_ic, all_p_ic, pts_2d, res_q_wi, res_p_wi, status);
     end = clock();
-    cost_time = static_cast<float>(end - begin)/ CLOCKS_PER_SEC * 1000.0f;
+    cost_time = static_cast<float>(end - begin) / CLOCKS_PER_SEC * 1000.0f;
     ReportInfo("cost time " << cost_time << " ms");
     ReportInfo("res_q_wi is " << LogQuat(res_q_wi) << ", res_p_wi is " << LogVec(res_p_wi));
 }
