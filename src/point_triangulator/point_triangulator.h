@@ -3,7 +3,7 @@
 
 #include "basic_type.h"
 
-namespace VISION_GEOMETRY {
+namespace vision_geometry {
 
 /* Class PointTriangulator Declaration. */
 class PointTriangulator {
@@ -68,6 +68,6 @@ private:
     Options options_;
 };
 
-}  // namespace VISION_GEOMETRY
+}  // namespace vision_geometry
 
 #endif  // end of _VISION_GEOMETRY_POINT_TRIANGULATOR_H_

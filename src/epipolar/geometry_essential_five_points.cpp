@@ -5,7 +5,7 @@
 
 #include <set>
 
-namespace VISION_GEOMETRY {
+namespace vision_geometry {
 
 bool EpipolarSolver::EstimateEssentialUseFivePoints(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Mat3 &essential) {
     if (ref_norm_xy.size() != cur_norm_xy.size() || ref_norm_xy.size() < 5) {
@@ -1374,4 +1374,4 @@ void EpipolarSolver::GaussJordanElimination(float *e, float *A) {
     }
 }
 
-}  // namespace VISION_GEOMETRY
+}  // namespace vision_geometry

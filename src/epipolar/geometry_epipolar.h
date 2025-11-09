@@ -3,7 +3,7 @@
 
 #include "basic_type.h"
 
-namespace VISION_GEOMETRY {
+namespace vision_geometry {
 
 /* Class Epipolar Solver Declaration. */
 class EpipolarSolver {
@@ -84,6 +84,6 @@ private:
     Mat A;
 };
 
-}  // namespace VISION_GEOMETRY
+}  // namespace vision_geometry
 
 #endif  // _GEOMETRY_EPIPOLAR_H_

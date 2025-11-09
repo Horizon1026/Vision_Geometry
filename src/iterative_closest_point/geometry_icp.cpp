@@ -2,7 +2,7 @@
 #include "slam_log_reporter.h"
 #include "slam_operations.h"
 
-namespace VISION_GEOMETRY {
+namespace vision_geometry {
 
 bool IcpSolver::EstimatePose(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc) {
     RETURN_FALSE_IF(all_ref_p_w.empty() || all_cur_p_w.empty());
@@ -28,4 +28,4 @@ bool IcpSolver::EstimatePose(const std::vector<Vec3> &all_ref_p_w, const std::ve
     return true;
 }
 
-}  // namespace VISION_GEOMETRY
+}  // namespace vision_geometry

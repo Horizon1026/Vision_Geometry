@@ -7,8 +7,8 @@
 #include "slam_operations.h"
 #include "visualizor_3d.h"
 
-using namespace SLAM_UTILITY;
-using namespace SLAM_VISUALIZOR;
+using namespace slam_utility;
+using namespace slam_visualizor;
 
 void LoadLidarScan(const std::string &file_name, const Vec3 &offset, std::vector<Vec3> &point_cloud) {
     std::ifstream file;
@@ -43,8 +43,8 @@ int main(int argc, char **argv) {
     // Estimate pose by icp solver.
     Quat q_rc = Quat::Identity();
     Vec3 p_rc = Vec3::Zero();
-    VISION_GEOMETRY::IcpSolver icp_solver;
-    icp_solver.options().kMethod = VISION_GEOMETRY::IcpSolver::IcpMethod::kPointToPlane;
+    vision_geometry::IcpSolver icp_solver;
+    icp_solver.options().kMethod = vision_geometry::IcpSolver::IcpMethod::kPointToPlane;
     icp_solver.options().kUseNanoFlannKdTree = true;
     icp_solver.options().kMaxValidRelativePointDistance = 5.0f;
     icp_solver.options().kMaxUsedPoints = 4000;

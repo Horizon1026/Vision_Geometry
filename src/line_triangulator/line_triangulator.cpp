@@ -4,7 +4,7 @@
 #include "slam_log_reporter.h"
 #include "slam_operations.h"
 
-namespace VISION_GEOMETRY {
+namespace vision_geometry {
 
 bool LineTriangulator::Triangulate(const std::vector<Quat> &all_q_wc, const std::vector<Vec3> &all_p_wc, const std::vector<LineSegment2D> &lines_in_norm_plane,
                                    LinePlucker3D &plucker_in_w) {
@@ -111,4 +111,4 @@ bool LineTriangulator::TriangulateIterative(const std::vector<Quat> &all_q_wc, c
     return true;
 }
 
-}  // namespace VISION_GEOMETRY
+}  // namespace vision_geometry

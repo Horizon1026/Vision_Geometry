@@ -4,7 +4,7 @@
 #include "basic_type.h"
 #include "line_segment.h"
 
-namespace VISION_GEOMETRY {
+namespace vision_geometry {
 
 /* Class LineTriangulator Declaration. */
 class LineTriangulator {
@@ -46,6 +46,6 @@ private:
     Options options_;
 };
 
-}  // namespace VISION_GEOMETRY
+}  // namespace vision_geometry
 
 #endif  // end of _VISION_GEOMETRY_LINE_TRIANGULATOR_H_

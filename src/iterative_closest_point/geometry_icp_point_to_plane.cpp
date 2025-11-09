@@ -7,7 +7,7 @@
 #include "slam_log_reporter.h"
 #include "slam_operations.h"
 
-namespace VISION_GEOMETRY {
+namespace vision_geometry {
 
 bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc,
                                                               Vec3 &p_rc) {
@@ -145,4 +145,4 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec
     return true;
 }
 
-}  // namespace VISION_GEOMETRY
+}  // namespace vision_geometry

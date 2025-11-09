@@ -3,7 +3,7 @@
 #include "slam_log_reporter.h"
 #include "slam_operations.h"
 
-namespace VISION_GEOMETRY {
+namespace vision_geometry {
 
 bool RelativeRotation::EstimateRotationByBnb(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Quat &q_cr) {
     RETURN_FALSE_IF(ref_norm_xy.empty());
@@ -628,4 +628,4 @@ void RelativeRotation::ComputeM(const SummationTerms &terms, const Vec3 &cayley,
     M(2, 1) = M(1, 2);
 }
 
-}  // namespace VISION_GEOMETRY
+}  // namespace vision_geometry

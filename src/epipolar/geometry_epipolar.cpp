@@ -7,7 +7,7 @@
 
 #include <set>
 
-namespace VISION_GEOMETRY {
+namespace vision_geometry {
 
 bool EpipolarSolver::EstimateEssential(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Mat3 &essential,
                                        std::vector<uint8_t> &status) {
@@ -263,4 +263,4 @@ bool EpipolarSolver::RecoverPoseFromEssential(const std::vector<Vec2> &ref_norm_
     return true;
 }
 
-}  // namespace VISION_GEOMETRY
+}  // namespace vision_geometry

@@ -7,7 +7,7 @@
 #include "eigen3/unsupported/Eigen/NonLinearOptimization"
 #include "eigen3/unsupported/Eigen/NumericalDiff"
 
-namespace VISION_GEOMETRY {
+namespace vision_geometry {
 
 struct RelativeRotationOptions {
     float kHalfBoundOfPitchInDeg = 20.0f;
@@ -95,6 +95,6 @@ struct EigenSolverStep : OptimizationFunctor<float> {
     }
 };
 
-}  // namespace VISION_GEOMETRY
+}  // namespace vision_geometry
 
 #endif  // end of _RELATIVE_ROTATION_H_

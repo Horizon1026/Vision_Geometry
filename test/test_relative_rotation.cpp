@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
         cur_norm_xy.emplace_back(Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)));
     }
 
-    VISION_GEOMETRY::RelativeRotation solver;
+    vision_geometry::RelativeRotation solver;
     Quat q_cr = Quat::Identity();
     Vec3 t_cr = Vec3::Zero();
     Vec3 euler = Vec3::Zero();

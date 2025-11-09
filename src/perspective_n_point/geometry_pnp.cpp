@@ -5,7 +5,7 @@
 
 #include <set>
 
-namespace VISION_GEOMETRY {
+namespace vision_geometry {
 
 bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status) {
     switch (options_.kMethod) {
@@ -222,4 +222,4 @@ void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<V
     }
 }
 
-}  // namespace VISION_GEOMETRY
+}  // namespace vision_geometry

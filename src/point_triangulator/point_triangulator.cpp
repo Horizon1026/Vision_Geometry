@@ -2,7 +2,7 @@
 #include "slam_basic_math.h"
 #include "slam_operations.h"
 
-namespace VISION_GEOMETRY {
+namespace vision_geometry {
 
 bool PointTriangulator::Triangulate(const std::vector<Quat> &q_wc, const std::vector<Vec3> &p_wc, const std::vector<Vec2> &norm_xy, Vec3 &p_w) {
     RETURN_FALSE_IF(q_wc.size() < 2);
@@ -110,4 +110,4 @@ float PointTriangulator::GetSineOfParallexAngle(const Quat &q_wci, const Vec3 &p
     return (norm_xyz_j.cross(q_cjci * norm_xyz_i)).norm();
 }
 
-}  // namespace VISION_GEOMETRY
+}  // namespace vision_geometry

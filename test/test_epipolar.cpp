@@ -5,7 +5,7 @@
 #include "geometry_epipolar.h"
 #include "slam_log_reporter.h"
 
-void TestEssentialFivePointsModel(VISION_GEOMETRY::EpipolarSolver &solver, std::vector<Vec2> &ref_norm_xy, std::vector<Vec2> &cur_norm_xy,
+void TestEssentialFivePointsModel(vision_geometry::EpipolarSolver &solver, std::vector<Vec2> &ref_norm_xy, std::vector<Vec2> &cur_norm_xy,
                                   std::vector<uint8_t> &status) {
     clock_t begin, end;
     Mat3 essential;
@@ -13,7 +13,7 @@ void TestEssentialFivePointsModel(VISION_GEOMETRY::EpipolarSolver &solver, std::
     Vec3 t_cr;
 
     ReportColorInfo(">> Test epipolar using five points model.");
-    solver.options().kModel = VISION_GEOMETRY::EpipolarSolver::EpipolarModel::kFivePoints;
+    solver.options().kModel = vision_geometry::EpipolarSolver::EpipolarModel::kFivePoints;
 
     begin = clock();
     solver.EstimateEssential(ref_norm_xy, cur_norm_xy, essential, status);
@@ -28,7 +28,7 @@ void TestEssentialFivePointsModel(VISION_GEOMETRY::EpipolarSolver &solver, std::
     ReportInfo("t_cr is " << t_cr.transpose());
 }
 
-void TestEssentialEightPointsModel(VISION_GEOMETRY::EpipolarSolver &solver, std::vector<Vec2> &ref_norm_xy, std::vector<Vec2> &cur_norm_xy,
+void TestEssentialEightPointsModel(vision_geometry::EpipolarSolver &solver, std::vector<Vec2> &ref_norm_xy, std::vector<Vec2> &cur_norm_xy,
                                    std::vector<uint8_t> &status) {
     clock_t begin, end;
     Mat3 essential;
@@ -36,7 +36,7 @@ void TestEssentialEightPointsModel(VISION_GEOMETRY::EpipolarSolver &solver, std:
     Vec3 t_cr;
 
     ReportColorInfo(">> Test epipolar using eight points model.");
-    solver.options().kModel = VISION_GEOMETRY::EpipolarSolver::EpipolarModel::kEightPoints;
+    solver.options().kModel = vision_geometry::EpipolarSolver::EpipolarModel::kEightPoints;
 
     begin = clock();
     solver.EstimateEssential(ref_norm_xy, cur_norm_xy, essential, status);
@@ -81,8 +81,8 @@ int main(int argc, char **argv) {
         cur_norm_xy.emplace_back(Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)));
     }
 
-    VISION_GEOMETRY::EpipolarSolver solver;
-    solver.options().kMethod = VISION_GEOMETRY::EpipolarSolver::EpipolarMethod::kRansac;
+    vision_geometry::EpipolarSolver solver;
+    solver.options().kMethod = vision_geometry::EpipolarSolver::EpipolarMethod::kRansac;
     std::vector<uint8_t> status;
 
     TestEssentialEightPointsModel(solver, ref_norm_xy, cur_norm_xy, status);

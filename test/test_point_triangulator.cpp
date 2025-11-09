@@ -4,7 +4,7 @@
 #include "point_triangulator.h"
 #include "slam_log_reporter.h"
 
-using namespace VISION_GEOMETRY;
+using namespace vision_geometry;
 
 void TestTriangulatorOnce(const std::string &method_name, const PointTriangulator::Method &method, const std::vector<Vec2> &observe_vec,
                           const std::vector<Quat> &q_wc_vec, const std::vector<Vec3> &p_wc_vec, const Vec3 &gt_p_w) {

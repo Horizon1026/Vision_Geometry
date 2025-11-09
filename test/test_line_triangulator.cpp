@@ -8,9 +8,9 @@
 
 #include "visualizor_3d.h"
 
-using namespace SLAM_UTILITY;
-using namespace SLAM_VISUALIZOR;
-using namespace VISION_GEOMETRY;
+using namespace slam_utility;
+using namespace slam_visualizor;
+using namespace vision_geometry;
 
 int main(int argc, char **argv) {
     ReportInfo(YELLOW ">> Test line triangulator." RESET_COLOR);

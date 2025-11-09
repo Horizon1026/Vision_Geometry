@@ -4,7 +4,7 @@
 #include "basic_type.h"
 #include "eigen3/Eigen/src/Core/util/DisableStupidWarnings.h"
 
-namespace VISION_GEOMETRY {
+namespace vision_geometry {
 
 /**
  * Generic functor base for use with the Eigen-nonlinear optimization
@@ -34,6 +34,6 @@ struct OptimizationFunctor {
     int values() const { return m_values; }
 };
 
-}  // namespace VISION_GEOMETRY
+}  // namespace vision_geometry
 
 #endif  // end of _EIGEN_OPTIMIZATION_FUNCTOR_H_

@@ -5,7 +5,7 @@
 #include "geometry_pnp.h"
 #include "slam_log_reporter.h"
 
-using namespace VISION_GEOMETRY;
+using namespace vision_geometry;
 
 void TestPnpOnce(const std::string method_name, const PnpSolver::Method method, const std::vector<Vec3> &pts_3d, const std::vector<Vec2> &pts_2d) {
     Quat res_q_wc = Quat::Identity();

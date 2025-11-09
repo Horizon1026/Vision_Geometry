@@ -3,7 +3,7 @@
 
 #include "basic_type.h"
 
-namespace VISION_GEOMETRY {
+namespace vision_geometry {
 
 /* Class PnpSolver Declaration. */
 class PnpSolver {
@@ -88,6 +88,6 @@ private:
 private:
     Options options_;
 };
-}  // namespace VISION_GEOMETRY
+}  // namespace vision_geometry
 
 #endif  // end of _GEOMETRY_PNP_H_

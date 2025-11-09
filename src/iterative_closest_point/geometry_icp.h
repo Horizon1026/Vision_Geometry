@@ -3,7 +3,7 @@
 
 #include "basic_type.h"
 
-namespace VISION_GEOMETRY {
+namespace vision_geometry {
 
 /* Class IcpSolver Declaration. */
 class IcpSolver {
@@ -58,6 +58,6 @@ private:
     IcpOptions options_;
 };
 
-}  // namespace VISION_GEOMETRY
+}  // namespace vision_geometry
 
 #endif  // end of _GEOMETRY_ICP_H_
