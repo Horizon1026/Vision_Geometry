@@ -23,16 +23,15 @@ public:
         Plane3D plane;
         Mat3 inv_cov = Mat3::Zero();
 
-        bool operator==(const Voxel &rhs) const {
-            return plane == rhs.plane && inv_cov == rhs.inv_cov;
-        }
+        bool operator==(const Voxel &rhs) const { return plane == rhs.plane && inv_cov == rhs.inv_cov; }
         bool operator!=(const Voxel &rhs) const { return !(*this == rhs); }
     };
 
 public:
-    NdtSolver();
+    NdtSolver() = default;
     virtual ~NdtSolver() = default;
 
+    bool Initialize();
     bool EstimatePose(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
 
     // Reference for member variables.

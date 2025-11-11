@@ -45,9 +45,11 @@ int main(int argc, char **argv) {
     Vec3 p_rc = Vec3::Zero();
     vision_geometry::NdtSolver ndt_solver;
     ndt_solver.options().kMaxLidarScanRadius = 30.0f;
-    ndt_solver.options().kVoxelSize = 3.0f;
+    ndt_solver.options().kVoxelSize = 1.0f;
+    ndt_solver.options().kMaxValidRelativePointDistance = 1.0f;
     ndt_solver.options().kMaxUsedPoints = 4000;
     ndt_solver.options().kMaxIteration = 1;
+    ndt_solver.Initialize();
 
     uint32_t cnt = 0;
     bool is_converged = false;

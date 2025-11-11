@@ -5,14 +5,16 @@
 
 namespace vision_geometry {
 
-NdtSolver::NdtSolver() {
+bool NdtSolver::Initialize() {
     ref_voxels_.options().kRadius = Vec3(options_.kMaxLidarScanRadius, options_.kMaxLidarScanRadius, options_.kMaxLidarScanRadius);
     ref_voxels_.options().kStep = Vec3(options_.kVoxelSize, options_.kVoxelSize, options_.kVoxelSize);
     ref_voxels_.InitializeBuffer();
+    return true;
 }
 
 bool NdtSolver::BuildRefVoxels(const std::vector<Vec3> &all_ref_p_w) {
     RETURN_FALSE_IF(all_ref_p_w.empty());
+
     ref_voxels_.ResetBuffer();
     for (const Vec3 &p_w: all_ref_p_w) {
         std::array<int32_t, 3> voxel_indices;
@@ -25,7 +27,12 @@ bool NdtSolver::BuildRefVoxels(const std::vector<Vec3> &all_ref_p_w) {
     for (const uint32_t &index: ref_voxels_.changed_items_indices()) {
         auto &voxel = ref_voxels_.GetVoxel(index);
         CONTINUE_IF(voxel.plane.num_of_points() < 5);
-        voxel.inv_cov = Utility::Inverse(Mat(voxel.plane.covariance()));
+        // Normalize covariance by sample size and add small diagonal regularization.
+        Mat3 cov = voxel.plane.covariance();
+        const float denom = static_cast<float>(std::max(1u, voxel.plane.num_of_points() - 1u));
+        cov /= denom;
+        cov += 1e-4f * Mat3::Identity();
+        voxel.inv_cov = cov.inverse();
     }
     return true;
 }
@@ -55,13 +62,13 @@ bool NdtSolver::EstimatePose(const std::vector<Vec3> &all_ref_p_w, const std::ve
             CONTINUE_IF(voxel.plane.num_of_points() < 5);
 
             // Compute residual.
-            const Vec3 residual = voxel.plane.mid_point() - transformed_cur_p_w;
+            const Vec3 residual = transformed_cur_p_w - voxel.plane.mid_point();
             CONTINUE_IF(residual.norm() > options_.kMaxValidRelativePointDistance);
 
             // Compute jacobian.
             Mat3x6 jacobian = Mat3x6::Zero();
-            jacobian.block<3, 3>(0, 0) = - Mat3::Identity();
-            jacobian.block<3, 3>(0, 3) = q_rc.toRotationMatrix() * Utility::SkewSymmetricMatrix(cur_p_w);
+            jacobian.block<3, 3>(0, 0) = Mat3::Identity();
+            jacobian.block<3, 3>(0, 3) = -q_rc.toRotationMatrix() * Utility::SkewSymmetricMatrix(cur_p_w);
 
             // Construct hessian and bias.
             hessian += jacobian.transpose() * voxel.inv_cov * jacobian;
