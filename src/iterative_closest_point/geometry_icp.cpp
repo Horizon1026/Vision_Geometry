@@ -9,17 +9,17 @@ bool IcpSolver::EstimatePose(const std::vector<Vec3> &all_ref_p_w, const std::ve
 
     switch (options_.kMethod) {
         default:
-        case IcpMethod::kPointToPoint: {
+        case Method::kPointToPoint: {
             return options_.kUseNanoFlannKdTree ? EstimatePoseByMethodPointToPointWithNanoFlann(all_ref_p_w, all_cur_p_w, q_rc, p_rc) :
                                                   EstimatePoseByMethodPointToPointWithKdtree(all_ref_p_w, all_cur_p_w, q_rc, p_rc);
         }
 
-        case IcpMethod::kPointToLine: {
+        case Method::kPointToLine: {
             return options_.kUseNanoFlannKdTree ? EstimatePoseByMethodPointToLineWithNanoFlann(all_ref_p_w, all_cur_p_w, q_rc, p_rc) :
                                                   EstimatePoseByMethodPointToLineWithKdtree(all_ref_p_w, all_cur_p_w, q_rc, p_rc);
         }
 
-        case IcpMethod::kPointToPlane: {
+        case Method::kPointToPlane: {
             return options_.kUseNanoFlannKdTree ? EstimatePoseByMethodPointToPlaneWithNanoFlann(all_ref_p_w, all_cur_p_w, q_rc, p_rc) :
                                                   EstimatePoseByMethodPointToPlaneWithKdtree(all_ref_p_w, all_cur_p_w, q_rc, p_rc);
         }

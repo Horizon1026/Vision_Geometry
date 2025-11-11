@@ -9,19 +9,19 @@ namespace vision_geometry {
 class IcpSolver {
 
 public:
-    enum class IcpMethod : uint8_t {
+    enum class Method : uint8_t {
         kPointToPoint = 0,
         kPointToLine = 1,
         kPointToPlane = 2,
     };
 
-    struct IcpOptions {
+    struct Options {
         uint32_t kMaxIteration = 100;
         uint32_t kMaxUsedPoints = 800;
         float kMaxValidRelativePointDistance = 5.0f;
         float kMaxConvergedStepLength = 1e-4f;
         bool kUseNanoFlannKdTree = true;
-        IcpMethod kMethod = IcpMethod::kPointToPoint;
+        Method kMethod = Method::kPointToPoint;
     };
 
 public:
@@ -31,10 +31,9 @@ public:
     bool EstimatePose(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
 
     // Reference for member variables.
-    IcpOptions &options() { return options_; }
-
+    Options &options() { return options_; }
     // Const reference for member variables.
-    const IcpOptions &options() const { return options_; }
+    const Options &options() const { return options_; }
 
 private:
     // Support for method of point-to-point.
@@ -55,7 +54,7 @@ private:
     }
 
 private:
-    IcpOptions options_;
+    Options options_;
 };
 
 }  // namespace vision_geometry

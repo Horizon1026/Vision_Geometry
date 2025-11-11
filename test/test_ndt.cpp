@@ -2,7 +2,7 @@
 #include "fstream"
 #include "iostream"
 
-#include "geometry_icp.h"
+#include "geometry_ndt.h"
 #include "slam_log_reporter.h"
 #include "slam_operations.h"
 #include "visualizor_3d.h"
@@ -31,24 +31,23 @@ void LoadLidarScan(const std::string &file_name, const Vec3 &offset, std::vector
 }
 
 int main(int argc, char **argv) {
-    ReportInfo(YELLOW ">> Test iterative-closest point." RESET_COLOR);
+    ReportInfo(YELLOW ">> Test normal distribution transform." RESET_COLOR);
     LogFixPercision(3);
 
     // Create two point clouds.
     std::vector<Vec3> ref_p_w;
     std::vector<Vec3> cur_p_w;
     LoadLidarScan("../examples/cur_lidar_scan.txt", Vec3::Zero(), cur_p_w);
-    LoadLidarScan("../examples/ref_lidar_scan.txt", Vec3(3, 2, 1), ref_p_w);
+    LoadLidarScan("../examples/ref_lidar_scan.txt", Vec3(0.5, 0, 0), ref_p_w);
 
-    // Estimate pose by icp solver.
+    // Estimate pose by ndt solver.
     Quat q_rc = Quat::Identity();
     Vec3 p_rc = Vec3::Zero();
-    vision_geometry::IcpSolver icp_solver;
-    icp_solver.options().kMethod = vision_geometry::IcpSolver::Method::kPointToPlane;
-    icp_solver.options().kUseNanoFlannKdTree = true;
-    icp_solver.options().kMaxValidRelativePointDistance = 5.0f;
-    icp_solver.options().kMaxUsedPoints = 4000;
-    icp_solver.options().kMaxIteration = 1;
+    vision_geometry::NdtSolver ndt_solver;
+    ndt_solver.options().kMaxLidarScanRadius = 30.0f;
+    ndt_solver.options().kVoxelSize = 3.0f;
+    ndt_solver.options().kMaxUsedPoints = 4000;
+    ndt_solver.options().kMaxIteration = 1;
 
     uint32_t cnt = 0;
     bool is_converged = false;
@@ -57,7 +56,7 @@ int main(int argc, char **argv) {
     while (!Visualizor3D::ShouldQuit()) {
         ++cnt;
         if (cnt < 5) {
-            Visualizor3D::Refresh("ICP [ ref | RED ] [ cur | GREEN ] [ estimate | ORANGE(should be the same as ref) ]", 50);
+            Visualizor3D::Refresh("NDT [ ref | RED ] [ cur | GREEN ] [ estimate | ORANGE(should be the same as ref) ] (Something wrong)", 50);
             continue;
         } else {
             cnt = 0;
@@ -65,11 +64,11 @@ int main(int argc, char **argv) {
 
         CONTINUE_IF(is_converged);
 
-        // Iterate ICP once.
+        // Iterate NDT once.
         ReportInfo("Iterate once.");
         const Quat last_q_rc = q_rc;
         const Vec3 last_p_rc = p_rc;
-        icp_solver.EstimatePose(ref_p_w, cur_p_w, q_rc, p_rc);
+        ndt_solver.EstimatePose(ref_p_w, cur_p_w, q_rc, p_rc);
         ReportInfo("Estimated q_rc " << LogQuat(q_rc));
         ReportInfo("Estimated p_rc " << LogVec(p_rc));
         if ((last_q_rc.inverse() * q_rc).vec().norm() + (last_p_rc - p_rc).norm() < 1e-4) {

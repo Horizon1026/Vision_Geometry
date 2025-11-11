@@ -26,6 +26,9 @@ endif()
 if( NOT TARGET lib_vision_geometry_icp )
     add_subdirectory( src/iterative_closest_point ${PROJECT_SOURCE_DIR}/build/lib_vision_geometry_icp )
 endif()
+if( NOT TARGET lib_vision_geometry_ndt )
+    add_subdirectory( src/normal_distribution_transform ${PROJECT_SOURCE_DIR}/build/lib_vision_geometry_ndt )
+endif()
 
 # Add visualizor.
 set( VISUALIZOR_2D_PATH ${PROJECT_SOURCE_DIR}/../Visualizor2D )
@@ -84,5 +87,14 @@ add_executable( test_icp
 )
 target_link_libraries( test_icp
     lib_vision_geometry_icp
+    lib_3d_visualizor
+)
+
+# Add test_ndt.
+add_executable( test_ndt
+    test/test_ndt.cpp
+)
+target_link_libraries( test_ndt
+    lib_vision_geometry_ndt
     lib_3d_visualizor
 )
