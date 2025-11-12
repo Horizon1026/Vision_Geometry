@@ -38,15 +38,15 @@ int main(int argc, char **argv) {
     std::vector<Vec3> ref_p_w;
     std::vector<Vec3> cur_p_w;
     LoadLidarScan("../examples/cur_lidar_scan.txt", Vec3::Zero(), cur_p_w);
-    LoadLidarScan("../examples/ref_lidar_scan.txt", Vec3(0.5, 0, 0), ref_p_w);
+    LoadLidarScan("../examples/ref_lidar_scan.txt", Vec3(3, 1, 0), ref_p_w);
 
     // Estimate pose by ndt solver.
     Quat q_rc = Quat::Identity();
     Vec3 p_rc = Vec3::Zero();
     vision_geometry::NdtSolver ndt_solver;
     ndt_solver.options().kMaxLidarScanRadius = 30.0f;
-    ndt_solver.options().kVoxelSize = 1.0f;
-    ndt_solver.options().kMaxValidRelativePointDistance = 1.0f;
+    ndt_solver.options().kVoxelSize = 5.0f;
+    ndt_solver.options().kMaxValidRelativePointDistance = 5.0f;
     ndt_solver.options().kMaxUsedPoints = 4000;
     ndt_solver.options().kMaxIteration = 1;
     ndt_solver.Initialize();
@@ -98,6 +98,14 @@ int main(int argc, char **argv) {
                 .p_w = q_rc * point + p_rc,
                 .color = RgbColor::kOrange,
                 .radius = 2,
+            });
+        }
+        for (const auto &voxel: ndt_solver.ref_voxels().buffer()) {
+            CONTINUE_IF(voxel.plane.num_of_points() < 5);
+            Visualizor3D::ellipses().emplace_back(EllipseType {
+                .p_w = voxel.plane.mid_point(),
+                .cov = voxel.plane.covariance(),
+                .color = RgbColor::kCyan,
             });
         }
     }

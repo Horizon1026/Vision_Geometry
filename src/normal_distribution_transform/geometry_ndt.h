@@ -36,8 +36,10 @@ public:
 
     // Reference for member variables.
     Options &options() { return options_; }
+    BasicVoxels<Voxel> &ref_voxels() { return ref_voxels_; }
     // Const reference for member variables.
     const Options &options() const { return options_; }
+    const BasicVoxels<Voxel> &ref_voxels() const { return ref_voxels_; }
 
 private:
     bool BuildRefVoxels(const std::vector<Vec3> &all_ref_p_w);
