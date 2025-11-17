@@ -17,7 +17,7 @@ bool NdtSolver::BuildRefVoxels(const std::vector<Vec3> &all_ref_p_w) {
 
     ref_voxels_.ResetBuffer();
     for (const Vec3 &p_w: all_ref_p_w) {
-        std::array<int32_t, 3> voxel_indices;
+        Voxels<int32_t>::Index voxel_indices;
         CONTINUE_IF(!ref_voxels_.ConvertPositionTo3DofIndices(p_w, voxel_indices));
         const uint32_t index = ref_voxels_.GetBufferIndex(voxel_indices);
         ref_voxels_.GetVoxel(index).plane.AddNewPointToFitPlaneModel(p_w);
@@ -55,7 +55,7 @@ bool NdtSolver::EstimatePose(const std::vector<Vec3> &all_ref_p_w, const std::ve
             const Vec3 transformed_cur_p_w = q_rc * cur_p_w + p_rc;
 
             // Extract normal distribution of reference voxel.
-            std::array<int32_t, 3> voxel_indices;
+            Voxels<int32_t>::Index voxel_indices;
             CONTINUE_IF(!ref_voxels_.ConvertPositionTo3DofIndices(transformed_cur_p_w, voxel_indices));
             const uint32_t index = ref_voxels_.GetBufferIndex(voxel_indices);
             const auto &voxel = ref_voxels_.GetVoxel(index);
