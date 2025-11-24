@@ -3,7 +3,7 @@
 
 #include "basic_type.h"
 #include "basic_voxels.h"
-#include "plane.h"
+#include "normal_distribution.h"
 
 namespace vision_geometry {
 
@@ -13,17 +13,17 @@ class NdtSolver {
 public:
     struct Options {
         uint32_t kMaxIteration = 100;
-        uint32_t kMaxUsedPoints = 800;
+        uint32_t kMaxUsedPoints = 5000;
         float kMaxLidarScanRadius = 30.0f;
         float kVoxelSize = 0.5f;
         float kMaxValidRelativePointDistance = 5.0f;
         float kMaxConvergedStepLength = 1e-4f;
     };
     struct Voxel {
-        Plane3D plane;
+        NormalDistribution<3> pdf;
         Mat3 inv_cov = Mat3::Zero();
 
-        bool operator==(const Voxel &rhs) const { return plane == rhs.plane && inv_cov == rhs.inv_cov; }
+        bool operator==(const Voxel &rhs) const { return pdf == rhs.pdf && inv_cov == rhs.inv_cov; }
         bool operator!=(const Voxel &rhs) const { return !(*this == rhs); }
     };
 

@@ -13,6 +13,7 @@ bool NdtSolver::Initialize() {
 }
 
 bool NdtSolver::BuildRefVoxels(const std::vector<Vec3> &all_ref_p_w) {
+    RETURN_FALSE_IF(ref_voxels_.buffer().empty());
     RETURN_FALSE_IF(all_ref_p_w.empty());
 
     ref_voxels_.ResetBuffer();
@@ -20,16 +21,16 @@ bool NdtSolver::BuildRefVoxels(const std::vector<Vec3> &all_ref_p_w) {
         Voxels<int32_t>::Index voxel_indices;
         CONTINUE_IF(!ref_voxels_.ConvertPositionTo3DofIndices(p_w, voxel_indices));
         const uint32_t index = ref_voxels_.GetBufferIndex(voxel_indices);
-        ref_voxels_.GetVoxel(index).plane.AddNewPointToFitPlaneModel(p_w);
+        ref_voxels_.GetVoxel(index).pdf.IncrementallyFitDistribution(p_w);
         ref_voxels_.changed_items_indices().insert(index);
     }
 
     for (const uint32_t &index: ref_voxels_.changed_items_indices()) {
         auto &voxel = ref_voxels_.GetVoxel(index);
-        CONTINUE_IF(voxel.plane.num_of_points() < 5);
+        CONTINUE_IF(voxel.pdf.num_of_points() < 5);
         // Normalize covariance by sample size and add small diagonal regularization.
-        Mat3 cov = voxel.plane.covariance();
-        const float denom = static_cast<float>(std::max(1u, voxel.plane.num_of_points() - 1u));
+        Mat3 cov = voxel.pdf.covariance();
+        const float denom = static_cast<float>(std::max(1u, voxel.pdf.num_of_points() - 1u));
         cov /= denom;
         cov += 1e-4f * Mat3::Identity();
         voxel.inv_cov = cov.inverse();
@@ -59,10 +60,10 @@ bool NdtSolver::EstimatePose(const std::vector<Vec3> &all_ref_p_w, const std::ve
             CONTINUE_IF(!ref_voxels_.ConvertPositionTo3DofIndices(transformed_cur_p_w, voxel_indices));
             const uint32_t index = ref_voxels_.GetBufferIndex(voxel_indices);
             const auto &voxel = ref_voxels_.GetVoxel(index);
-            CONTINUE_IF(voxel.plane.num_of_points() < 5);
+            CONTINUE_IF(voxel.pdf.num_of_points() < 5);
 
             // Compute residual.
-            const Vec3 residual = transformed_cur_p_w - voxel.plane.mid_point();
+            const Vec3 residual = transformed_cur_p_w - voxel.pdf.mid_point();
             CONTINUE_IF(residual.norm() > options_.kMaxValidRelativePointDistance);
 
             // Compute jacobian.

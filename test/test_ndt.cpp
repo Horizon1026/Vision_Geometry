@@ -101,10 +101,10 @@ int main(int argc, char **argv) {
             });
         }
         for (const auto &voxel: ndt_solver.ref_voxels().buffer()) {
-            CONTINUE_IF(voxel.plane.num_of_points() < 5);
+            CONTINUE_IF(voxel.pdf.num_of_points() < 5);
             Visualizor3D::ellipses().emplace_back(EllipseType {
-                .p_w = voxel.plane.mid_point(),
-                .cov = voxel.plane.covariance(),
+                .p_w = voxel.pdf.mid_point(),
+                .cov = voxel.pdf.covariance(),
                 .color = RgbColor::kCyan,
             });
         }
