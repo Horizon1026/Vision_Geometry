@@ -78,6 +78,8 @@ bool EpipolarSolver::EstimateEssentialUseAll(const std::vector<Vec2> &ref_norm_x
 bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Mat3 &essential,
                                              std::vector<uint8_t> &status) {
     if (ref_norm_xy.size() != cur_norm_xy.size() || ref_norm_xy.size() < 8) {
+        ReportError("[EpipolarSolver] Failed to estimate essential matrix. Invalid input size: ref_norm_xy.size() = "
+                    << ref_norm_xy.size() << ", cur_norm_xy.size() = " << cur_norm_xy.size());
         return false;
     }
 

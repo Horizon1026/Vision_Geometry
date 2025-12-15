@@ -9,6 +9,8 @@ namespace vision_geometry {
 
 bool EpipolarSolver::EstimateEssentialUseFivePoints(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Mat3 &essential) {
     if (ref_norm_xy.size() != cur_norm_xy.size() || ref_norm_xy.size() < 5) {
+        ReportError("[EpipolarSolver] Failed to estimate essential matrix. Invalid input size: ref_norm_xy.size() = "
+                    << ref_norm_xy.size() << ", cur_norm_xy.size() = " << cur_norm_xy.size());
         return false;
     }
 
