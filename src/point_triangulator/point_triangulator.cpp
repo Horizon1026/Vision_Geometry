@@ -25,7 +25,7 @@ bool PointTriangulator::TriangulateAnalytic(const std::vector<Quat> &q_wc, const
     const uint32_t used_camera_num = options_.kMaxUsedCameraView < q_wc.size() ? options_.kMaxUsedCameraView : q_wc.size();
     Eigen::Matrix<float, Eigen::Dynamic, 4> A = Eigen::Matrix<float, Eigen::Dynamic, 4>::Zero(used_camera_num * 2, 4);
     for (uint32_t i = 0; i < used_camera_num; ++i) {
-        auto pose = Utility::TransformMatrix<float>(q_wc[i].inverse(), -(q_wc[i].inverse() * p_wc[i]));
+        auto pose = Utility::TransformMatrix(q_wc[i].inverse(), -(q_wc[i].inverse() * p_wc[i]));
         A.row(2 * i) = norm_xy[i][0] * pose.row(2) - pose.row(0);
         A.row(2 * i + 1) = norm_xy[i][1] * pose.row(2) - pose.row(1);
     }
