@@ -12,6 +12,7 @@ namespace vision_geometry {
 bool EpipolarSolver::EstimateEssential(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Mat3 &essential,
                                        std::vector<uint8_t> &status) {
     switch (options_.kMethod) {
+        default:
         case EpipolarMethod::kRansac: {
             return EstimateEssentialRansac(ref_norm_xy, cur_norm_xy, essential, status);
         }
@@ -19,11 +20,8 @@ bool EpipolarSolver::EstimateEssential(const std::vector<Vec2> &ref_norm_xy, con
         case EpipolarMethod::kUseAll: {
             return EstimateEssentialUseAll(ref_norm_xy, cur_norm_xy, essential, status);
         }
-
-        default: {
-            return false;
-        }
     }
+    return false;
 }
 
 void EpipolarSolver::DecomposeEssentialMatrix(const Mat3 &essential, Mat3 &R0, Mat3 &R1, Vec3 &t0, Vec3 &t1) {

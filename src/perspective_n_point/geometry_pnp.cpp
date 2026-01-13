@@ -52,9 +52,7 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vect
 
     Mat6 H = Mat6::Zero();
     Vec6 b = Vec6::Zero();
-    ;
     Mat2x6 jacobian = Mat2x6::Zero();
-    ;
 
     uint32_t max_points_used_num = options_.kMaxSolvePointsNumber < p_w.size() ? options_.kMaxSolvePointsNumber : p_w.size();
     for (uint32_t iter = 0; iter < options_.kMaxIteration; ++iter) {
@@ -98,14 +96,12 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vect
         }
 
         const Vec6 dx = H.ldlt().solve(b);
-
         float norm_dx = dx.squaredNorm();
         RETURN_FALSE_IF(std::isnan(norm_dx) == true);
         norm_dx = std::sqrt(norm_dx);
 
         p_wc += dx.head<3>();
         q_wc = (q_wc * Utility::DeltaQ(dx.tail<3>())).normalized();
-
         BREAK_IF(norm_dx < options_.kMaxConvergeStep);
     }
 
