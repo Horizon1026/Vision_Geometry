@@ -16,7 +16,7 @@ bool RelativeRotation::EstimateRotationByBnb(const std::vector<Vec2> &ref_norm_x
 
     // Compute the mid value by initial rotation.
     q_cr.normalize();
-    const Vec3 mid_pry = Utility::QuaternionToEuler(q_cr);
+    const Vec3 mid_rpy = Utility::QuaternionToEuler(q_cr);
 
     // Compute summation terms.
     SummationTerms terms;
@@ -25,14 +25,14 @@ bool RelativeRotation::EstimateRotationByBnb(const std::vector<Vec2> &ref_norm_x
     // Iterate all selected initial value.
     float min_eigen_value = INFINITY;
     Mat3 M = Mat3::Identity();
-    for (int32_t i_pitch = 0; i_pitch < options_.kDivisionsOfPitch; ++i_pitch) {
-        for (int32_t i_roll = 0; i_roll < options_.kDivisionsOfRoll; ++i_roll) {
+    for (int32_t i_roll = 0; i_roll < options_.kDivisionsOfRoll; ++i_roll) {
+        for (int32_t i_pitch = 0; i_pitch < options_.kDivisionsOfPitch; ++i_pitch) {
             for (int32_t i_yaw = 0; i_yaw < options_.kDivisionsOfYaw; ++i_yaw) {
-                const float pitch = mid_pry.x() - options_.kHalfBoundOfPitchInDeg + step_deg.x() * i_pitch;
-                const float roll = mid_pry.y() - options_.kHalfBoundOfRollInDeg + step_deg.y() * i_roll;
-                const float yaw = mid_pry.z() - options_.kHalfBoundOfYawInDeg + step_deg.z() * i_yaw;
-                const Vec3 pry = Vec3(pitch, roll, yaw);
-                Quat temp_q_cr = Utility::EulerToQuaternion(pry);
+                const float roll = mid_rpy.x() - options_.kHalfBoundOfRollInDeg + step_deg.y() * i_roll;
+                const float pitch = mid_rpy.y() - options_.kHalfBoundOfPitchInDeg + step_deg.x() * i_pitch;
+                const float yaw = mid_rpy.z() - options_.kHalfBoundOfYawInDeg + step_deg.z() * i_yaw;
+                const Vec3 rpy = Vec3(roll, pitch, yaw);
+                Quat temp_q_cr = Utility::EulerToQuaternion(rpy);
 
                 // Estimate rotation between reference and current frame.
                 EstimateRotationUseAll(terms, temp_q_cr);

@@ -39,32 +39,32 @@ int main(int argc, char **argv) {
     vision_geometry::RelativeRotation solver;
     Quat q_cr = Quat::Identity();
     Vec3 t_cr = Vec3::Zero();
-    Vec3 euler = Vec3::Zero();
+    Vec3 euler_rpy = Vec3::Zero();
 
     // Show the ground truth.
     q_cr = Quat(R_cw * R_rw.transpose());
-    euler = Utility::QuaternionToEuler(q_cr);
-    ReportInfo("Ground truh q_cr is " << LogQuat(q_cr) << ", euler(deg) is " << LogVec(euler));
+    euler_rpy = Utility::QuaternionToEuler(q_cr);
+    ReportInfo("Ground truh q_cr is " << LogQuat(q_cr) << ", euler_rpy(deg) is " << LogVec(euler_rpy));
     ReportInfo("Ground truh t_cr is " << LogVec(t_cw));
 
     // Test estimate both rotation and translation.
     q_cr.setIdentity();
     solver.EstimatePose(ref_norm_xy, cur_norm_xy, q_cr, t_cr);
-    euler = Utility::QuaternionToEuler(q_cr);
-    ReportInfo("Estimated q_cr is " << LogQuat(q_cr) << ", euler(deg) is " << LogVec(euler));
+    euler_rpy = Utility::QuaternionToEuler(q_cr);
+    ReportInfo("Estimated q_cr is " << LogQuat(q_cr) << ", euler_rpy(deg) is " << LogVec(euler_rpy));
     ReportInfo("Estimated t_cr is " << LogVec(t_cr));
 
     // Test only estimate rotation.
     q_cr.setIdentity();
     solver.EstimateRotation(ref_norm_xy, cur_norm_xy, q_cr);
-    euler = Utility::QuaternionToEuler(q_cr);
-    ReportInfo("Directly estimated q_cr is " << LogQuat(q_cr) << ", euler(deg) is " << LogVec(euler));
+    euler_rpy = Utility::QuaternionToEuler(q_cr);
+    ReportInfo("Directly estimated q_cr is " << LogQuat(q_cr) << ", euler_rpy(deg) is " << LogVec(euler_rpy));
 
     // Test only estimate rotation with bnb.
     q_cr.setIdentity();
     solver.EstimateRotationByBnb(ref_norm_xy, cur_norm_xy, q_cr);
-    euler = Utility::QuaternionToEuler(q_cr);
-    ReportInfo("Bnb estimated q_cr is " << LogQuat(q_cr) << ", euler(deg) is " << LogVec(euler));
+    euler_rpy = Utility::QuaternionToEuler(q_cr);
+    ReportInfo("Bnb estimated q_cr is " << LogQuat(q_cr) << ", euler_rpy(deg) is " << LogVec(euler_rpy));
 
     return 0;
 }
