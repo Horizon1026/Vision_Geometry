@@ -71,7 +71,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPointWithKdtree(const std::vector<Vec
         sorted_point_indices[i] = i;
     }
     std::unique_ptr<KdTreeNode<float, 3>> ref_kd_tree_ptr = std::make_unique<KdTreeNode<float, 3>>();
-    ref_kd_tree_ptr->Construct(all_ref_p_w, sorted_point_indices, ref_kd_tree_ptr);
+    ref_kd_tree_ptr->Construct(all_ref_p_w, sorted_point_indices);
 
     // Prepare for iteration.
     q_rc.normalize();
@@ -88,7 +88,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPointWithKdtree(const std::vector<Vec
             const Vec3 &cur_p_w = all_cur_p_w[i];
             const Vec3 transformed_cur_p_w = q_rc * cur_p_w + p_rc;
             std::multimap<float, int32_t> result_of_nn_search;
-            ref_kd_tree_ptr->SearchKnn(ref_kd_tree_ptr, all_ref_p_w, transformed_cur_p_w, 1, result_of_nn_search);
+            ref_kd_tree_ptr->SearchKnn(all_ref_p_w, transformed_cur_p_w, 1, result_of_nn_search);
             const auto &[distance, index] = *result_of_nn_search.begin();
             CONTINUE_IF(distance > options_.kMaxValidRelativePointDistance);
 

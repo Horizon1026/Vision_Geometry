@@ -6,6 +6,7 @@
 #include "slam_basic_math.h"
 #include "slam_log_reporter.h"
 #include "slam_operations.h"
+#include "numeric"
 
 namespace vision_geometry {
 
@@ -76,56 +77,56 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<
     return true;
 }
 
-bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc) {
+bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec3>& all_ref_p_w, const std::vector<Vec3>& all_cur_p_w, Quat& q_rc, Vec3& p_rc) {
     // Convert all reference points into kd-tree.
-    std::vector<int32_t> sorted_point_indices(all_ref_p_w.size(), 0);
-    for (uint32_t i = 0; i < sorted_point_indices.size(); ++i) {
-        sorted_point_indices[i] = i;
-    }
-    std::unique_ptr<KdTreeNode<float, 3>> ref_kd_tree_ptr = std::make_unique<KdTreeNode<float, 3>>();
-    ref_kd_tree_ptr->Construct(all_ref_p_w, sorted_point_indices, ref_kd_tree_ptr);
+    std::vector<int32_t> sorted_point_indices(all_ref_p_w.size());
+    std::iota(sorted_point_indices.begin(), sorted_point_indices.end(), 0);
+    KdTreeNode<float, 3>::Ptr ref_kd_tree_ptr = std::make_unique<KdTreeNode<float, 3>>();
+    ref_kd_tree_ptr->Construct(all_ref_p_w, sorted_point_indices);
+
+    // Configuration parameters for ICP
     const int32_t num_of_points_to_search = 5;
     std::vector<Vec3> searched_points;
     searched_points.reserve(num_of_points_to_search);
 
-    // Iterate to estimate relative pose between two point clouds.
+    // ICP iteration.
     Mat6 hessian = Mat6::Zero();
     Vec6 bias = Vec6::Zero();
     const uint32_t index_step = GetIndexStep(all_cur_p_w.size());
     for (uint32_t iter = 0; iter < options_.kMaxIteration; ++iter) {
         hessian.setZero();
         bias.setZero();
-
         const Mat3 R_rc = q_rc.toRotationMatrix();
-        // Iterate each current point to construct incremental function.
+
+        // Process each current point (with step to speed up computation)
         for (uint32_t i = 0; i < all_cur_p_w.size(); i += index_step) {
-            const Vec3 &cur_p_w = all_cur_p_w[i];
+            const Vec3& cur_p_w = all_cur_p_w[i];
             const Vec3 transformed_cur_p_w = q_rc * cur_p_w + p_rc;
 
-            // Extract points closest to target point.
+            // KNN search for corresponding points in reference cloud
             std::multimap<float, int32_t> result_of_nn_search;
-            ref_kd_tree_ptr->SearchKnn(ref_kd_tree_ptr, all_ref_p_w, transformed_cur_p_w, num_of_points_to_search, result_of_nn_search);
+            ref_kd_tree_ptr->SearchKnn(all_ref_p_w, transformed_cur_p_w, num_of_points_to_search, result_of_nn_search);
             CONTINUE_IF(result_of_nn_search.size() != num_of_points_to_search);
 
+            // Filter points by maximum valid distance (using squared distance)
             searched_points.clear();
-            for (const auto &[distance, index]: result_of_nn_search) {
-                CONTINUE_IF(distance > options_.kMaxValidRelativePointDistance);
+            for (const auto& [dist_sq, index] : result_of_nn_search) {
+                CONTINUE_IF(dist_sq > options_.kMaxValidRelativePointDistance);
                 searched_points.emplace_back(all_ref_p_w[index]);
             }
+            CONTINUE_IF(searched_points.size() < 3);
 
-            // Fit plane model.
+            // Fit plane model to neighboring points using PCA
             Plane3D plane;
             CONTINUE_IF(!plane.FitPlaneModelPca(searched_points));
 
-            // Compute residual.
+            // Compute residual and jacobian.
             const float residual = plane.GetDistanceToPlane(transformed_cur_p_w);
-
-            // Compute jacobian.
             Mat1x6 jacobian = Mat1x6::Zero();
             jacobian.block<1, 3>(0, 0) = plane.normal_vector().transpose();
             jacobian.block<1, 3>(0, 3) = -plane.normal_vector().transpose() * R_rc * Utility::SkewSymmetricMatrix(cur_p_w);
 
-            // Construct hessian and bias.
+            // Update hessian and bias for least squares solution
             hessian += jacobian.transpose() * jacobian;
             bias -= jacobian.transpose() * residual;
         }

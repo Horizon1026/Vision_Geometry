@@ -5,6 +5,7 @@
 #include "slam_basic_math.h"
 #include "slam_log_reporter.h"
 #include "slam_operations.h"
+#include "numeric"
 
 namespace vision_geometry {
 
@@ -68,18 +69,20 @@ bool IcpSolver::EstimatePoseByMethodPointToLineWithNanoFlann(const std::vector<V
 
 bool IcpSolver::EstimatePoseByMethodPointToLineWithKdtree(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc) {
     // Convert all reference points into kd-tree.
-    std::vector<int32_t> sorted_point_indices(all_ref_p_w.size(), 0);
-    for (uint32_t i = 0; i < sorted_point_indices.size(); ++i) {
-        sorted_point_indices[i] = i;
-    }
-    std::unique_ptr<KdTreeNode<float, 3>> ref_kd_tree_ptr = std::make_unique<KdTreeNode<float, 3>>();
-    ref_kd_tree_ptr->Construct(all_ref_p_w, sorted_point_indices, ref_kd_tree_ptr);
-    const int32_t num_of_points_to_search = 2;
-    const uint32_t index_step = GetIndexStep(all_cur_p_w.size());
+    std::vector<int32_t> sorted_point_indices(all_ref_p_w.size());
+    std::iota(sorted_point_indices.begin(), sorted_point_indices.end(), 0);
+    KdTreeNode<float, 3>::Ptr ref_kd_tree_ptr = std::make_unique<KdTreeNode<float, 3>>();
+    ref_kd_tree_ptr->Construct(all_ref_p_w, sorted_point_indices);
 
-    // Iterate to estimate relative pose between two point clouds.
+    // Configuration parameters for ICP
+    const int32_t num_of_points_to_search = 2;
+    std::vector<Vec3> searched_points;
+    searched_points.reserve(num_of_points_to_search);
+
+    // ICP iteration.
     Mat6 hessian = Mat6::Zero();
     Vec6 bias = Vec6::Zero();
+    const uint32_t index_step = GetIndexStep(all_cur_p_w.size());
     for (uint32_t iter = 0; iter < options_.kMaxIteration; ++iter) {
         hessian.setZero();
         bias.setZero();
@@ -91,7 +94,7 @@ bool IcpSolver::EstimatePoseByMethodPointToLineWithKdtree(const std::vector<Vec3
 
             // Extract two points closest to target point.
             std::multimap<float, int32_t> result_of_nn_search;
-            ref_kd_tree_ptr->SearchKnn(ref_kd_tree_ptr, all_ref_p_w, transformed_cur_p_w, num_of_points_to_search, result_of_nn_search);
+            ref_kd_tree_ptr->SearchKnn(all_ref_p_w, transformed_cur_p_w, num_of_points_to_search, result_of_nn_search);
             CONTINUE_IF(result_of_nn_search.size() != num_of_points_to_search);
             auto it = result_of_nn_search.begin();
             const Vec3 &ref_p_w_0 = all_ref_p_w[it->second];

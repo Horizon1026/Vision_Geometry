@@ -10,7 +10,7 @@
 using namespace slam_utility;
 using namespace slam_visualizor;
 
-void LoadLidarScan(const std::string &file_name, const Vec3 &offset, std::vector<Vec3> &point_cloud) {
+void LoadLidarScan(const std::string &file_name, std::vector<Vec3> &point_cloud) {
     std::ifstream file;
     file.open(file_name.c_str());
     if (!file.is_open()) {
@@ -25,7 +25,7 @@ void LoadLidarScan(const std::string &file_name, const Vec3 &offset, std::vector
     while (std::getline(file, one_line) && !one_line.empty()) {
         std::istringstream point_position(one_line);
         point_position >> pos.x() >> pos.y() >> pos.z();
-        point_cloud.emplace_back(pos + offset);
+        point_cloud.emplace_back(pos);
     }
     file.close();
 }
@@ -37,16 +37,16 @@ int main(int argc, char **argv) {
     // Create two point clouds.
     std::vector<Vec3> ref_p_w;
     std::vector<Vec3> cur_p_w;
-    LoadLidarScan("../examples/cur_lidar_scan.txt", Vec3::Zero(), cur_p_w);
-    LoadLidarScan("../examples/ref_lidar_scan.txt", Vec3(3, 1, 0), ref_p_w);
+    LoadLidarScan("../examples/lidar_scan.txt", cur_p_w);
+    LoadLidarScan("../examples/lidar_map.txt", ref_p_w);
 
     // Estimate pose by ndt solver.
     Quat q_rc = Quat::Identity();
     Vec3 p_rc = Vec3::Zero();
     vision_geometry::NdtSolver ndt_solver;
     ndt_solver.options().kMaxLidarScanRadius = 30.0f;
-    ndt_solver.options().kVoxelSize = 5.0f;
-    ndt_solver.options().kMaxValidRelativePointDistance = 5.0f;
+    ndt_solver.options().kVoxelSize = 1.5f;
+    ndt_solver.options().kMaxValidRelativePointDistance = 1.5f;
     ndt_solver.options().kMaxUsedPoints = 4000;
     ndt_solver.options().kMaxIteration = 1;
     ndt_solver.Initialize();

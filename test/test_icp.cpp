@@ -10,7 +10,7 @@
 using namespace slam_utility;
 using namespace slam_visualizor;
 
-void LoadLidarScan(const std::string &file_name, const Vec3 &offset, std::vector<Vec3> &point_cloud) {
+void LoadLidarScan(const std::string &file_name, std::vector<Vec3> &point_cloud) {
     std::ifstream file;
     file.open(file_name.c_str());
     if (!file.is_open()) {
@@ -25,7 +25,7 @@ void LoadLidarScan(const std::string &file_name, const Vec3 &offset, std::vector
     while (std::getline(file, one_line) && !one_line.empty()) {
         std::istringstream point_position(one_line);
         point_position >> pos.x() >> pos.y() >> pos.z();
-        point_cloud.emplace_back(pos + offset);
+        point_cloud.emplace_back(pos);
     }
     file.close();
 }
@@ -37,15 +37,15 @@ int main(int argc, char **argv) {
     // Create two point clouds.
     std::vector<Vec3> ref_p_w;
     std::vector<Vec3> cur_p_w;
-    LoadLidarScan("../examples/cur_lidar_scan.txt", Vec3::Zero(), cur_p_w);
-    LoadLidarScan("../examples/ref_lidar_scan.txt", Vec3(3, 2, 1), ref_p_w);
+    LoadLidarScan("../examples/lidar_scan.txt", cur_p_w);
+    LoadLidarScan("../examples/lidar_map.txt", ref_p_w);
 
     // Estimate pose by icp solver.
     Quat q_rc = Quat::Identity();
     Vec3 p_rc = Vec3::Zero();
     vision_geometry::IcpSolver icp_solver;
     icp_solver.options().kMethod = vision_geometry::IcpSolver::Method::kPointToPlane;
-    icp_solver.options().kUseNanoFlannKdTree = true;
+    icp_solver.options().kUseNanoFlannKdTree = false;
     icp_solver.options().kMaxValidRelativePointDistance = 5.0f;
     icp_solver.options().kMaxUsedPoints = 4000;
     icp_solver.options().kMaxIteration = 1;
