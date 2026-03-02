@@ -52,8 +52,8 @@ int main(int argc, char **argv) {
     ReportInfo("Truth line in plucker is " << LogVec(truth_line_w.param()));
 
     // Visualize.
-    Visualizor3D::camera_view().p_wc = Vec3(0.26f, -0.65f, -4.39f);
-    Visualizor3D::camera_view().q_wc = Quat(0.79f, 0.0f, 0.0f, 0.59f).normalized();
+    Visualizor3D::camera_view().p_wc = Vec3(57.58f, -41.59f, 9.03f);
+    Visualizor3D::camera_view().q_wc = Quat(0.60f, -0.65f, -0.33f, 0.31f).normalized();
     Visualizor3D::Clear();
     Visualizor3D::poses().emplace_back(PoseType {
         .p_wb = Vec3::Zero(),

@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
     uint32_t cnt = 0;
     bool is_converged = false;
     Visualizor3D::camera_view().q_wc = Quat(0.3f, -0.9f, 0.0f, 0.0f).normalized();
-    Visualizor3D::camera_view().p_wc = Vec3(5, -25, 25);
+    Visualizor3D::camera_view().p_wc = Vec3(5, -120, 150);
     while (!Visualizor3D::ShouldQuit()) {
         ++cnt;
         if (cnt < 5) {

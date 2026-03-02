@@ -49,11 +49,12 @@ int main(int argc, char **argv) {
     icp_solver.options().kMaxValidRelativePointDistance = 5.0f;
     icp_solver.options().kMaxUsedPoints = 4000;
     icp_solver.options().kMaxIteration = 1;
+    icp_solver.options().kMaxConvergedStepLength = 1e-3f;
 
     uint32_t cnt = 0;
     bool is_converged = false;
     Visualizor3D::camera_view().q_wc = Quat(0.3f, -0.9f, 0.0f, 0.0f).normalized();
-    Visualizor3D::camera_view().p_wc = Vec3(5, -25, 25);
+    Visualizor3D::camera_view().p_wc = Vec3(5, -120, 150);
     while (!Visualizor3D::ShouldQuit()) {
         ++cnt;
         if (cnt < 5) {
@@ -72,7 +73,7 @@ int main(int argc, char **argv) {
         icp_solver.EstimatePose(ref_p_w, cur_p_w, q_rc, p_rc);
         ReportInfo("Estimated q_rc " << LogQuat(q_rc));
         ReportInfo("Estimated p_rc " << LogVec(p_rc));
-        if ((last_q_rc.inverse() * q_rc).vec().norm() + (last_p_rc - p_rc).norm() < 1e-4) {
+        if ((last_q_rc.inverse() * q_rc).vec().norm() + (last_p_rc - p_rc).norm() < icp_solver.options().kMaxConvergedStepLength) {
             is_converged = true;
         }
 

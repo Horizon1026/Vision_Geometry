@@ -22,7 +22,6 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<
     searched_points.reserve(num_of_points_to_search);
 
     // Iterate to estimate relative pose between two point clouds.
-    const Mat3 R_rc = q_rc.toRotationMatrix();
     Mat6 hessian = Mat6::Zero();
     Vec6 bias = Vec6::Zero();
     const uint32_t index_step = GetIndexStep(all_cur_p_w.size());
@@ -30,6 +29,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<
         hessian.setZero();
         bias.setZero();
 
+        const Mat3 R_rc = q_rc.toRotationMatrix();
         // Iterate each current point to construct incremental function.
         for (uint32_t i = 0; i < all_cur_p_w.size(); i += index_step) {
             const Vec3 &cur_p_w = all_cur_p_w[i];
@@ -89,7 +89,6 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec
     searched_points.reserve(num_of_points_to_search);
 
     // Iterate to estimate relative pose between two point clouds.
-    const Mat3 R_rc = q_rc.toRotationMatrix();
     Mat6 hessian = Mat6::Zero();
     Vec6 bias = Vec6::Zero();
     const uint32_t index_step = GetIndexStep(all_cur_p_w.size());
@@ -97,6 +96,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec
         hessian.setZero();
         bias.setZero();
 
+        const Mat3 R_rc = q_rc.toRotationMatrix();
         // Iterate each current point to construct incremental function.
         for (uint32_t i = 0; i < all_cur_p_w.size(); i += index_step) {
             const Vec3 &cur_p_w = all_cur_p_w[i];
