@@ -77,7 +77,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<
     return true;
 }
 
-bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec3>& all_ref_p_w, const std::vector<Vec3>& all_cur_p_w, Quat& q_rc, Vec3& p_rc) {
+bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc) {
     // Convert all reference points into kd-tree.
     std::vector<int32_t> sorted_point_indices(all_ref_p_w.size());
     std::iota(sorted_point_indices.begin(), sorted_point_indices.end(), 0);
@@ -100,7 +100,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec
 
         // Process each current point (with step to speed up computation)
         for (uint32_t i = 0; i < all_cur_p_w.size(); i += index_step) {
-            const Vec3& cur_p_w = all_cur_p_w[i];
+            const Vec3 &cur_p_w = all_cur_p_w[i];
             const Vec3 transformed_cur_p_w = q_rc * cur_p_w + p_rc;
 
             // KNN search for corresponding points in reference cloud
@@ -110,7 +110,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec
 
             // Filter points by maximum valid distance (using squared distance)
             searched_points.clear();
-            for (const auto& [dist_sq, index] : result_of_nn_search) {
+            for (const auto &[dist_sq, index]: result_of_nn_search) {
                 CONTINUE_IF(dist_sq > options_.kMaxValidRelativePointDistance);
                 searched_points.emplace_back(all_ref_p_w[index]);
             }
