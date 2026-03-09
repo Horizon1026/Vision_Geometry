@@ -16,7 +16,7 @@ public:
         uint32_t kMaxUsedPoints = 5000;
         float kMaxLidarScanRadius = 30.0f;
         float kVoxelSize = 0.5f;
-        float kMaxValidRelativePointDistance = 5.0f;
+        float kMaxValidResidualChi2 = 10.0f;
         float kMaxConvergedStepLength = 1e-4f;
     };
     struct Voxel {

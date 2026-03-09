@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     vision_geometry::NdtSolver ndt_solver;
     ndt_solver.options().kMaxLidarScanRadius = 30.0f;
     ndt_solver.options().kVoxelSize = 1.5f;
-    ndt_solver.options().kMaxValidRelativePointDistance = 1.5f;
+    ndt_solver.options().kMaxValidResidualChi2 = 10.0f;
     ndt_solver.options().kMaxUsedPoints = 4000;
     ndt_solver.options().kMaxIteration = 1;
     ndt_solver.Initialize();

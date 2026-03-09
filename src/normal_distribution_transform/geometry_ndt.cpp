@@ -64,7 +64,7 @@ bool NdtSolver::EstimatePose(const std::vector<Vec3> &all_ref_p_w, const std::ve
 
             // Compute residual.
             const Vec3 residual = transformed_cur_p_w - voxel.pdf.mid_point();
-            CONTINUE_IF(residual.norm() > options_.kMaxValidRelativePointDistance);
+            CONTINUE_IF(residual.norm() > options_.kMaxValidResidualChi2);
 
             // Compute jacobian.
             Mat3x6 jacobian = Mat3x6::Zero();
