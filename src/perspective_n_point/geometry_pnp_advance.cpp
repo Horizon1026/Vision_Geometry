@@ -27,7 +27,7 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vect
     RETURN_FALSE_IF_FALSE(EstimatePoseUseAll(p_w, q_ic, p_ic, norm_xy, q_wi, p_wi));
 
     if (status.size() != p_w.size()) {
-        status.resize(p_w.size(), static_cast<uint8_t>(Result::kUnsolved));
+        status.assign(p_w.size(), static_cast<uint8_t>(Result::kUnsolved));
     }
 
     // Check those features that haven't been solved.
@@ -190,7 +190,7 @@ bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vect
 void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic, const std::vector<Vec2> &norm_xy,
                                Quat &q_wi, Vec3 &p_wi, std::vector<uint8_t> &status) {
     if (status.size() != norm_xy.size()) {
-        status.resize(norm_xy.size(), static_cast<uint8_t>(Result::kUnsolved));
+        status.assign(norm_xy.size(), static_cast<uint8_t>(Result::kUnsolved));
     }
 
     for (uint32_t i = 0; i < p_w.size(); ++i) {

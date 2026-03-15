@@ -26,7 +26,7 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vect
     RETURN_FALSE_IF_FALSE(EstimatePoseUseAll(p_w, norm_xy, q_wc, p_wc));
 
     if (status.size() != p_w.size()) {
-        status.resize(p_w.size(), static_cast<uint8_t>(Result::kUnsolved));
+        status.assign(p_w.size(), static_cast<uint8_t>(Result::kUnsolved));
     }
 
     // Check those features that haven't been solved.
@@ -196,13 +196,13 @@ bool PnpSolver::EstimatePoseDlt(const std::vector<Vec3> &p_w, const std::vector<
     q_wc = Quat(R).normalized();
     p_wc = -R.transpose() * t;
 
-    status.resize(p_w.size(), static_cast<uint8_t>(Result::kSolved));
+    status.assign(p_w.size(), static_cast<uint8_t>(Result::kSolved));
     return true;
 }
 
 void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status) {
     if (status.size() != norm_xy.size()) {
-        status.resize(norm_xy.size(), static_cast<uint8_t>(Result::kUnsolved));
+        status.assign(norm_xy.size(), static_cast<uint8_t>(Result::kUnsolved));
     }
 
     for (uint32_t i = 0; i < p_w.size(); ++i) {

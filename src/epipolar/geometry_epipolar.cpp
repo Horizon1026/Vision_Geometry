@@ -180,7 +180,7 @@ float EpipolarSolver::ComputeEssentialModelResidualSummary(const std::vector<Vec
 void EpipolarSolver::CheckEssentialPairsStatus(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Mat3 &essential,
                                                std::vector<uint8_t> &status) {
     if (status.size() != ref_norm_xy.size()) {
-        status.resize(ref_norm_xy.size(), static_cast<uint8_t>(EpipolarResult::kUnsolved));
+        status.assign(ref_norm_xy.size(), static_cast<uint8_t>(EpipolarResult::kUnsolved));
     }
 
     // Check those features that haven't been solved.
