@@ -6,7 +6,7 @@
 
 namespace vision_geometry {
 
-bool LineTriangulator::Triangulate(const std::vector<Quat> &all_q_wc, const std::vector<Vec3> &all_p_wc, const std::vector<LineSegment2D> &lines_in_norm_plane,
+bool LineTriangulator::Triangulate(const std::vector<Vec3> &all_p_wc, const std::vector<Quat> &all_q_wc, const std::vector<LineSegment2D> &lines_in_norm_plane,
                                    LinePlucker3D &plucker_in_w) {
     RETURN_FALSE_IF(all_q_wc.size() < 2);
     RETURN_FALSE_IF(all_q_wc.size() != all_p_wc.size() || all_q_wc.size() != lines_in_norm_plane.size());
@@ -14,20 +14,20 @@ bool LineTriangulator::Triangulate(const std::vector<Quat> &all_q_wc, const std:
     switch (options_.kMethod) {
         default:
         case Method::kAnalytic: {
-            return TriangulateAnalytic(all_q_wc, all_p_wc, lines_in_norm_plane, plucker_in_w);
+            return TriangulateAnalytic(all_p_wc, all_q_wc, lines_in_norm_plane, plucker_in_w);
         }
         case Method::kOptimize: {
-            return TriangulateIterative(all_q_wc, all_p_wc, lines_in_norm_plane, plucker_in_w);
+            return TriangulateIterative(all_p_wc, all_q_wc, lines_in_norm_plane, plucker_in_w);
         }
     }
     return false;
 }
 
-bool LineTriangulator::TriangulateAnalytic(const std::vector<Quat> &all_q_wc, const std::vector<Vec3> &all_p_wc,
+bool LineTriangulator::TriangulateAnalytic(const std::vector<Vec3> &all_p_wc, const std::vector<Quat> &all_q_wc,
                                            const std::vector<LineSegment2D> &lines_in_norm_plane, LinePlucker3D &plucker_in_w) {
     // Generate plane from first camera view.
-    const Quat &q_wc1 = all_q_wc[0];
     const Vec3 &p_wc1 = all_p_wc[0];
+    const Quat &q_wc1 = all_q_wc[0];
     const Vec3 point1_from_c1_in_w = q_wc1 * lines_in_norm_plane[0].start_point_homogeneous() + p_wc1;
     const Vec3 point2_from_c1_in_w = q_wc1 * lines_in_norm_plane[0].end_point_homogeneous() + p_wc1;
     Plane3D plane_of_c1;
@@ -47,11 +47,11 @@ bool LineTriangulator::TriangulateAnalytic(const std::vector<Quat> &all_q_wc, co
     return true;
 }
 
-bool LineTriangulator::TriangulateIterative(const std::vector<Quat> &all_q_wc, const std::vector<Vec3> &all_p_wc,
+bool LineTriangulator::TriangulateIterative(const std::vector<Vec3> &all_p_wc, const std::vector<Quat> &all_q_wc,
                                             const std::vector<LineSegment2D> &lines_in_norm_plane, LinePlucker3D &plucker_in_w) {
     // Try to get initialized parameters.
     if (!plucker_in_w.SelfCheck()) {
-        TriangulateAnalytic(all_q_wc, all_p_wc, lines_in_norm_plane, plucker_in_w);
+        TriangulateAnalytic(all_p_wc, all_q_wc, lines_in_norm_plane, plucker_in_w);
         ReportWarn("[Triangulator] Initial plucker is wrong. Do analytical triangulation to initialize it.");
     }
 

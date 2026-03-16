@@ -31,9 +31,9 @@ public:
     PointTriangulator() = default;
     virtual ~PointTriangulator() = default;
 
-    bool Triangulate(const std::vector<Quat> &q_wc, const std::vector<Vec3> &p_wc, const std::vector<Vec2> &norm_xy, Vec3 &p_w);
+    bool Triangulate(const std::vector<Vec3> &p_wc, const std::vector<Quat> &q_wc, const std::vector<Vec2> &norm_xy, Vec3 &p_w);
 
-    static float GetSineOfParallexAngle(const Quat &q_wci, const Vec3 &p_wci, const Quat &q_wcj, const Vec3 &p_wcj, const Vec2 &norm_xy_i,
+    static float GetSineOfParallexAngle(const Vec3 &p_wci, const Quat &q_wci, const Vec3 &p_wcj, const Quat &q_wcj, const Vec2 &norm_xy_i,
                                         const Vec2 &norm_xy_j);
 
     // Reference for member variables.
@@ -42,9 +42,9 @@ public:
     const Options &options() const { return options_; }
 
 private:
-    bool TriangulateAnalytic(const std::vector<Quat> &q_wc, const std::vector<Vec3> &p_wc, const std::vector<Vec2> &norm_xy, Vec3 &p_w);
-    bool TriangulateIterative(const std::vector<Quat> &q_wc, const std::vector<Vec3> &p_wc, const std::vector<Vec2> &norm_xy, Vec3 &p_w);
-    bool CheckResultInMultiView(const std::vector<Quat> &q_wc, const std::vector<Vec3> &p_wc, const std::vector<Vec2> &norm_xy, const Vec3 &p_w);
+    bool TriangulateAnalytic(const std::vector<Vec3> &p_wc, const std::vector<Quat> &q_wc, const std::vector<Vec2> &norm_xy, Vec3 &p_w);
+    bool TriangulateIterative(const std::vector<Vec3> &p_wc, const std::vector<Quat> &q_wc, const std::vector<Vec2> &norm_xy, Vec3 &p_w);
+    bool CheckResultInMultiView(const std::vector<Vec3> &p_wc, const std::vector<Quat> &q_wc, const std::vector<Vec2> &norm_xy, const Vec3 &p_w);
     inline float Huber(float param, float x) {
         float huber = 1.0f;
         if (x > param) {

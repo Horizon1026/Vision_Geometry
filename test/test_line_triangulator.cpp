@@ -22,20 +22,20 @@ int main(int argc, char **argv) {
     const Vec3 p2_w {0, 2, 8};
     const LinePlucker3D truth_line_w(LineSegment3D(p1_w, p2_w));
     std::vector<LineSegment2D> observe_vec;
-    std::vector<Quat> q_wc_vec;
     std::vector<Vec3> p_wc_vec;
+    std::vector<Quat> q_wc_vec;
 
     const float radius = 8.0f;
     for (uint32_t n = 0; n < number_of_camera_views; ++n) {
         const float theta = n * 2 * M_PI / (number_of_camera_views * 16);
-        const Mat3 R_wc(Eigen::AngleAxis<float>(theta, Vec3::UnitX()));
         const Vec3 p_wc = Vec3(radius * std::cos(theta) - radius + n * 1.0f, radius * std::sin(theta), 1.0f * std::sin(2 * theta));
+        const Mat3 R_wc(Eigen::AngleAxis<float>(theta, Vec3::UnitX()));
         const Vec3 p1_c = R_wc.transpose() * (p1_w - p_wc);
         const Vec3 p2_c = R_wc.transpose() * (p2_w - p_wc);
 
         observe_vec.emplace_back(LineSegment2D(p1_c.head<2>() / p1_c.z(), p2_c.head<2>() / p2_c.z()));
-        q_wc_vec.emplace_back(R_wc);
         p_wc_vec.emplace_back(p_wc);
+        q_wc_vec.emplace_back(R_wc);
     }
 
     // Triangulate line.
@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
     const LinePlucker3D noised_line_w(LineSegment3D(p1_w + Vec3::Random(), p2_w + Vec3::Random()));
     LinePlucker3D estimated_line_w(noised_line_w);
     ReportInfo("Initialized line in plucker is " << LogVec(estimated_line_w.param()));
-    solver.Triangulate(q_wc_vec, p_wc_vec, observe_vec, estimated_line_w);
+    solver.Triangulate(p_wc_vec, q_wc_vec, observe_vec, estimated_line_w);
 
     // Report result.
     ReportInfo("Estimated line in plucker is " << LogVec(estimated_line_w.param()));

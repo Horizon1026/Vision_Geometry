@@ -27,7 +27,7 @@ public:
     LineTriangulator() = default;
     virtual ~LineTriangulator() = default;
 
-    bool Triangulate(const std::vector<Quat> &all_q_wc, const std::vector<Vec3> &all_p_wc, const std::vector<LineSegment2D> &lines_in_norm_plane,
+    bool Triangulate(const std::vector<Vec3> &all_p_wc, const std::vector<Quat> &all_q_wc, const std::vector<LineSegment2D> &lines_in_norm_plane,
                      LinePlucker3D &plucker_in_w);
 
     // Reference for member variables.
@@ -36,11 +36,10 @@ public:
     const Options &options() const { return options_; }
 
 private:
-    bool TriangulateAnalytic(const std::vector<Quat> &all_q_wc, const std::vector<Vec3> &all_p_wc, const std::vector<LineSegment2D> &lines_in_norm_plane,
+    bool TriangulateAnalytic(const std::vector<Vec3> &all_p_wc, const std::vector<Quat> &all_q_wc, const std::vector<LineSegment2D> &lines_in_norm_plane,
                              LinePlucker3D &plucker_in_w);
-    bool TriangulateIterative(const std::vector<Quat> &all_q_wc, const std::vector<Vec3> &all_p_wc, const std::vector<LineSegment2D> &lines_in_norm_plane,
+    bool TriangulateIterative(const std::vector<Vec3> &all_p_wc, const std::vector<Quat> &all_q_wc, const std::vector<LineSegment2D> &lines_in_norm_plane,
                               LinePlucker3D &plucker_in_w);
-
 
 private:
     Options options_;
