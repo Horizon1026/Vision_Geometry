@@ -6,7 +6,7 @@
 
 using namespace vision_geometry;
 
-void TestTriangulatorOnce(const std::string &method_name, const PointTriangulator::Method &method, const std::vector<Vec2> &observe_vec,
+void TestTriangulatorOnce(const std::string &method_name, const PointTriangulator::Method &method, const std::vector<Vec2> &norm_xy,
                           const std::vector<Vec3> &p_wc_vec, const std::vector<Quat> &q_wc_vec, const Vec3 &gt_p_w) {
     float cost_time;
     clock_t begin, end;
@@ -14,14 +14,30 @@ void TestTriangulatorOnce(const std::string &method_name, const PointTriangulato
     const Vec3 p_w_noise = Vec3(0.5f, 0.5f, 0.5f);
     Vec3 res_p_w = gt_p_w + p_w_noise;
 
-    ReportColorInfo(">> Test point_triangulator using " << method_name << " method.");
+    ReportColorInfo(">> Test point_triangulator with [norm_xy] using " << method_name << " method.");
     solver.options().kMethod = method;
     begin = clock();
-    solver.Triangulate(p_wc_vec, q_wc_vec, observe_vec, res_p_w);
+    solver.Triangulate(p_wc_vec, q_wc_vec, norm_xy, res_p_w);
     end = clock();
     cost_time = static_cast<float>(end - begin) / CLOCKS_PER_SEC * 1000.0f;
-    ReportInfo("cost time " << cost_time << " ms");
-    ReportInfo("res p_w is " << res_p_w.transpose());
+    ReportInfo("Estimated p_w " << LogVec(res_p_w) << " within " << cost_time << " ms.");
+}
+
+void TestTriangulatorOnce(const std::string &method_name, const PointTriangulator::Method &method, const std::vector<Vec3> &bearing_xyz,
+                          const std::vector<Vec3> &p_wc_vec, const std::vector<Quat> &q_wc_vec, const Vec3 &gt_p_w) {
+    float cost_time;
+    clock_t begin, end;
+    PointTriangulator solver;
+    const Vec3 p_w_noise = Vec3(0.5f, 0.5f, 0.5f);
+    Vec3 res_p_w = gt_p_w + p_w_noise;
+
+    ReportColorInfo(">> Test point_triangulator with [bearing_xyz] using " << method_name << " method.");
+    solver.options().kMethod = method;
+    begin = clock();
+    solver.Triangulate(p_wc_vec, q_wc_vec, bearing_xyz, res_p_w);
+    end = clock();
+    cost_time = static_cast<float>(end - begin) / CLOCKS_PER_SEC * 1000.0f;
+    ReportInfo("Estimated p_w " << LogVec(res_p_w) << " within " << cost_time << " ms.");
 }
 
 int main(int argc, char **argv) {
@@ -30,7 +46,8 @@ int main(int argc, char **argv) {
 
     const uint32_t number_of_camera_views = 16;  // 相机数目
     const Vec3 p_w {2, 2, 2};
-    std::vector<Vec2> observe_vec;
+    std::vector<Vec2> norm_xy;
+    std::vector<Vec3> bearing_xy;
     std::vector<Vec3> p_wc_vec;
     std::vector<Quat> q_wc_vec;
 
@@ -40,21 +57,29 @@ int main(int argc, char **argv) {
         const Mat3 R_cw = Eigen::AngleAxis<float>(theta, Vec3::UnitZ()).toRotationMatrix();
         const Vec3 p_cw = Vec3(radius * cos(theta) - radius, radius * sin(theta), 1 * sin(2 * theta));
         const Vec3 p_c = R_cw * p_w + p_cw;
-        observe_vec.emplace_back(p_c[0] / p_c[2], p_c[1] / p_c[2]);
+        norm_xy.emplace_back(p_c[0] / p_c[2], p_c[1] / p_c[2]);
+        bearing_xy.emplace_back(p_c.normalized());
         p_wc_vec.emplace_back(-R_cw.transpose() * p_cw);
         q_wc_vec.emplace_back(R_cw.transpose());
     }
 
-    TestTriangulatorOnce("analytic", PointTriangulator::Method::kAnalytic, observe_vec, p_wc_vec, q_wc_vec, p_w);
-    TestTriangulatorOnce("optimize", PointTriangulator::Method::kOptimize, observe_vec, p_wc_vec, q_wc_vec, p_w);
-    TestTriangulatorOnce("optimize huber", PointTriangulator::Method::kOptimizeHuber, observe_vec, p_wc_vec, q_wc_vec, p_w);
-    TestTriangulatorOnce("optimize cauchy", PointTriangulator::Method::kOptimizeCauchy, observe_vec, p_wc_vec, q_wc_vec, p_w);
+    TestTriangulatorOnce("analytic", PointTriangulator::Method::kAnalytic, norm_xy, p_wc_vec, q_wc_vec, p_w);
+    TestTriangulatorOnce("optimize", PointTriangulator::Method::kOptimize, norm_xy, p_wc_vec, q_wc_vec, p_w);
+    TestTriangulatorOnce("optimize huber", PointTriangulator::Method::kOptimizeHuber, norm_xy, p_wc_vec, q_wc_vec, p_w);
+    TestTriangulatorOnce("optimize cauchy", PointTriangulator::Method::kOptimizeCauchy, norm_xy, p_wc_vec, q_wc_vec, p_w);
+
+    TestTriangulatorOnce("analytic", PointTriangulator::Method::kAnalytic, bearing_xy, p_wc_vec, q_wc_vec, p_w);
+    TestTriangulatorOnce("optimize", PointTriangulator::Method::kOptimize, bearing_xy, p_wc_vec, q_wc_vec, p_w);
+    TestTriangulatorOnce("optimize huber", PointTriangulator::Method::kOptimizeHuber, bearing_xy, p_wc_vec, q_wc_vec, p_w);
+    TestTriangulatorOnce("optimize cauchy", PointTriangulator::Method::kOptimizeCauchy, bearing_xy, p_wc_vec, q_wc_vec, p_w);
 
     ReportColorInfo(">> Test computation of parallex angle.");
     PointTriangulator solver;
     for (uint32_t i = 1; i < q_wc_vec.size(); ++i) {
-        const float parallex_angle = solver.GetSineOfParallexAngle(p_wc_vec[0], q_wc_vec[0], p_wc_vec[i], q_wc_vec[i], observe_vec[0], observe_vec[i]);
-        ReportInfo("Feature " << LogVec(p_w) << " has sine parallex angle [" << parallex_angle << "] between camera pose 0 and pose " << i << "");
+        const float parallex_angle_norm_xy = solver.GetSineOfParallexAngle(p_wc_vec[0], q_wc_vec[0], p_wc_vec[i], q_wc_vec[i], norm_xy[0], norm_xy[i]);
+        const float parallex_angle_bearing_xy = solver.GetSineOfParallexAngle(p_wc_vec[0], q_wc_vec[0], p_wc_vec[i], q_wc_vec[i], bearing_xy[0], bearing_xy[i]);
+        ReportInfo("Feature " << LogVec(p_w) << " has sine parallex angle [" << parallex_angle_norm_xy << " | " << parallex_angle_bearing_xy
+                              << "] between camera pose 0 and pose " << i << "");
     }
 
     return 0;
