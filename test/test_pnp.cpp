@@ -11,7 +11,7 @@ void TestPnpOnce(const std::string method_name, const PnpSolver::Method method, 
     Quat res_q_wc = Quat::Identity();
     Vec3 res_p_wc = Vec3::Zero();
     std::vector<uint8_t> status;
-    float cost_time;
+    float cost_time = 0.0f;
     clock_t begin, end;
 
     PnpSolver solver;
@@ -30,7 +30,7 @@ void TestPnpOnce(const std::string &method_name, const PnpSolver::Method &method
     Quat res_q_wi = Quat::Identity();
     Vec3 res_p_wi = Vec3::Zero();
     std::vector<uint8_t> status;
-    float cost_time;
+    float cost_time = 0.0f;
     clock_t begin, end;
 
     PnpSolver solver;

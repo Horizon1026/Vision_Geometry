@@ -8,7 +8,7 @@ using namespace vision_geometry;
 
 void TestTriangulatorOnce(const std::string &method_name, const PointTriangulator::Method &method, const std::vector<Vec2> &norm_xy,
                           const std::vector<Vec3> &p_wc_vec, const std::vector<Quat> &q_wc_vec, const Vec3 &gt_p_w) {
-    float cost_time;
+    float cost_time = 0.0f;
     clock_t begin, end;
     PointTriangulator solver;
     const Vec3 p_w_noise = Vec3(0.5f, 0.5f, 0.5f);
@@ -25,7 +25,7 @@ void TestTriangulatorOnce(const std::string &method_name, const PointTriangulato
 
 void TestTriangulatorOnce(const std::string &method_name, const PointTriangulator::Method &method, const std::vector<Vec3> &bearing_xyz,
                           const std::vector<Vec3> &p_wc_vec, const std::vector<Quat> &q_wc_vec, const Vec3 &gt_p_w) {
-    float cost_time;
+    float cost_time = 0.0f;
     clock_t begin, end;
     PointTriangulator solver;
     const Vec3 p_w_noise = Vec3(0.5f, 0.5f, 0.5f);
