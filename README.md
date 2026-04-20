@@ -17,8 +17,14 @@ Intergration of some vision geometry model algorithm.
     - [x] Point to Plane.
 
 # Dependence
+
+### Project repositories
 - Slam_Utility
-- Visualizor3D (only for test)
+- Visualizor3D（only for test）
+
+### Third-party repositories
+- Eigen3 (>= 3.3.7)（`sudo apt install libeigen3-dev`）
+- dw (`sudo apt install libdw-dev`)
 
 # Compile and Run
 - 第三方仓库的话需要自行 apt-get install 安装
