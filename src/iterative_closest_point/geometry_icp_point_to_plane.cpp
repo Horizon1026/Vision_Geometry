@@ -47,7 +47,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<
 
             // Fit plane model.
             Plane3D plane;
-            CONTINUE_IF(!plane.FitPlaneModelPca(searched_points));
+            CONTINUE_IF(!plane.FitModelPca(searched_points));
 
             // Compute residual.
             const float residual = plane.GetDistanceToPlane(transformed_cur_p_w);
@@ -118,7 +118,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec
 
             // Fit plane model to neighboring points using PCA
             Plane3D plane;
-            CONTINUE_IF(!plane.FitPlaneModelPca(searched_points));
+            CONTINUE_IF(!plane.FitModelPca(searched_points));
 
             // Compute residual and jacobian.
             const float residual = plane.GetDistanceToPlane(transformed_cur_p_w);

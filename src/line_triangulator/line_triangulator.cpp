@@ -31,7 +31,7 @@ bool LineTriangulator::TriangulateAnalytic(const std::vector<Vec3> &all_p_wc, co
     const Vec3 point1_from_c1_in_w = q_wc1 * lines_in_norm_plane[0].start_point_homogeneous() + p_wc1;
     const Vec3 point2_from_c1_in_w = q_wc1 * lines_in_norm_plane[0].end_point_homogeneous() + p_wc1;
     Plane3D plane_of_c1;
-    RETURN_FALSE_IF_FALSE(plane_of_c1.FitPlaneModel(p_wc1, point1_from_c1_in_w, point2_from_c1_in_w));
+    RETURN_FALSE_IF_FALSE(plane_of_c1.FitModel(p_wc1, point1_from_c1_in_w, point2_from_c1_in_w));
 
     // Generate plane from second camera view.
     const Quat &q_wc2 = all_q_wc[1];
@@ -39,7 +39,7 @@ bool LineTriangulator::TriangulateAnalytic(const std::vector<Vec3> &all_p_wc, co
     const Vec3 point1_from_c2_in_w = q_wc2 * lines_in_norm_plane[1].start_point_homogeneous() + p_wc2;
     const Vec3 point2_from_c2_in_w = q_wc2 * lines_in_norm_plane[1].end_point_homogeneous() + p_wc2;
     Plane3D plane_of_c2;
-    RETURN_FALSE_IF_FALSE(plane_of_c2.FitPlaneModel(p_wc2, point1_from_c2_in_w, point2_from_c2_in_w));
+    RETURN_FALSE_IF_FALSE(plane_of_c2.FitModel(p_wc2, point1_from_c2_in_w, point2_from_c2_in_w));
 
     // Estimate line in plucker.
     const Mat4 dual_plucker_matrix = plane_of_c1.param() * plane_of_c2.param().transpose() - plane_of_c2.param() * plane_of_c1.param().transpose();
