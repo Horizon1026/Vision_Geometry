@@ -5,7 +5,7 @@
 
 #include "slam_log_reporter.h"
 
-#include <set>
+#include "set"
 
 namespace vision_geometry {
 

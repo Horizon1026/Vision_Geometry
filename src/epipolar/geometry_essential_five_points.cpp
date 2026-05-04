@@ -3,7 +3,7 @@
 #include "slam_log_reporter.h"
 #include "slam_operations.h"
 
-#include <set>
+#include "set"
 
 namespace vision_geometry {
 
