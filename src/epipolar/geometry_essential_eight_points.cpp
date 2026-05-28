@@ -3,8 +3,6 @@
 #include "slam_log_reporter.h"
 #include "slam_operations.h"
 
-#include "set"
-
 namespace vision_geometry {
 
 bool EpipolarSolver::EstimateEssentialUseEightPoints(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Mat3 &essential) {
@@ -13,7 +11,7 @@ bool EpipolarSolver::EstimateEssentialUseEightPoints(const std::vector<Vec2> &re
     }
 
     const uint32_t rows = std::min(options_.kMaxSolvePointsNumber, static_cast<uint32_t>(ref_norm_xy.size()));
-    A.setZero(rows, 9);
+    Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> A(rows, 9);
 
     // Construct eight point model Ae = 0.
     for (uint32_t i = 0; i < rows; ++i) {
@@ -21,7 +19,7 @@ bool EpipolarSolver::EstimateEssentialUseEightPoints(const std::vector<Vec2> &re
         const float v1 = ref_norm_xy[i].y();
         const float u2 = cur_norm_xy[i].x();
         const float v2 = cur_norm_xy[i].y();
-        A.row(i) << u2 * v1, u2 * v1, u2, v2 * u1, v2 * v1, v2, u1, v1, 1;
+        A.row(i) << u2 * u1, u2 * v1, u2, v2 * u1, v2 * v1, v2, u1, v1, 1;
     }
 
     // Solve Ae = 0. Convert vector e to matrix E.
@@ -33,7 +31,18 @@ bool EpipolarSolver::EstimateEssentialUseEightPoints(const std::vector<Vec2> &re
 
 void EpipolarSolver::RefineEssentialMatrix(Mat3 &essential) {
     Eigen::JacobiSVD<Mat3> svd(essential, Eigen::ComputeFullU | Eigen::ComputeFullV);
-    essential = svd.matrixU() * Vec3(1, 1, 0).asDiagonal() * svd.matrixV();
+    Mat3 U = svd.matrixU();
+    Mat3 V = svd.matrixV();
+
+    // Enforce rotation matrices (det = +1).
+    if (U.determinant() < 0) {
+        U = -U;
+    }
+    if (V.determinant() < 0) {
+        V = -V;
+    }
+
+    essential = U * Vec3(1, 1, 0).asDiagonal() * V.transpose();
 }
 
 }  // namespace vision_geometry

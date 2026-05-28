@@ -27,7 +27,7 @@ public:
 
     struct EpipolarOptions {
         uint32_t kMaxSolvePointsNumber = 200;
-        uint32_t kMaxIteration = 10;
+        uint32_t kMaxIteration = 200;
         float kMaxEpipolarResidual = 1e-3f;
         float kMinRansacInlierRatio = 0.9f;
         EpipolarMethod kMethod = EpipolarMethod::kRansac;
@@ -70,7 +70,7 @@ private:
 
     void GaussJordanElimination(float *e, float *A);
 
-    void FindBestOneFromAllPossibleEssentials(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, const std::vector<Mat3> &essentials,
+    bool FindBestOneFromAllPossibleEssentials(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, const std::vector<Mat3> &essentials,
                                               Mat3 &best_essential);
 
 private:
@@ -81,7 +81,6 @@ private:
 
 private:
     EpipolarOptions options_;
-    Mat A;
 };
 
 }  // namespace vision_geometry

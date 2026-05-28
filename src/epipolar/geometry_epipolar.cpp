@@ -5,6 +5,7 @@
 
 #include "slam_log_reporter.h"
 
+#include "random"
 #include "set"
 
 namespace vision_geometry {
@@ -50,11 +51,8 @@ void EpipolarSolver::DecomposeEssentialMatrix(const Mat3 &essential, Mat3 &R0, M
 bool EpipolarSolver::EstimateEssentialUseAll(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Mat3 &essential,
                                              std::vector<uint8_t> &status) {
     RETURN_FALSE_IF_FALSE(EstimateEssentialUseAll(ref_norm_xy, cur_norm_xy, essential));
-
     RefineEssentialMatrix(essential);
-
     CheckEssentialPairsStatus(ref_norm_xy, cur_norm_xy, essential, status);
-
     return true;
 }
 
@@ -88,6 +86,7 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
             indice_size = 5;
             break;
         case EpipolarModel::kEightPoints:
+        default:
             indice_size = 8;
             break;
     }
@@ -106,14 +105,22 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
     std::vector<float> residuals;
     residuals.reserve(ref_norm_xy.size());
 
-    for (uint32_t iter = 0; iter < options_.kMaxIteration; ++iter) {
+    // Random engine for sampling.
+    std::mt19937 rng(std::random_device{}());
+    std::uniform_int_distribution<uint32_t> dist(0, ref_norm_xy.size() - 1);
+
+    // Adaptive RANSAC.
+    constexpr float kDesiredConfidence = 0.99f;
+    uint32_t max_iter = options_.kMaxIteration;
+
+    for (uint32_t iter = 0; iter < max_iter; ++iter) {
         // Select samples.
         indice.clear();
         sub_norm_xy_ref.clear();
         sub_norm_xy_cur.clear();
 
         while (indice.size() < indice_size) {
-            const uint32_t idx = std::rand() % ref_norm_xy.size();
+            const uint32_t idx = dist(rng);
             indice.insert(idx);
         }
 
@@ -122,8 +129,10 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
             sub_norm_xy_cur.emplace_back(cur_norm_xy[*it]);
         }
 
-        // Compute essential model.
-        RETURN_FALSE_IF_FALSE(EstimateEssentialUseAll(sub_norm_xy_ref, sub_norm_xy_cur, cur_essential));
+        // Compute essential model. Skip iteration if solver fails (e.g., 5-point finds no valid candidate).
+        if (!EstimateEssentialUseAll(sub_norm_xy_ref, sub_norm_xy_cur, cur_essential)) {
+            continue;
+        }
 
         // Apply essential model on all points, statis inliers.
         cur_score = 0;
@@ -139,12 +148,82 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
             best_essential = cur_essential;
         }
 
+        // Early exit if inlier ratio is high enough.
         if (static_cast<float>(cur_score) / static_cast<float>(ref_norm_xy.size()) > options_.kMinRansacInlierRatio) {
             break;
+        }
+
+        // Update adaptive iteration count from current best inlier ratio.
+        if (best_score > indice_size) {
+            const float inlier_ratio = static_cast<float>(best_score) / static_cast<float>(ref_norm_xy.size());
+            const float outlier_ratio = 1.0f - inlier_ratio;
+            if (outlier_ratio > kZeroFloat) {
+                const float required = std::log(1.0f - kDesiredConfidence) /
+                                       std::log(1.0f - std::pow(outlier_ratio, static_cast<float>(indice_size)));
+                if (required < static_cast<float>(max_iter)) {
+                    max_iter = std::min(options_.kMaxIteration, static_cast<uint32_t>(std::ceil(required)));
+                }
+            }
         }
     }
 
     essential = best_essential;
+    RefineEssentialMatrix(essential);
+
+    // If the 5-point model produced very few inliers, fall back to 8-point.
+    constexpr float kMinAcceptableInlierRatio = 0.5f;
+    if (best_score < static_cast<uint32_t>(kMinAcceptableInlierRatio * ref_norm_xy.size()) &&
+        options_.kModel == EpipolarModel::kFivePoints) {
+
+        // Re-run RANSAC with 8-point model.
+        const auto original_model = options_.kModel;
+        options_.kModel = EpipolarModel::kEightPoints;
+        indice_size = 8;
+
+        Mat3 fallback_essential = essential;
+        best_score = 0;
+
+        for (uint32_t iter = 0; iter < max_iter; ++iter) {
+            indice.clear();
+            sub_norm_xy_ref.clear();
+            sub_norm_xy_cur.clear();
+
+            while (indice.size() < indice_size) {
+                const uint32_t idx = dist(rng);
+                indice.insert(idx);
+            }
+
+            for (auto it = indice.cbegin(); it != indice.cend(); ++it) {
+                sub_norm_xy_ref.emplace_back(ref_norm_xy[*it]);
+                sub_norm_xy_cur.emplace_back(cur_norm_xy[*it]);
+            }
+
+            if (!EstimateEssentialUseAll(sub_norm_xy_ref, sub_norm_xy_cur, cur_essential)) {
+                continue;
+            }
+
+            cur_score = 0;
+            ComputeEssentialModelResidual(ref_norm_xy, cur_norm_xy, cur_essential, residuals);
+            for (const float &residual : residuals) {
+                if (residual < options_.kMaxEpipolarResidual) {
+                    ++cur_score;
+                }
+            }
+
+            if (cur_score > best_score) {
+                best_score = cur_score;
+                fallback_essential = cur_essential;
+            }
+        }
+
+        // Use the 8-point result if it has more inliers.
+        if (best_score > static_cast<uint32_t>(kMinAcceptableInlierRatio * ref_norm_xy.size())) {
+            essential = fallback_essential;
+            RefineEssentialMatrix(essential);
+        }
+
+        options_.kModel = original_model;
+    }
 
     CheckEssentialPairsStatus(ref_norm_xy, cur_norm_xy, essential, status);
 
@@ -160,8 +239,24 @@ void EpipolarSolver::ComputeEssentialModelResidual(const std::vector<Vec2> &ref_
     for (uint32_t i = 0; i < ref_norm_xy.size(); ++i) {
         const Vec3 pts_ref = Vec3(ref_norm_xy[i].x(), ref_norm_xy[i].y(), 1.0f);
         const Vec3 pts_cur = Vec3(cur_norm_xy[i].x(), cur_norm_xy[i].y(), 1.0f);
-        residuals[i] = pts_cur.transpose() * essential * pts_ref;
-        residuals[i] = std::fabs(residuals[i]);
+
+        // Epipolar line in the current frame: l' = E * pts_ref.
+        const Vec3 line_cur = essential * pts_ref;
+        // Epipolar line in the reference frame: l = E^T * pts_cur.
+        const Vec3 line_ref = essential.transpose() * pts_cur;
+
+        // Algebraic error (signed distance from point to line in homogeneous coords).
+        const float err = pts_cur.transpose() * essential * pts_ref;
+
+        // Normalize by the norm of the line coefficients to get geometric distance.
+        // Geometric distance = |algebraic error| / sqrt(a^2 + b^2).
+        const float norm_ref = line_ref.head<2>().norm();
+        const float norm_cur = line_cur.head<2>().norm();
+        if (norm_ref > kZeroFloat && norm_cur > kZeroFloat) {
+            residuals[i] = std::fabs(err) * (1.0f / norm_ref + 1.0f / norm_cur) * 0.5f;
+        } else {
+            residuals[i] = std::fabs(err);
+        }
     }
 }
 
@@ -232,7 +327,7 @@ bool EpipolarSolver::RecoverPoseFromEssential(const std::vector<Vec2> &ref_norm_
 
     for (Statis &item: statis) {
         std::vector<Quat> q_rc = {Quat::Identity(), item.q_cr.inverse()};
-        std::vector<Vec3> p_rc = {Vec3::Identity(), -Vec3(item.q_cr.inverse() * item.p_cr)};
+        std::vector<Vec3> p_rc = {Vec3::Zero(), -Vec3(item.q_cr.inverse() * item.p_cr)};
 
         for (uint32_t i = 0; i < ref_norm_xy.size(); ++i) {
             std::vector<Vec2> norm_xy = {ref_norm_xy[i], cur_norm_xy[i]};

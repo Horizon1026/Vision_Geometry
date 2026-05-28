@@ -3,8 +3,6 @@
 #include "slam_log_reporter.h"
 #include "slam_operations.h"
 
-#include "set"
-
 namespace vision_geometry {
 
 bool EpipolarSolver::EstimateEssentialUseFivePoints(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Mat3 &essential) {
@@ -26,7 +24,7 @@ bool EpipolarSolver::EstimateEssentialUseFivePoints(const std::vector<Vec2> &ref
         const float v1 = ref_norm_xy[i].y();
         const float u2 = cur_norm_xy[i].x();
         const float v2 = cur_norm_xy[i].y();
-        Q.row(i) << u2 * v1, u2 * v1, u2, v2 * u1, v2 * v1, v2, u1, v1, 1;
+        Q.row(i) << u2 * u1, u2 * v1, u2, v2 * u1, v2 * v1, v2, u1, v1, 1;
     }
 
     // There 5 points but 9 variables, so the null-space of e = {e|Qe = 0} is 4-DOF, which means E = xX + yY + zZ + wW.
@@ -181,7 +179,20 @@ bool EpipolarSolver::EstimateEssentialUseFivePoints(const std::vector<Vec2> &ref
         e /= e.norm();
         Mat3 essential;
         essential << e(0), e(1), e(2), e(3), e(4), e(5), e(6), e(7), e(8);
+
+        // Verify candidate E satisfies the essential matrix rank-2 constraint.
+        // A valid essential matrix has singular values (σ, σ, 0).
+        Eigen::JacobiSVD<Mat3> svd_check(essential, Eigen::ComputeFullU | Eigen::ComputeFullV);
+        const Vec3 sv = svd_check.singularValues();
+        if (sv(1) < kZeroFloat || sv(0) / sv(1) > 1.1f || sv(2) / sv(1) > 0.1f) {
+            continue;
+        }
+
         all_essentials.emplace_back(essential);
+    }
+
+    if (all_essentials.empty()) {
+        return false;
     }
 
     FindBestOneFromAllPossibleEssentials(ref_norm_xy, cur_norm_xy, all_essentials, essential);
@@ -189,8 +200,12 @@ bool EpipolarSolver::EstimateEssentialUseFivePoints(const std::vector<Vec2> &ref
     return true;
 }
 
-void EpipolarSolver::FindBestOneFromAllPossibleEssentials(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy,
+bool EpipolarSolver::FindBestOneFromAllPossibleEssentials(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy,
                                                           const std::vector<Mat3> &essentials, Mat3 &best_essential) {
+    if (essentials.empty()) {
+        return false;
+    }
+
     float min_residual = INFINITY;
     std::vector<float> residuals;
     residuals.reserve(ref_norm_xy.size());
@@ -207,6 +222,8 @@ void EpipolarSolver::FindBestOneFromAllPossibleEssentials(const std::vector<Vec2
             best_essential = essential;
         }
     }
+
+    return true;
 }
 
 void EpipolarSolver::GaussJordanElimination(float *e, float *A) {
