@@ -94,7 +94,7 @@ bool PointTriangulator::CheckResultInMultiView(const std::vector<Vec3> &p_wc, co
                                                const Vec3 &p_w) {
     for (uint32_t i = 0; i < q_wc.size(); ++i) {
         const Vec3 p_c = q_wc[i].inverse() * (p_w - p_wc[i]);
-        RETURN_FALSE_IF(p_c.z() < 0);
+        RETURN_FALSE_IF(p_c.z() <= kZeroFloat);
         const Vec2 pred_norm_xy = p_c.head<2>() / p_c.z();
         RETURN_FALSE_IF((norm_xy[i] - pred_norm_xy).norm() > options_.kMaxToleranceReprojectionError);
     }
@@ -167,8 +167,8 @@ bool PointTriangulator::TriangulateIterative(const std::vector<Vec3> &p_wc, cons
 
         for (uint32_t i = 0; i < used_camera_num; ++i) {
             const Vec3 p_c = q_wc[i].inverse() * (p_w - p_wc[i]);
+            CONTINUE_IF(p_c.z() < options_.kMinValidDepth || std::isnan(p_c.z()));
             const Vec3 b_c_pred = p_c.normalized();
-            CONTINUE_IF(Eigen::isnan(b_c_pred.array()).any() || Eigen::isinf(b_c_pred.array()).any());
             const Vec3 b_c_obs = bearing_xyz[i];
 
             // Compute residual and jacobian.
@@ -216,6 +216,7 @@ bool PointTriangulator::CheckResultInMultiView(const std::vector<Vec3> &p_wc, co
                                                const Vec3 &p_w) {
     for (uint32_t i = 0; i < q_wc.size(); ++i) {
         const Vec3 p_c = q_wc[i].inverse() * (p_w - p_wc[i]);
+        RETURN_FALSE_IF(p_c.z() <= kZeroFloat);
         const Vec3 pred_bearing_xyz = p_c.normalized();
         RETURN_FALSE_IF((bearing_xyz[i] - pred_bearing_xyz).norm() > options_.kMaxToleranceReprojectionError);
     }

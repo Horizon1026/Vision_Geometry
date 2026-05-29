@@ -3,6 +3,7 @@
 #include "slam_log_reporter.h"
 #include "slam_operations.h"
 
+#include "random"
 #include "set"
 
 namespace vision_geometry {
@@ -109,7 +110,7 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vect
 }
 
 bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status) {
-    RETURN_FALSE_IF(p_w.size() != norm_xy.size() || p_w.empty());
+    RETURN_FALSE_IF(p_w.size() < 3 || p_w.size() != norm_xy.size() || p_w.empty());
 
     Quat best_q_wc = q_wc;
     Vec3 best_p_wc = p_wc;
@@ -122,14 +123,17 @@ bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vect
     sub_pts3d.reserve(3);
     sub_pts2d.reserve(3);
 
+    static std::mt19937 rng(std::random_device {}());
+
     for (uint32_t iter = 0; iter < options_.kMaxIteration; ++iter) {
         // Select 3 points randomly.
         indice.clear();
         sub_pts3d.clear();
         sub_pts2d.clear();
 
+        std::uniform_int_distribution<uint32_t> dist(0, p_w.size() - 1);
         while (indice.size() < 3) {
-            indice.insert(std::rand() % p_w.size());
+            indice.insert(dist(rng));
         }
 
         for (auto it = indice.begin(); it != indice.end(); ++it) {
@@ -140,7 +144,9 @@ bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vect
         // Compute pnp model with 3 points.
         q_wc = best_q_wc;
         p_wc = best_p_wc;
-        EstimatePoseUseAll(sub_pts3d, sub_pts2d, q_wc, p_wc);
+        if (!EstimatePoseUseAll(sub_pts3d, sub_pts2d, q_wc, p_wc)) {
+            continue;
+        }
 
         // Apply pnp model on all points, statis inliers.
         score = 0;

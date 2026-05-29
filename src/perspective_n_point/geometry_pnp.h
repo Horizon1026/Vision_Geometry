@@ -25,7 +25,7 @@ public:
 
     struct Options {
         uint32_t kMaxSolvePointsNumber = 200;
-        uint32_t kMaxIteration = 10;
+        uint32_t kMaxIteration = 50;
         float kMaxConvergeStep = 1e-6f;
         float kMaxConvergeResidual = 1e-3f;
         float kMinRansacInlierRatio = 0.9f;
@@ -66,21 +66,21 @@ private:
     bool EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic, const std::vector<Vec2> &norm_xy,
                             Quat &q_wi, Vec3 &p_wi, std::vector<uint8_t> &status);
 
+    // Huber weight function: w = 1 if |r| <= delta, w = delta/|r| if |r| > delta.
     inline float Huber(float param, float x) {
         float huber = 1.0f;
         if (x > param) {
-            huber = 2.0f * std::sqrt(x) * param - param * param;
-            huber /= x;
+            huber = param / x;
         }
         return huber;
     }
 
+    // Cauchy weight function: w = 1 if |r| <= delta, w = delta^2/(delta^2 + r^2) if |r| > delta.
     inline float Cauchy(float param, float x) {
         float cauchy = 1.0f;
         float param2 = param * param;
         if (x > param) {
-            cauchy = param2 * std::log(1.0f / param2 + 1.0f);
-            cauchy /= x;
+            cauchy = param2 / (param2 + x * x);
         }
         return cauchy;
     }

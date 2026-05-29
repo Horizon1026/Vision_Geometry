@@ -16,6 +16,8 @@ void TestPnpOnce(const std::string method_name, const PnpSolver::Method method, 
 
     PnpSolver solver;
     solver.options().kMethod = method;
+    solver.options().kDefaultHuberKernelParameter = 0.01f;
+    solver.options().kDefaultCauchyKernelParameter = 0.01f;
 
     ReportColorInfo(">> Test pnp " << method_name << ".");
     begin = clock();
@@ -35,6 +37,8 @@ void TestPnpOnce(const std::string &method_name, const PnpSolver::Method &method
 
     PnpSolver solver;
     solver.options().kMethod = method;
+    solver.options().kDefaultHuberKernelParameter = 0.01f;
+    solver.options().kDefaultCauchyKernelParameter = 0.01f;
 
     ReportColorInfo(">> Test pnp " << method_name << ".");
     begin = clock();
