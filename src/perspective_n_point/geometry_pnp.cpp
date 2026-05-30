@@ -224,4 +224,29 @@ void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<V
     }
 }
 
+float PnpSolver::ComputeAverageReprojectionError(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, const Quat &q_wc, const Vec3 &p_wc) const {
+    if (p_w.empty() || p_w.size() != norm_xy.size()) {
+        return -1.0f;
+    }
+
+    float total_error = 0.0f;
+    uint32_t valid_count = 0;
+
+    for (uint32_t i = 0; i < p_w.size(); ++i) {
+        const Vec3 p_c = q_wc.inverse() * (p_w[i] - p_wc);
+        if (p_c.z() <= kZeroFloat || std::isnan(p_c.z())) {
+            continue;
+        }
+        const Vec2 proj(p_c.x() / p_c.z(), p_c.y() / p_c.z());
+        total_error += (proj - norm_xy[i]).norm();
+        ++valid_count;
+    }
+
+    if (valid_count == 0) {
+        return -1.0f;
+    }
+
+    return total_error / static_cast<float>(valid_count);
+}
+
 }  // namespace vision_geometry
