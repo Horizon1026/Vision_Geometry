@@ -6,6 +6,7 @@ Intergration of some vision geometry model algorithm.
 - [x] Triangulation
     - [x] Analytic.
     - [x] Iterative.
+    - [x] Line triangulation.
 - [ ] Epipolar Constraint
     - [x] Essential
     - [ ] Fundamental
@@ -15,16 +16,19 @@ Intergration of some vision geometry model algorithm.
     - [x] Point to Point (SVD method).
     - [x] Point to Line.
     - [x] Point to Plane.
+- [x] Normal Distribution Transform.
 
 # Dependence
 
 ### Project repositories
 - Slam_Utility
+- Visualizor2D（only for test）
 - Visualizor3D（only for test）
 
 ### Third-party repositories
 - Eigen3 (>= 3.3.7)（`sudo apt install libeigen3-dev`）
-- dw (`sudo apt install libdw-dev`)
+- glfw3（`sudo apt install libglfw3-dev`）（only for test）
+- nanoflann（bundled in Slam_Utility/src/data_struct/kd_tree）
 
 # Compile and Run
 - 第三方仓库的话需要自行 apt-get install 安装
