@@ -1,11 +1,13 @@
 #include "geometry_icp.h"
+
 #include "kd_tree.h"
-#include "memory"
 #include "nanoflann.h"
 #include "plane.h"
 #include "slam_basic_math.h"
 #include "slam_log_reporter.h"
 #include "slam_operations.h"
+
+#include "memory"
 #include "numeric"
 
 namespace vision_geometry {

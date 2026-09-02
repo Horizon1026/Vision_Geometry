@@ -1,9 +1,10 @@
+#include "geometry_pnp.h"
+
+#include "slam_log_reporter.h"
+
 #include "cmath"
 #include "fstream"
 #include "iostream"
-
-#include "geometry_pnp.h"
-#include "slam_log_reporter.h"
 
 using namespace vision_geometry;
 

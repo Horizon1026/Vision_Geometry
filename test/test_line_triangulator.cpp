@@ -1,12 +1,12 @@
-#include "fstream"
-#include "iostream"
+#include "line_triangulator.h"
 
 #include "line_segment.h"
-#include "line_triangulator.h"
 #include "slam_basic_math.h"
 #include "slam_log_reporter.h"
-
 #include "visualizor_3d.h"
+
+#include "fstream"
+#include "iostream"
 
 using namespace slam_utility;
 using namespace slam_visualizor;

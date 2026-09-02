@@ -1,11 +1,11 @@
-#include "cmath"
-#include "fstream"
-#include "iostream"
-
 #include "relative_rotation.h"
+
 #include "slam_basic_math.h"
 #include "slam_log_reporter.h"
 
+#include "cmath"
+#include "fstream"
+#include "iostream"
 
 int main(int argc, char **argv) {
     ReportInfo(YELLOW ">> Test pure relative rotation estimator." RESET_COLOR);

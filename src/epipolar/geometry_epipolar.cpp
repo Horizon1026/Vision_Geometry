@@ -1,8 +1,8 @@
 #include "geometry_epipolar.h"
 #include "point_triangulator.h"
+
 #include "slam_basic_math.h"
 #include "slam_operations.h"
-
 #include "slam_log_reporter.h"
 
 #include "random"

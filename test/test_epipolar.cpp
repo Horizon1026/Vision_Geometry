@@ -1,9 +1,10 @@
+#include "geometry_epipolar.h"
+
+#include "slam_log_reporter.h"
+
 #include "cmath"
 #include "fstream"
 #include "iostream"
-
-#include "geometry_epipolar.h"
-#include "slam_log_reporter.h"
 
 void TestEssentialFivePointsModel(vision_geometry::EpipolarSolver &solver, std::vector<Vec2> &ref_norm_xy, std::vector<Vec2> &cur_norm_xy,
                                   std::vector<uint8_t> &status) {

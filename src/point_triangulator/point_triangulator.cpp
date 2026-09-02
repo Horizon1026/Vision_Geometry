@@ -1,4 +1,5 @@
 #include "point_triangulator.h"
+
 #include "slam_basic_math.h"
 #include "slam_operations.h"
 
