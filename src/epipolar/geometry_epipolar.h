@@ -38,6 +38,7 @@ public:
     EpipolarSolver() = default;
     virtual ~EpipolarSolver() = default;
 
+    // For RANSAC, a nonempty status selects kSolved (tracked) pairs; other entries are preserved.
     bool EstimateEssential(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Mat3 &essential, std::vector<uint8_t> &status);
 
     bool RecoverPoseFromEssential(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, const Mat3 &essential, Mat3 &R_cr, Vec3 &t_cr);

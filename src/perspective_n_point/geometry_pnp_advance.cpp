@@ -123,6 +123,16 @@ bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vect
                                    Quat &q_wi, Vec3 &p_wi, std::vector<uint8_t> &status) {
     RETURN_FALSE_IF(p_w.size() < 3 || p_w.size() != norm_xy.size() || p_w.empty());
 
+    // Select only tracked pairs; an empty status means that all pairs are available.
+    RETURN_FALSE_IF(!status.empty() && status.size() != p_w.size());
+    std::vector<uint32_t> tracked_indices;
+    tracked_indices.reserve(p_w.size());
+    for (uint32_t i = 0; i < p_w.size(); ++i) {
+        CONTINUE_IF(!status.empty() && status[i] != static_cast<uint8_t>(Result::kSolved));
+        tracked_indices.emplace_back(i);
+    }
+    RETURN_FALSE_IF(tracked_indices.size() < 3);
+
     Quat best_q_wi = q_wi;
     Vec3 best_p_wi = p_wi;
     uint32_t best_score = 0;
@@ -148,9 +158,9 @@ bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vect
         sub_p_ic.clear();
         sub_pts2d.clear();
 
-        std::uniform_int_distribution<uint32_t> dist(0, p_w.size() - 1);
+        std::uniform_int_distribution<uint32_t> dist(0, tracked_indices.size() - 1);
         while (indice.size() < 3) {
-            indice.insert(dist(rng));
+            indice.insert(tracked_indices[dist(rng)]);
         }
 
         for (auto it = indice.begin(); it != indice.end(); ++it) {
@@ -167,9 +177,9 @@ bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vect
             continue;
         }
 
-        // Apply pnp model on all points, statis inliers.
+        // Apply pnp model on tracked points, statis inliers.
         score = 0;
-        for (uint32_t i = 0; i < p_w.size(); ++i) {
+        for (const auto i : tracked_indices) {
             const Vec3 p_wc = q_wi * p_ic[i] + p_wi;
             const Quat q_wc = q_wi * q_ic[i];
             const Vec3 p_c = q_wc.inverse() * (p_w[i] - p_wc);
@@ -185,10 +195,21 @@ bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vect
             best_p_wi = p_wi;
         }
 
-        BREAK_IF(float(score) / float(p_w.size()) > options_.kMinRansacInlierRatio);
+        BREAK_IF(float(score) / float(tracked_indices.size()) > options_.kMinRansacInlierRatio);
     }
 
-    CheckPnpStatus(p_w, q_ic, p_ic, norm_xy, q_wi, p_wi, status);
+    // Check and update only selected pairs, preserving all excluded states.
+    std::vector<uint8_t> checked_status(p_w.size(), static_cast<uint8_t>(Result::kLargeResidual));
+    for (const auto i : tracked_indices) {
+        checked_status[i] = static_cast<uint8_t>(Result::kSolved);
+    }
+    CheckPnpStatus(p_w, q_ic, p_ic, norm_xy, q_wi, p_wi, checked_status);
+    if (status.empty()) {
+        status.resize(p_w.size());
+    }
+    for (const auto i : tracked_indices) {
+        status[i] = checked_status[i];
+    }
     return true;
 }
 

@@ -40,6 +40,7 @@ public:
     explicit PnpSolver() = default;
     virtual ~PnpSolver() = default;
 
+    // For RANSAC, a nonempty status selects kSolved (tracked) pairs; other entries are preserved.
     bool EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status);
     void CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status);
     float ComputeAverageReprojectionError(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, const Quat &q_wc, const Vec3 &p_wc) const;

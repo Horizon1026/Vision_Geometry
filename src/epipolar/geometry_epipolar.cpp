@@ -79,6 +79,23 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
         return false;
     }
 
+    // An empty status vector means that all input pairs are available for estimation.
+    RETURN_FALSE_IF(!status.empty() && status.size() != ref_norm_xy.size());
+    std::vector<uint32_t> tracked_indices;
+    std::vector<Vec2> tracked_ref_norm_xy;
+    std::vector<Vec2> tracked_cur_norm_xy;
+    tracked_indices.reserve(ref_norm_xy.size());
+    tracked_ref_norm_xy.reserve(ref_norm_xy.size());
+    tracked_cur_norm_xy.reserve(cur_norm_xy.size());
+    for (uint32_t i = 0; i < ref_norm_xy.size(); ++i) {
+        CONTINUE_IF(!status.empty() && status[i] != static_cast<uint8_t>(EpipolarResult::kSolved));
+        tracked_indices.emplace_back(i);
+        tracked_ref_norm_xy.emplace_back(ref_norm_xy[i]);
+        tracked_cur_norm_xy.emplace_back(cur_norm_xy[i]);
+    }
+    // The five-point model may fall back to the eight-point model.
+    RETURN_FALSE_IF(tracked_indices.size() < 8);
+
     // Preparation.
     uint32_t indice_size = 0;
     switch (options_.kModel) {
@@ -103,11 +120,11 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
     sub_norm_xy_cur.reserve(indice_size);
 
     std::vector<float> residuals;
-    residuals.reserve(ref_norm_xy.size());
+    residuals.reserve(tracked_ref_norm_xy.size());
 
     // Random engine for sampling.
     std::mt19937 rng(std::random_device{}());
-    std::uniform_int_distribution<uint32_t> dist(0, ref_norm_xy.size() - 1);
+    std::uniform_int_distribution<uint32_t> dist(0, tracked_ref_norm_xy.size() - 1);
 
     // Adaptive RANSAC.
     constexpr float kDesiredConfidence = 0.99f;
@@ -125,8 +142,8 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
         }
 
         for (auto it = indice.cbegin(); it != indice.cend(); ++it) {
-            sub_norm_xy_ref.emplace_back(ref_norm_xy[*it]);
-            sub_norm_xy_cur.emplace_back(cur_norm_xy[*it]);
+            sub_norm_xy_ref.emplace_back(tracked_ref_norm_xy[*it]);
+            sub_norm_xy_cur.emplace_back(tracked_cur_norm_xy[*it]);
         }
 
         // Compute essential model. Skip iteration if solver fails (e.g., 5-point finds no valid candidate).
@@ -136,7 +153,7 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
 
         // Apply essential model on all points, statis inliers.
         cur_score = 0;
-        ComputeEssentialModelResidual(ref_norm_xy, cur_norm_xy, cur_essential, residuals);
+        ComputeEssentialModelResidual(tracked_ref_norm_xy, tracked_cur_norm_xy, cur_essential, residuals);
         for (const float &residual: residuals) {
             if (residual < options_.kMaxEpipolarResidual) {
                 ++cur_score;
@@ -149,13 +166,13 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
         }
 
         // Early exit if inlier ratio is high enough.
-        if (static_cast<float>(cur_score) / static_cast<float>(ref_norm_xy.size()) > options_.kMinRansacInlierRatio) {
+        if (static_cast<float>(cur_score) / static_cast<float>(tracked_ref_norm_xy.size()) > options_.kMinRansacInlierRatio) {
             break;
         }
 
         // Update adaptive iteration count from current best inlier ratio.
         if (best_score > indice_size) {
-            const float inlier_ratio = static_cast<float>(best_score) / static_cast<float>(ref_norm_xy.size());
+            const float inlier_ratio = static_cast<float>(best_score) / static_cast<float>(tracked_ref_norm_xy.size());
             const float outlier_ratio = 1.0f - inlier_ratio;
             if (outlier_ratio > kZeroFloat) {
                 const float required = std::log(1.0f - kDesiredConfidence) /
@@ -172,7 +189,7 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
 
     // If the 5-point model produced very few inliers, fall back to 8-point.
     constexpr float kMinAcceptableInlierRatio = 0.5f;
-    if (best_score < static_cast<uint32_t>(kMinAcceptableInlierRatio * ref_norm_xy.size()) &&
+    if (best_score < static_cast<uint32_t>(kMinAcceptableInlierRatio * tracked_ref_norm_xy.size()) &&
         options_.kModel == EpipolarModel::kFivePoints) {
 
         // Re-run RANSAC with 8-point model.
@@ -194,8 +211,8 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
             }
 
             for (auto it = indice.cbegin(); it != indice.cend(); ++it) {
-                sub_norm_xy_ref.emplace_back(ref_norm_xy[*it]);
-                sub_norm_xy_cur.emplace_back(cur_norm_xy[*it]);
+                sub_norm_xy_ref.emplace_back(tracked_ref_norm_xy[*it]);
+                sub_norm_xy_cur.emplace_back(tracked_cur_norm_xy[*it]);
             }
 
             if (!EstimateEssentialUseAll(sub_norm_xy_ref, sub_norm_xy_cur, cur_essential)) {
@@ -203,7 +220,7 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
             }
 
             cur_score = 0;
-            ComputeEssentialModelResidual(ref_norm_xy, cur_norm_xy, cur_essential, residuals);
+            ComputeEssentialModelResidual(tracked_ref_norm_xy, tracked_cur_norm_xy, cur_essential, residuals);
             for (const float &residual : residuals) {
                 if (residual < options_.kMaxEpipolarResidual) {
                     ++cur_score;
@@ -217,7 +234,7 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
         }
 
         // Use the 8-point result if it has more inliers.
-        if (best_score > static_cast<uint32_t>(kMinAcceptableInlierRatio * ref_norm_xy.size())) {
+        if (best_score > static_cast<uint32_t>(kMinAcceptableInlierRatio * tracked_ref_norm_xy.size())) {
             essential = fallback_essential;
             RefineEssentialMatrix(essential);
         }
@@ -225,7 +242,15 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
         options_.kModel = original_model;
     }
 
-    CheckEssentialPairsStatus(ref_norm_xy, cur_norm_xy, essential, status);
+    // Write results back to original indices, preserving the status of excluded pairs.
+    std::vector<uint8_t> tracked_status;
+    CheckEssentialPairsStatus(tracked_ref_norm_xy, tracked_cur_norm_xy, essential, tracked_status);
+    if (status.empty()) {
+        status.assign(ref_norm_xy.size(), static_cast<uint8_t>(EpipolarResult::kUnsolved));
+    }
+    for (uint32_t i = 0; i < tracked_indices.size(); ++i) {
+        status[tracked_indices[i]] = tracked_status[i];
+    }
 
     return true;
 }
