@@ -13,14 +13,15 @@ void TestPnpOnce(const std::string method_name, const PnpSolver::Method method, 
     Vec3 res_p_wc = Vec3::Zero();
     std::vector<uint8_t> status;
     float cost_time = 0.0f;
-    clock_t begin, end;
+    clock_t begin = 0;
+    clock_t end = 0;
 
-    PnpSolver solver;
+    PnpSolver solver {};
     solver.options().kMethod = method;
     solver.options().kDefaultHuberKernelParameter = 0.01f;
     solver.options().kDefaultCauchyKernelParameter = 0.01f;
 
-    ReportColorInfo(">> Test pnp " << method_name << ".");
+    ReportColorInfo(">> Test pnp with [norm_xy] " << method_name << ".");
     begin = clock();
     solver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
     end = clock();
@@ -34,16 +35,61 @@ void TestPnpOnce(const std::string &method_name, const PnpSolver::Method &method
     Vec3 res_p_wi = Vec3::Zero();
     std::vector<uint8_t> status;
     float cost_time = 0.0f;
-    clock_t begin, end;
+    clock_t begin = 0;
+    clock_t end = 0;
 
-    PnpSolver solver;
+    PnpSolver solver {};
     solver.options().kMethod = method;
     solver.options().kDefaultHuberKernelParameter = 0.01f;
     solver.options().kDefaultCauchyKernelParameter = 0.01f;
 
-    ReportColorInfo(">> Test pnp " << method_name << ".");
+    ReportColorInfo(">> Test pnp with [norm_xy] " << method_name << ".");
     begin = clock();
     solver.EstimatePose(pts_3d, all_q_ic, all_p_ic, pts_2d, res_q_wi, res_p_wi, status);
+    end = clock();
+    cost_time = static_cast<float>(end - begin) / CLOCKS_PER_SEC * 1000.0f;
+    ReportInfo("cost time " << cost_time << " ms");
+    ReportInfo("res_q_wi is " << LogQuat(res_q_wi) << ", res_p_wi is " << LogVec(res_p_wi));
+}
+
+void TestPnpOnce(const std::string method_name, const PnpSolver::Method method, const std::vector<Vec3> &pts_3d, const std::vector<Vec3> &bearing_xyz) {
+    Quat res_q_wc = Quat::Identity();
+    Vec3 res_p_wc = Vec3::Zero();
+    std::vector<uint8_t> status;
+    float cost_time = 0.0f;
+    clock_t begin = 0;
+    clock_t end = 0;
+
+    PnpSolver solver {};
+    solver.options().kMethod = method;
+    solver.options().kDefaultHuberKernelParameter = 0.01f;
+    solver.options().kDefaultCauchyKernelParameter = 0.01f;
+
+    ReportColorInfo(">> Test pnp with [bearing_xyz] " << method_name << ".");
+    begin = clock();
+    solver.EstimatePose(pts_3d, bearing_xyz, res_q_wc, res_p_wc, status);
+    end = clock();
+    cost_time = static_cast<float>(end - begin) / CLOCKS_PER_SEC * 1000.0f;
+    ReportInfo("cost time is " << cost_time << " ms");
+    ReportInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc));
+}
+void TestPnpOnce(const std::string &method_name, const PnpSolver::Method &method, const std::vector<Vec3> &pts_3d, const std::vector<Quat> &all_q_ic,
+                 const std::vector<Vec3> &all_p_ic, const std::vector<Vec3> &bearing_xyz) {
+    Quat res_q_wi = Quat::Identity();
+    Vec3 res_p_wi = Vec3::Zero();
+    std::vector<uint8_t> status;
+    float cost_time = 0.0f;
+    clock_t begin = 0;
+    clock_t end = 0;
+
+    PnpSolver solver {};
+    solver.options().kMethod = method;
+    solver.options().kDefaultHuberKernelParameter = 0.01f;
+    solver.options().kDefaultCauchyKernelParameter = 0.01f;
+
+    ReportColorInfo(">> Test pnp with [bearing_xyz] " << method_name << ".");
+    begin = clock();
+    solver.EstimatePose(pts_3d, all_q_ic, all_p_ic, bearing_xyz, res_q_wi, res_p_wi, status);
     end = clock();
     cost_time = static_cast<float>(end - begin) / CLOCKS_PER_SEC * 1000.0f;
     ReportInfo("cost time " << cost_time << " ms");
@@ -73,9 +119,11 @@ int main(int argc, char **argv) {
 
     // Generate observations.
     std::vector<Vec2> pts_2d;
+    std::vector<Vec3> bearing_xyz;
     for (uint32_t i = 0; i < pts_3d.size(); i++) {
         Vec3 p_c = R_wc.transpose() * (pts_3d[i] - p_wc);
         pts_2d.emplace_back(Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)));
+        bearing_xyz.emplace_back(p_c.normalized());
     }
 
     // Generate T_ic.
@@ -87,6 +135,8 @@ int main(int argc, char **argv) {
     for (uint32_t i = 0; i < pts_3d.size() / 100; i++) {
         uint32_t idx = rand() % pts_3d.size();
         pts_2d[idx](0, 0) += 0.1;
+        bearing_xyz[idx].x() += 0.1f * bearing_xyz[idx].z();
+        bearing_xyz[idx].normalize();
         outliers_indice.emplace_back(idx);
     }
 
@@ -100,5 +150,16 @@ int main(int argc, char **argv) {
     TestPnpOnce("align T_ic, using ransac", PnpSolver::Method::kOptimizeRansac, pts_3d, all_q_ic, all_p_ic, pts_2d);
     TestPnpOnce("align T_ic, using all points with huber kernel", PnpSolver::Method::kOptimizeHuber, pts_3d, all_q_ic, all_p_ic, pts_2d);
     TestPnpOnce("align T_ic, using all points with cauchy kernel", PnpSolver::Method::kOptimizeCauchy, pts_3d, all_q_ic, all_p_ic, pts_2d);
+
+    TestPnpOnce("using all points by optimization", PnpSolver::Method::kOptimize, pts_3d, bearing_xyz);
+    TestPnpOnce("using ransac", PnpSolver::Method::kOptimizeRansac, pts_3d, bearing_xyz);
+    TestPnpOnce("using all points with huber kernel", PnpSolver::Method::kOptimizeHuber, pts_3d, bearing_xyz);
+    TestPnpOnce("using all points with cauchy kernel", PnpSolver::Method::kOptimizeCauchy, pts_3d, bearing_xyz);
+    TestPnpOnce("using all points by DLT", PnpSolver::Method::kDirectLinearTransform, pts_3d, bearing_xyz);
+
+    TestPnpOnce("align T_ic, using all points by optimization", PnpSolver::Method::kOptimize, pts_3d, all_q_ic, all_p_ic, bearing_xyz);
+    TestPnpOnce("align T_ic, using ransac", PnpSolver::Method::kOptimizeRansac, pts_3d, all_q_ic, all_p_ic, bearing_xyz);
+    TestPnpOnce("align T_ic, using all points with huber kernel", PnpSolver::Method::kOptimizeHuber, pts_3d, all_q_ic, all_p_ic, bearing_xyz);
+    TestPnpOnce("align T_ic, using all points with cauchy kernel", PnpSolver::Method::kOptimizeCauchy, pts_3d, all_q_ic, all_p_ic, bearing_xyz);
     return 0;
 }

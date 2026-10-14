@@ -40,13 +40,22 @@ public:
     explicit PnpSolver() = default;
     virtual ~PnpSolver() = default;
 
+    // Bearing overloads normalize camera-frame rays without projecting onto the image plane.
+
     // For RANSAC, a nonempty status selects kSolved (tracked) pairs; other entries are preserved.
     bool EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status);
+    bool EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status);
     void CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status);
+    void CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status);
     float ComputeAverageReprojectionError(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, const Quat &q_wc, const Vec3 &p_wc) const;
+    float ComputeAverageReprojectionError(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, const Quat &q_wc, const Vec3 &p_wc) const;
     bool EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic, const std::vector<Vec2> &norm_xy, Quat &q_wi,
                       Vec3 &p_wi, std::vector<uint8_t> &status);
+    bool EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic, const std::vector<Vec3> &bearing_xyz, Quat &q_wi,
+                      Vec3 &p_wi, std::vector<uint8_t> &status);
     void CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic, const std::vector<Vec2> &norm_xy,
+                        Quat &q_wi, Vec3 &p_wi, std::vector<uint8_t> &status);
+    void CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic, const std::vector<Vec3> &bearing_xyz,
                         Quat &q_wi, Vec3 &p_wi, std::vector<uint8_t> &status);
 
     // Reference for member variables.
@@ -68,24 +77,17 @@ private:
     bool EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic, const std::vector<Vec2> &norm_xy,
                             Quat &q_wi, Vec3 &p_wi, std::vector<uint8_t> &status);
 
+    bool OptimizeBearings(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic,
+                          const std::vector<Vec3> &bearing_xyz, Quat &q_wi, Vec3 &p_wi);
+    bool EstimatePoseDlt(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, Quat &q_wc, Vec3 &p_wc);
+
+    bool SolveDltConstraint(const Mat &A, Mat3x4 &P, bool check_rank);
+
     // Huber weight function: w = 1 if |r| <= delta, w = delta/|r| if |r| > delta.
-    inline float Huber(float param, float x) {
-        float huber = 1.0f;
-        if (x > param) {
-            huber = param / x;
-        }
-        return huber;
-    }
+    float Huber(float param, float x);
 
     // Cauchy weight function: w = 1 if |r| <= delta, w = delta^2/(delta^2 + r^2) if |r| > delta.
-    inline float Cauchy(float param, float x) {
-        float cauchy = 1.0f;
-        float param2 = param * param;
-        if (x > param) {
-            cauchy = param2 / (param2 + x * x);
-        }
-        return cauchy;
-    }
+    float Cauchy(float param, float x);
 
 private:
     Options options_;

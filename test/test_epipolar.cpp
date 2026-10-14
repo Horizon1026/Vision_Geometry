@@ -8,12 +8,13 @@
 
 void TestEssentialFivePointsModel(vision_geometry::EpipolarSolver &solver, std::vector<Vec2> &ref_norm_xy, std::vector<Vec2> &cur_norm_xy,
                                   std::vector<uint8_t> &status) {
-    clock_t begin, end;
-    Mat3 essential;
-    Mat3 R_cr;
-    Vec3 t_cr;
+    clock_t begin = 0;
+    clock_t end = 0;
+    Mat3 essential = Mat3::Zero();
+    Mat3 R_cr = Mat3::Zero();
+    Vec3 t_cr = Vec3::Zero();
 
-    ReportColorInfo(">> Test epipolar using five points model.");
+    ReportColorInfo(">> Test epipolar with [norm_xy] using five points model.");
     solver.options().kModel = vision_geometry::EpipolarSolver::EpipolarModel::kFivePoints;
 
     begin = clock();
@@ -31,12 +32,13 @@ void TestEssentialFivePointsModel(vision_geometry::EpipolarSolver &solver, std::
 
 void TestEssentialEightPointsModel(vision_geometry::EpipolarSolver &solver, std::vector<Vec2> &ref_norm_xy, std::vector<Vec2> &cur_norm_xy,
                                    std::vector<uint8_t> &status) {
-    clock_t begin, end;
-    Mat3 essential;
-    Mat3 R_cr;
-    Vec3 t_cr;
+    clock_t begin = 0;
+    clock_t end = 0;
+    Mat3 essential = Mat3::Zero();
+    Mat3 R_cr = Mat3::Zero();
+    Vec3 t_cr = Vec3::Zero();
 
-    ReportColorInfo(">> Test epipolar using eight points model.");
+    ReportColorInfo(">> Test epipolar with [norm_xy] using eight points model.");
     solver.options().kModel = vision_geometry::EpipolarSolver::EpipolarModel::kEightPoints;
 
     begin = clock();
@@ -52,6 +54,53 @@ void TestEssentialEightPointsModel(vision_geometry::EpipolarSolver &solver, std:
     ReportInfo("t_cr is " << t_cr.transpose());
 }
 
+void TestEssentialFivePointsModel(vision_geometry::EpipolarSolver &solver, std::vector<Vec3> &ref_bearing_xyz, std::vector<Vec3> &cur_bearing_xyz,
+                                  std::vector<uint8_t> &status) {
+    clock_t begin = 0;
+    clock_t end = 0;
+    Mat3 essential = Mat3::Zero();
+    Mat3 R_cr = Mat3::Zero();
+    Vec3 t_cr = Vec3::Zero();
+
+    ReportColorInfo(">> Test epipolar with [bearing_xyz] using five points model.");
+    solver.options().kModel = vision_geometry::EpipolarSolver::EpipolarModel::kFivePoints;
+
+    begin = clock();
+    solver.EstimateEssential(ref_bearing_xyz, cur_bearing_xyz, essential, status);
+    end = clock();
+
+    float cost_time = static_cast<float>(end - begin) / CLOCKS_PER_SEC * 1000.0f;
+    ReportInfo("cost time is " << cost_time << " ms");
+    ReportInfo("essential is\n" << essential);
+
+    solver.RecoverPoseFromEssential(ref_bearing_xyz, cur_bearing_xyz, essential, R_cr, t_cr);
+    ReportInfo("R_cr is\n" << R_cr);
+    ReportInfo("t_cr is " << t_cr.transpose());
+}
+
+void TestEssentialEightPointsModel(vision_geometry::EpipolarSolver &solver, std::vector<Vec3> &ref_bearing_xyz, std::vector<Vec3> &cur_bearing_xyz,
+                                   std::vector<uint8_t> &status) {
+    clock_t begin = 0;
+    clock_t end = 0;
+    Mat3 essential = Mat3::Zero();
+    Mat3 R_cr = Mat3::Zero();
+    Vec3 t_cr = Vec3::Zero();
+
+    ReportColorInfo(">> Test epipolar with [bearing_xyz] using eight points model.");
+    solver.options().kModel = vision_geometry::EpipolarSolver::EpipolarModel::kEightPoints;
+
+    begin = clock();
+    solver.EstimateEssential(ref_bearing_xyz, cur_bearing_xyz, essential, status);
+    end = clock();
+
+    float cost_time = static_cast<float>(end - begin) / CLOCKS_PER_SEC * 1000.0f;
+    ReportInfo("cost time is " << cost_time << " ms");
+    ReportInfo("essential is\n" << essential);
+
+    solver.RecoverPoseFromEssential(ref_bearing_xyz, cur_bearing_xyz, essential, R_cr, t_cr);
+    ReportInfo("R_cr is\n" << R_cr);
+    ReportInfo("t_cr is " << t_cr.transpose());
+}
 
 int main(int argc, char **argv) {
     ReportInfo(YELLOW ">> Test epipolar estimator." RESET_COLOR);
@@ -74,20 +123,29 @@ int main(int argc, char **argv) {
     Vec3 t_c1w = Vec3(2, -10, 6);
 
     // Generate observations.
-    std::vector<Vec2> ref_norm_xy, cur_norm_xy;
+    std::vector<Vec2> ref_norm_xy;
+    std::vector<Vec2> cur_norm_xy;
+    std::vector<Vec3> ref_bearing_xyz;
+    std::vector<Vec3> cur_bearing_xyz;
     for (uint32_t i = 0; i < points.size(); i++) {
         Vec3 p_c = R_c0w * points[i] + t_c0w;
         ref_norm_xy.emplace_back(Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)));
+        ref_bearing_xyz.emplace_back(p_c.normalized());
         p_c = R_c1w * points[i] + t_c1w;
         cur_norm_xy.emplace_back(Vec2(p_c(0) / p_c(2), p_c(1) / p_c(2)));
+        cur_bearing_xyz.emplace_back(p_c.normalized());
     }
 
-    vision_geometry::EpipolarSolver solver;
+    vision_geometry::EpipolarSolver solver = {};
     solver.options().kMethod = vision_geometry::EpipolarSolver::EpipolarMethod::kRansac;
     std::vector<uint8_t> status;
 
     TestEssentialEightPointsModel(solver, ref_norm_xy, cur_norm_xy, status);
     TestEssentialFivePointsModel(solver, ref_norm_xy, cur_norm_xy, status);
+
+    status.clear();
+    TestEssentialEightPointsModel(solver, ref_bearing_xyz, cur_bearing_xyz, status);
+    TestEssentialFivePointsModel(solver, ref_bearing_xyz, cur_bearing_xyz, status);
 
     return 0;
 }

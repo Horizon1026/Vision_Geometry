@@ -45,9 +45,13 @@ public:
     RelativeRotation() = default;
     virtual ~RelativeRotation() = default;
 
+    // Bearing overloads normalize camera-frame rays without projecting onto the image plane.
     bool EstimateRotationByBnb(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Quat &q_cr);
+    bool EstimateRotationByBnb(const std::vector<Vec3> &ref_bearing_xyz, const std::vector<Vec3> &cur_bearing_xyz, Quat &q_cr);
     bool EstimateRotation(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Quat &q_cr);
+    bool EstimateRotation(const std::vector<Vec3> &ref_bearing_xyz, const std::vector<Vec3> &cur_bearing_xyz, Quat &q_cr);
     bool EstimatePose(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Quat &q_cr, Vec3 &t_cr);
+    bool EstimatePose(const std::vector<Vec3> &ref_bearing_xyz, const std::vector<Vec3> &cur_bearing_xyz, Quat &q_cr, Vec3 &t_cr);
 
     // Reference for member variables.
     RelativeRotationOptions &options() { return options_; }
@@ -62,12 +66,17 @@ public:
     static float ComputeSmallestEigenValueWithM(const SummationTerms &terms, const Vec3 &cayley, Mat3 &M);
     // Convert feature pairs to summation terms.
     static void ComputeSummationTerms(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, SummationTerms &terms);
+    static void ComputeSummationTerms(const std::vector<Vec3> &ref_bearing_xyz, const std::vector<Vec3> &cur_bearing_xyz, SummationTerms &terms);
 
 private:
+    bool EstimateRotationByBnb(const SummationTerms &terms, Quat &q_cr);
+    static void AccumulateSummationTerms(const Vec3 &f_r, const Vec3 &f_c, SummationTerms &terms);
+
     // Only estimate rotation, and return the cayley format of it.
     Vec3 EstimateRotationUseAll(const SummationTerms &terms, Quat &q_cr);
     // Estimate rotation and translation.
     void EstimatePoseUseAll(const SummationTerms &terms, Quat &q_cr, Vec3 &t_cr);
+    bool EstimateTranslationUseAll(const SummationTerms &terms, const Vec3 &cayley, Vec3 &t_cr);
 
 private:
     RelativeRotationOptions options_;
