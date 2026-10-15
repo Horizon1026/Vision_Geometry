@@ -15,10 +15,6 @@ namespace vision_geometry {
 bool EpipolarSolver::EstimateEssential(const std::vector<Vec3> &ref_bearing_xyz, const std::vector<Vec3> &cur_bearing_xyz, Mat3 &essential,
                                        std::vector<uint8_t> &status) {
     RETURN_FALSE_IF(ref_bearing_xyz.size() != cur_bearing_xyz.size());
-    for (size_t i = 0; i < ref_bearing_xyz.size(); ++i) {
-        RETURN_FALSE_IF(!ref_bearing_xyz[i].allFinite() || !cur_bearing_xyz[i].allFinite() ||
-                        ref_bearing_xyz[i].norm() <= kZeroFloat || cur_bearing_xyz[i].norm() <= kZeroFloat);
-    }
     switch (options_.kMethod) {
         default:
         case EpipolarMethod::kRansac: {
@@ -26,6 +22,10 @@ bool EpipolarSolver::EstimateEssential(const std::vector<Vec3> &ref_bearing_xyz,
         }
 
         case EpipolarMethod::kUseAll: {
+            for (size_t i = 0; i < ref_bearing_xyz.size(); ++i) {
+                RETURN_FALSE_IF(!ref_bearing_xyz[i].allFinite() || !cur_bearing_xyz[i].allFinite() ||
+                                ref_bearing_xyz[i].norm() <= kZeroFloat || cur_bearing_xyz[i].norm() <= kZeroFloat);
+            }
             return EstimateEssentialUseAll(ref_bearing_xyz, cur_bearing_xyz, essential, status);
         }
     }
@@ -61,6 +61,8 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec3> &ref_bearin
     std::vector<uint32_t> indices;
     for (uint32_t i = 0; i < ref_bearing_xyz.size(); ++i) {
         if (status.empty() || status[i] == static_cast<uint8_t>(EpipolarResult::kSolved)) {
+            RETURN_FALSE_IF(!ref_bearing_xyz[i].allFinite() || !cur_bearing_xyz[i].allFinite() ||
+                            ref_bearing_xyz[i].norm() <= kZeroFloat || cur_bearing_xyz[i].norm() <= kZeroFloat);
             indices.push_back(i);
         }
     }

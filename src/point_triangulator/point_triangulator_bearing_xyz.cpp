@@ -60,14 +60,14 @@ bool PointTriangulator::TriangulateIterative(const std::vector<Vec3> &p_wc, cons
 
         for (uint32_t i = 0; i < used_camera_num; ++i) {
             const Vec3 p_c = q_wc[i].inverse() * (p_w - p_wc[i]);
-            CONTINUE_IF(p_c.z() < options_.kMinValidDepth || std::isnan(p_c.z()));
+            const float p_c_norm = p_c.norm();
+            CONTINUE_IF(p_c_norm < options_.kMinValidDepth || std::isnan(p_c_norm));
             const Vec3 b_c_pred = p_c.normalized();
             const Vec3 b_c_obs = bearing_xyz[i];
 
             // Compute residual and jacobian.
             const Vec3 residual = b_c_pred - b_c_obs;
             Mat3x3 jacobian_b_pred = Mat3::Zero();
-            const float p_c_norm = p_c.norm();
             jacobian_b_pred = (Mat3::Identity() * p_c_norm - p_c * p_c.transpose() / p_c_norm) / (p_c_norm * p_c_norm);
             const Mat3x3 jacobian = jacobian_b_pred * q_wc[i].inverse().toRotationMatrix();
 
