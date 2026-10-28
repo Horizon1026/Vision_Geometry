@@ -39,7 +39,7 @@ bool NdtSolver::BuildRefVoxels(const std::vector<Vec3> &all_ref_p_w) {
     return true;
 }
 
-bool NdtSolver::EstimatePose(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc) {
+bool NdtSolver::EstimatePose(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Vec3 &p_rc, Quat &q_rc) {
     RETURN_FALSE_IF(all_cur_p_w.empty() || options_.kMaxUsedPoints == 0 || options_.kMaxIteration == 0);
     RETURN_FALSE_IF(!BuildRefVoxels(all_ref_p_w));
 

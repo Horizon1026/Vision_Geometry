@@ -12,8 +12,8 @@
 
 namespace vision_geometry {
 
-bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc,
-                                                              Vec3 &p_rc) {
+bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Vec3 &p_rc,
+                                                              Quat &q_rc) {
     // Convert all reference points into kd-tree.
     NanoFlannKdTree ref_kd_tree(3, all_ref_p_w, 1);
     // Prepare something for knn search.
@@ -79,7 +79,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<
     return true;
 }
 
-bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc) {
+bool IcpSolver::EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Vec3 &p_rc, Quat &q_rc) {
     // Convert all reference points into kd-tree.
     std::vector<int32_t> sorted_point_indices(all_ref_p_w.size());
     std::iota(sorted_point_indices.begin(), sorted_point_indices.end(), 0);

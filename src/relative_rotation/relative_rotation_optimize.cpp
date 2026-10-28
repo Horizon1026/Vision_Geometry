@@ -29,7 +29,7 @@ Vec3 RelativeRotation::EstimateRotationUseAll(const SummationTerms &terms, Quat 
     return cayley;
 }
 
-void RelativeRotation::EstimatePoseUseAll(const SummationTerms &terms, Quat &q_cr, Vec3 &t_cr) {
+void RelativeRotation::EstimatePoseUseAll(const SummationTerms &terms, Vec3 &t_cr, Quat &q_cr) {
     // Estiamte rotation with cayley format.
     Vec3 cayley = EstimateRotationUseAll(terms, q_cr);
 

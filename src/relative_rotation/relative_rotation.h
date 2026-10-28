@@ -50,8 +50,8 @@ public:
     bool EstimateRotationByBnb(const std::vector<Vec3> &ref_bearing_xyz, const std::vector<Vec3> &cur_bearing_xyz, Quat &q_cr);
     bool EstimateRotation(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Quat &q_cr);
     bool EstimateRotation(const std::vector<Vec3> &ref_bearing_xyz, const std::vector<Vec3> &cur_bearing_xyz, Quat &q_cr);
-    bool EstimatePose(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Quat &q_cr, Vec3 &t_cr);
-    bool EstimatePose(const std::vector<Vec3> &ref_bearing_xyz, const std::vector<Vec3> &cur_bearing_xyz, Quat &q_cr, Vec3 &t_cr);
+    bool EstimatePose(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Vec3 &t_cr, Quat &q_cr);
+    bool EstimatePose(const std::vector<Vec3> &ref_bearing_xyz, const std::vector<Vec3> &cur_bearing_xyz, Vec3 &t_cr, Quat &q_cr);
 
     // Reference for member variables.
     RelativeRotationOptions &options() { return options_; }
@@ -75,7 +75,7 @@ private:
     // Only estimate rotation, and return the cayley format of it.
     Vec3 EstimateRotationUseAll(const SummationTerms &terms, Quat &q_cr);
     // Estimate rotation and translation.
-    void EstimatePoseUseAll(const SummationTerms &terms, Quat &q_cr, Vec3 &t_cr);
+    void EstimatePoseUseAll(const SummationTerms &terms, Vec3 &t_cr, Quat &q_cr);
     bool EstimateTranslationUseAll(const SummationTerms &terms, const Vec3 &cayley, Vec3 &t_cr);
 
 private:

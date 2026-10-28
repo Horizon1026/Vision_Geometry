@@ -33,7 +33,7 @@ bool RelativeRotation::EstimateRotation(const std::vector<Vec2> &ref_norm_xy, co
     return true;
 }
 
-bool RelativeRotation::EstimatePose(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Quat &q_cr, Vec3 &t_cr) {
+bool RelativeRotation::EstimatePose(const std::vector<Vec2> &ref_norm_xy, const std::vector<Vec2> &cur_norm_xy, Vec3 &t_cr, Quat &q_cr) {
     RETURN_FALSE_IF(ref_norm_xy.empty());
     RETURN_FALSE_IF(ref_norm_xy.size() != cur_norm_xy.size());
     q_cr.normalize();
@@ -43,7 +43,7 @@ bool RelativeRotation::EstimatePose(const std::vector<Vec2> &ref_norm_xy, const 
     ComputeSummationTerms(ref_norm_xy, cur_norm_xy, terms);
 
     // Estimate rotation between reference and current frame.
-    EstimatePoseUseAll(terms, q_cr, t_cr);
+    EstimatePoseUseAll(terms, t_cr, q_cr);
 
     // Correct the translation.
     const Vec3 f_r = Vec3(ref_norm_xy[0].x(), ref_norm_xy[0].y(), 1.0f);

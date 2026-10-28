@@ -9,23 +9,23 @@
 
 namespace vision_geometry {
 
-bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status) {
+bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Vec3 &p_wc, Quat &q_wc, std::vector<uint8_t> &status) {
     switch (options_.kMethod) {
         case Method::kOptimizeRansac:
-            return EstimatePoseRansac(p_w, norm_xy, q_wc, p_wc, status);
+            return EstimatePoseRansac(p_w, norm_xy, p_wc, q_wc, status);
         case Method::kOptimize:
         case Method::kOptimizeHuber:
         case Method::kOptimizeCauchy:
-            return EstimatePoseUseAll(p_w, norm_xy, q_wc, p_wc, status);
+            return EstimatePoseUseAll(p_w, norm_xy, p_wc, q_wc, status);
         case Method::kDirectLinearTransform:
-            return EstimatePoseDlt(p_w, norm_xy, q_wc, p_wc, status);
+            return EstimatePoseDlt(p_w, norm_xy, p_wc, q_wc, status);
         default:
             return false;
     }
 }
 
-bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status) {
-    RETURN_FALSE_IF_FALSE(EstimatePoseUseAll(p_w, norm_xy, q_wc, p_wc));
+bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Vec3 &p_wc, Quat &q_wc, std::vector<uint8_t> &status) {
+    RETURN_FALSE_IF_FALSE(EstimatePoseUseAll(p_w, norm_xy, p_wc, q_wc));
 
     if (status.size() != p_w.size()) {
         status.assign(p_w.size(), static_cast<uint8_t>(Result::kUnsolved));
@@ -48,7 +48,7 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vect
     return true;
 }
 
-bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc) {
+bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Vec3 &p_wc, Quat &q_wc) {
     RETURN_FALSE_IF(p_w.size() != norm_xy.size() || p_w.empty());
 
     Mat6 H = Mat6::Zero();
@@ -109,7 +109,7 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vect
     return true;
 }
 
-bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status) {
+bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Vec3 &p_wc, Quat &q_wc, std::vector<uint8_t> &status) {
     RETURN_FALSE_IF(p_w.size() < 3 || p_w.size() != norm_xy.size() || p_w.empty());
 
     // Select only tracked pairs; an empty status means that all pairs are available.
@@ -154,7 +154,7 @@ bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vect
         // Compute pnp model with 3 points.
         q_wc = best_q_wc;
         p_wc = best_p_wc;
-        CONTINUE_IF(!EstimatePoseUseAll(sub_pts3d, sub_pts2d, q_wc, p_wc));
+        CONTINUE_IF(!EstimatePoseUseAll(sub_pts3d, sub_pts2d, p_wc, q_wc));
 
         // Apply pnp model on tracked points, statis inliers.
         score = 0;
@@ -180,7 +180,7 @@ bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vect
     for (const auto i: tracked_indices) {
         checked_status[i] = static_cast<uint8_t>(Result::kSolved);
     }
-    CheckPnpStatus(p_w, norm_xy, q_wc, p_wc, checked_status);
+    CheckPnpStatus(p_w, norm_xy, p_wc, q_wc, checked_status);
     if (status.empty()) {
         status.resize(p_w.size());
     }
@@ -190,7 +190,7 @@ bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vect
     return true;
 }
 
-bool PnpSolver::EstimatePoseDlt(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status) {
+bool PnpSolver::EstimatePoseDlt(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Vec3 &p_wc, Quat &q_wc, std::vector<uint8_t> &status) {
     RETURN_FALSE_IF(p_w.size() != norm_xy.size() || p_w.empty());
 
     Mat A = Mat::Zero(2 * p_w.size(), 12);
@@ -223,7 +223,7 @@ bool PnpSolver::EstimatePoseDlt(const std::vector<Vec3> &p_w, const std::vector<
     return true;
 }
 
-void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Quat &q_wc, Vec3 &p_wc, std::vector<uint8_t> &status) {
+void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Vec3 &p_wc, Quat &q_wc, std::vector<uint8_t> &status) {
     if (status.size() != norm_xy.size()) {
         status.assign(norm_xy.size(), static_cast<uint8_t>(Result::kUnsolved));
     }
@@ -241,7 +241,7 @@ void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<V
     }
 }
 
-float PnpSolver::ComputeAverageReprojectionError(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, const Quat &q_wc, const Vec3 &p_wc) const {
+float PnpSolver::ComputeAverageReprojectionError(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, const Vec3 &p_wc, const Quat &q_wc) const {
     if (p_w.empty() || p_w.size() != norm_xy.size()) {
         return -1.0f;
     }
@@ -264,24 +264,24 @@ float PnpSolver::ComputeAverageReprojectionError(const std::vector<Vec3> &p_w, c
     return total_error / static_cast<float>(valid_count);
 }
 
-bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic, const std::vector<Vec2> &norm_xy,
-                             Quat &q_wi, Vec3 &p_wi, std::vector<uint8_t> &status) {
+bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic, const std::vector<Vec2> &norm_xy,
+                             Vec3 &p_wi, Quat &q_wi, std::vector<uint8_t> &status) {
     switch (options_.kMethod) {
         case Method::kOptimizeRansac:
-            return EstimatePoseRansac(p_w, q_ic, p_ic, norm_xy, q_wi, p_wi, status);
+            return EstimatePoseRansac(p_w, p_ic, q_ic, norm_xy, p_wi, q_wi, status);
         case Method::kOptimize:
         case Method::kOptimizeHuber:
         case Method::kOptimizeCauchy:
-            return EstimatePoseUseAll(p_w, q_ic, p_ic, norm_xy, q_wi, p_wi, status);
+            return EstimatePoseUseAll(p_w, p_ic, q_ic, norm_xy, p_wi, q_wi, status);
         case Method::kDirectLinearTransform:
         default:
             return false;
     }
 }
 
-bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic, const std::vector<Vec2> &norm_xy,
-                                   Quat &q_wi, Vec3 &p_wi, std::vector<uint8_t> &status) {
-    RETURN_FALSE_IF_FALSE(EstimatePoseUseAll(p_w, q_ic, p_ic, norm_xy, q_wi, p_wi));
+bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic, const std::vector<Vec2> &norm_xy,
+                                   Vec3 &p_wi, Quat &q_wi, std::vector<uint8_t> &status) {
+    RETURN_FALSE_IF_FALSE(EstimatePoseUseAll(p_w, p_ic, q_ic, norm_xy, p_wi, q_wi));
 
     if (status.size() != p_w.size()) {
         status.assign(p_w.size(), static_cast<uint8_t>(Result::kUnsolved));
@@ -307,8 +307,8 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vect
     return true;
 }
 
-bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic, const std::vector<Vec2> &norm_xy,
-                                   Quat &q_wi, Vec3 &p_wi) {
+bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic, const std::vector<Vec2> &norm_xy,
+                                   Vec3 &p_wi, Quat &q_wi) {
     RETURN_FALSE_IF(p_w.size() != norm_xy.size() || p_w.size() != q_ic.size() || p_w.size() != p_ic.size() || p_w.empty());
 
     Mat6 H = Mat6::Zero();
@@ -374,8 +374,8 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vect
     return true;
 }
 
-bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic, const std::vector<Vec2> &norm_xy,
-                                   Quat &q_wi, Vec3 &p_wi, std::vector<uint8_t> &status) {
+bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic, const std::vector<Vec2> &norm_xy,
+                                   Vec3 &p_wi, Quat &q_wi, std::vector<uint8_t> &status) {
     RETURN_FALSE_IF(p_w.size() < 3 || p_w.size() != norm_xy.size() || p_w.empty());
 
     // Select only tracked pairs; an empty status means that all pairs are available.
@@ -428,7 +428,7 @@ bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vect
         // Compute pnp model with 3 points.
         q_wi = best_q_wi;
         p_wi = best_p_wi;
-        CONTINUE_IF(!EstimatePoseUseAll(sub_pts3d, sub_q_ic, sub_p_ic, sub_pts2d, q_wi, p_wi));
+        CONTINUE_IF(!EstimatePoseUseAll(sub_pts3d, sub_p_ic, sub_q_ic, sub_pts2d, p_wi, q_wi));
 
         // Apply pnp model on tracked points, statis inliers.
         score = 0;
@@ -456,7 +456,7 @@ bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vect
     for (const auto i: tracked_indices) {
         checked_status[i] = static_cast<uint8_t>(Result::kSolved);
     }
-    CheckPnpStatus(p_w, q_ic, p_ic, norm_xy, q_wi, p_wi, checked_status);
+    CheckPnpStatus(p_w, p_ic, q_ic, norm_xy, p_wi, q_wi, checked_status);
     if (status.empty()) {
         status.resize(p_w.size());
     }
@@ -466,8 +466,8 @@ bool PnpSolver::EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vect
     return true;
 }
 
-void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic, const std::vector<Vec2> &norm_xy,
-                               Quat &q_wi, Vec3 &p_wi, std::vector<uint8_t> &status) {
+void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic, const std::vector<Vec2> &norm_xy,
+                               Vec3 &p_wi, Quat &q_wi, std::vector<uint8_t> &status) {
     if (status.size() != norm_xy.size()) {
         status.assign(norm_xy.size(), static_cast<uint8_t>(Result::kUnsolved));
     }

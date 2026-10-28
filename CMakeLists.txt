@@ -14,6 +14,9 @@ endif()
 if( NOT TARGET lib_vision_geometry_pnp )
     add_subdirectory( src/perspective_n_point ${PROJECT_SOURCE_DIR}/build/lib_vision_geometry_pnp )
 endif()
+if( NOT TARGET lib_vision_geometry_homography_pnp )
+    add_subdirectory( src/homography_perspective_n_point ${PROJECT_SOURCE_DIR}/build/lib_vision_geometry_homography_pnp )
+endif()
 if( NOT TARGET lib_vision_geometry_point_triangulator )
     add_subdirectory( src/point_triangulator ${PROJECT_SOURCE_DIR}/build/lib_vision_geometry_point_triangulator )
 endif()
@@ -46,6 +49,14 @@ add_executable( test_pnp
 )
 target_link_libraries( test_pnp
     lib_vision_geometry_pnp
+)
+
+# Add test_homography_pnp.
+add_executable( test_homography_pnp
+    test/test_homography_pnp.cpp
+)
+target_link_libraries( test_homography_pnp
+    lib_vision_geometry_homography_pnp
 )
 
 # Add test_point_triangulator.

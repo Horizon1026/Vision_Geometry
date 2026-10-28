@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
         ReportInfo("Iterate once.");
         const Quat last_q_rc = q_rc;
         const Vec3 last_p_rc = p_rc;
-        icp_solver.EstimatePose(ref_p_w, cur_p_w, q_rc, p_rc);
+        icp_solver.EstimatePose(ref_p_w, cur_p_w, p_rc, q_rc);
         ReportInfo("Estimated q_rc " << LogQuat(q_rc));
         ReportInfo("Estimated p_rc " << LogVec(p_rc));
         if ((last_q_rc.inverse() * q_rc).vec().norm() + (last_p_rc - p_rc).norm() < icp_solver.options().kMaxConvergedStepLength) {

@@ -32,7 +32,7 @@ public:
     virtual ~NdtSolver() = default;
 
     bool Initialize();
-    bool EstimatePose(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
+    bool EstimatePose(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Vec3 &p_rc, Quat &q_rc);
 
     // Reference for member variables.
     Options &options() { return options_; }

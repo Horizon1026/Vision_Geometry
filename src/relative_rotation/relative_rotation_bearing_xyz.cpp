@@ -42,7 +42,7 @@ bool RelativeRotation::EstimateRotation(const std::vector<Vec3> &ref_bearing_xyz
     return q_cr.coeffs().allFinite();
 }
 
-bool RelativeRotation::EstimatePose(const std::vector<Vec3> &ref_bearing_xyz, const std::vector<Vec3> &cur_bearing_xyz, Quat &q_cr, Vec3 &t_cr) {
+bool RelativeRotation::EstimatePose(const std::vector<Vec3> &ref_bearing_xyz, const std::vector<Vec3> &cur_bearing_xyz, Vec3 &t_cr, Quat &q_cr) {
     RETURN_FALSE_IF(ref_bearing_xyz.empty());
     RETURN_FALSE_IF(ref_bearing_xyz.size() != cur_bearing_xyz.size());
     for (size_t i = 0; i < ref_bearing_xyz.size(); ++i) {

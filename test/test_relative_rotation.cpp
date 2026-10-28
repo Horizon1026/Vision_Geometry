@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
 
     // Test estimate both rotation and translation.
     q_cr.setIdentity();
-    solver.EstimatePose(ref_norm_xy, cur_norm_xy, q_cr, t_cr);
+    solver.EstimatePose(ref_norm_xy, cur_norm_xy, t_cr, q_cr);
     euler_rpy = Utility::QuaternionToEuler(q_cr);
     ReportInfo("Estimated q_cr is " << LogQuat(q_cr) << ", euler_rpy(deg) is " << LogVec(euler_rpy));
     ReportInfo("Estimated t_cr is " << LogVec(t_cr));

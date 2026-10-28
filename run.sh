@@ -1,5 +1,6 @@
 cd build/
 ./test_pnp
+./test_homography_pnp
 ./test_point_triangulator
 ./test_line_triangulator
 ./test_epipolar

@@ -26,21 +26,21 @@ float BearingError(const Vec3 &p_c, const Vec3 &bearing) {
 }
 }  // namespace
 
-bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, Quat &q_wc, Vec3 &p_wc,
+bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, Vec3 &p_wc, Quat &q_wc,
                              std::vector<uint8_t> &status) {
     RETURN_FALSE_IF(!ValidBearings(p_w, bearing_xyz));
     RETURN_FALSE_IF(!status.empty() && status.size() != p_w.size());
     if (options_.kMethod == Method::kDirectLinearTransform) {
-        RETURN_FALSE_IF_FALSE(EstimatePoseDlt(p_w, bearing_xyz, q_wc, p_wc));
-        CheckPnpStatus(p_w, bearing_xyz, q_wc, p_wc, status);
+        RETURN_FALSE_IF_FALSE(EstimatePoseDlt(p_w, bearing_xyz, p_wc, q_wc));
+        CheckPnpStatus(p_w, bearing_xyz, p_wc, q_wc, status);
         return true;
     }
-    return EstimatePose(p_w, std::vector<Quat>(p_w.size(), Quat::Identity()), std::vector<Vec3>(p_w.size(), Vec3::Zero()),
-                        bearing_xyz, q_wc, p_wc, status);
+    return EstimatePose(p_w, std::vector<Vec3>(p_w.size(), Vec3::Zero()), std::vector<Quat>(p_w.size(), Quat::Identity()),
+                        bearing_xyz, p_wc, q_wc, status);
 }
 
-bool PnpSolver::OptimizeBearings(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic,
-                                const std::vector<Vec3> &bearing_xyz, Quat &q_wi, Vec3 &p_wi) {
+bool PnpSolver::OptimizeBearings(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic,
+                                const std::vector<Vec3> &bearing_xyz, Vec3 &p_wi, Quat &q_wi) {
     const size_t count = std::min<size_t>(options_.kMaxSolvePointsNumber, p_w.size());
     RETURN_FALSE_IF(count < 3 || options_.kMaxIteration == 0);
     q_wi.normalize();
@@ -82,8 +82,8 @@ bool PnpSolver::OptimizeBearings(const std::vector<Vec3> &p_w, const std::vector
     return p_wi.allFinite() && q_wi.coeffs().allFinite();
 }
 
-bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic,
-                             const std::vector<Vec3> &bearing_xyz, Quat &q_wi, Vec3 &p_wi, std::vector<uint8_t> &status) {
+bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic,
+                             const std::vector<Vec3> &bearing_xyz, Vec3 &p_wi, Quat &q_wi, std::vector<uint8_t> &status) {
     RETURN_FALSE_IF(!ValidBearings(p_w, bearing_xyz) || p_w.size() < 3 || q_ic.size() != p_w.size() || p_ic.size() != p_w.size());
     RETURN_FALSE_IF(!status.empty() && status.size() != p_w.size());
     RETURN_FALSE_IF(!q_wi.coeffs().allFinite() || q_wi.norm() <= kZeroFloat || !p_wi.allFinite());
@@ -91,7 +91,7 @@ bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Qua
         RETURN_FALSE_IF(!q_ic[i].coeffs().allFinite() || std::fabs(q_ic[i].norm() - 1.0f) > 1e-3f || !p_ic[i].allFinite());
     }
     if (options_.kMethod == Method::kOptimize || options_.kMethod == Method::kOptimizeHuber || options_.kMethod == Method::kOptimizeCauchy) {
-        RETURN_FALSE_IF_FALSE(OptimizeBearings(p_w, q_ic, p_ic, bearing_xyz, q_wi, p_wi));
+        RETURN_FALSE_IF_FALSE(OptimizeBearings(p_w, p_ic, q_ic, bearing_xyz, p_wi, q_wi));
         // As in the Vec2 API, only classify previously unsolved entries here.
         if (status.empty()) {
             status.assign(p_w.size(), static_cast<uint8_t>(Result::kUnsolved));
@@ -130,7 +130,7 @@ bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Qua
         }
         Quat candidate_q = best_q;
         Vec3 candidate_p = best_p;
-        CONTINUE_IF(!OptimizeBearings(points, rotations, translations, bearings, candidate_q, candidate_p));
+        CONTINUE_IF(!OptimizeBearings(points, translations, rotations, bearings, candidate_p, candidate_q));
         size_t score = 0;
         for (const size_t i: selected) {
             const Vec3 p_c = q_ic[i].inverse() * (candidate_q.inverse() * (p_w[i] - candidate_p) - p_ic[i]);
@@ -160,7 +160,7 @@ bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Qua
     return true;
 }
 
-bool PnpSolver::EstimatePoseDlt(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, Quat &q_wc, Vec3 &p_wc) {
+bool PnpSolver::EstimatePoseDlt(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, Vec3 &p_wc, Quat &q_wc) {
     RETURN_FALSE_IF(p_w.size() < 6);
     Mat A = Mat::Zero(3 * p_w.size(), 12);
     for (size_t i = 0; i < p_w.size(); ++i) {
@@ -187,14 +187,14 @@ bool PnpSolver::EstimatePoseDlt(const std::vector<Vec3> &p_w, const std::vector<
     return q_wc.coeffs().allFinite() && p_wc.allFinite();
 }
 
-void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, Quat &q_wc, Vec3 &p_wc,
+void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, Vec3 &p_wc, Quat &q_wc,
                               std::vector<uint8_t> &status) {
-    CheckPnpStatus(p_w, std::vector<Quat>(p_w.size(), Quat::Identity()), std::vector<Vec3>(p_w.size(), Vec3::Zero()),
-                   bearing_xyz, q_wc, p_wc, status);
+    CheckPnpStatus(p_w, std::vector<Vec3>(p_w.size(), Vec3::Zero()), std::vector<Quat>(p_w.size(), Quat::Identity()),
+                   bearing_xyz, p_wc, q_wc, status);
 }
 
-void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Quat> &q_ic, const std::vector<Vec3> &p_ic,
-                              const std::vector<Vec3> &bearing_xyz, Quat &q_wi, Vec3 &p_wi, std::vector<uint8_t> &status) {
+void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic,
+                              const std::vector<Vec3> &bearing_xyz, Vec3 &p_wi, Quat &q_wi, std::vector<uint8_t> &status) {
     RETURN_IF(!ValidBearings(p_w, bearing_xyz) || q_ic.size() != p_w.size() || p_ic.size() != p_w.size());
     if (status.size() != p_w.size()) {
         status.assign(p_w.size(), static_cast<uint8_t>(Result::kUnsolved));
@@ -208,7 +208,7 @@ void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Q
 }
 
 float PnpSolver::ComputeAverageReprojectionError(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz,
-                                                const Quat &q_wc, const Vec3 &p_wc) const {
+                                                const Vec3 &p_wc, const Quat &q_wc) const {
     if (!ValidBearings(p_w, bearing_xyz)) {
         return -1.0f;
     }

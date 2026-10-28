@@ -10,8 +10,8 @@
 
 namespace vision_geometry {
 
-bool IcpSolver::EstimatePoseByMethodPointToPointWithNanoFlann(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc,
-                                                              Vec3 &p_rc) {
+bool IcpSolver::EstimatePoseByMethodPointToPointWithNanoFlann(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Vec3 &p_rc,
+                                                              Quat &q_rc) {
     // Convert all reference points into kd-tree.
     NanoFlannKdTree ref_kd_tree(3, all_ref_p_w, 1);
     // Prepare something for knn search.
@@ -56,7 +56,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPointWithNanoFlann(const std::vector<
 
         Quat d_q_rc = q_rc;
         Vec3 d_p_rc = p_rc;
-        RETURN_FALSE_IF(!EstimatePoseByPointPairs(sub_ref_p_w, sub_cur_p_w, q_rc, p_rc));
+        RETURN_FALSE_IF(!EstimatePoseByPointPairs(sub_ref_p_w, sub_cur_p_w, p_rc, q_rc));
 
         d_q_rc = d_q_rc.inverse() * q_rc;
         d_p_rc = p_rc - d_p_rc;
@@ -66,7 +66,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPointWithNanoFlann(const std::vector<
     return true;
 }
 
-bool IcpSolver::EstimatePoseByMethodPointToPointWithKdtree(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc) {
+bool IcpSolver::EstimatePoseByMethodPointToPointWithKdtree(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Vec3 &p_rc, Quat &q_rc) {
     // Convert all reference points into kd-tree.
     std::vector<int32_t> sorted_point_indices(all_ref_p_w.size(), 0);
     for (uint32_t i = 0; i < sorted_point_indices.size(); ++i) {
@@ -106,7 +106,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPointWithKdtree(const std::vector<Vec
 
         Quat d_q_rc = q_rc;
         Vec3 d_p_rc = p_rc;
-        RETURN_FALSE_IF(!EstimatePoseByPointPairs(sub_ref_p_w, sub_cur_p_w, q_rc, p_rc));
+        RETURN_FALSE_IF(!EstimatePoseByPointPairs(sub_ref_p_w, sub_cur_p_w, p_rc, q_rc));
 
         d_q_rc = d_q_rc.inverse() * q_rc;
         d_p_rc = p_rc - d_p_rc;
@@ -116,7 +116,7 @@ bool IcpSolver::EstimatePoseByMethodPointToPointWithKdtree(const std::vector<Vec
     return true;
 }
 
-bool IcpSolver::EstimatePoseByPointPairs(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc) {
+bool IcpSolver::EstimatePoseByPointPairs(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Vec3 &p_rc, Quat &q_rc) {
     RETURN_FALSE_IF(all_ref_p_w.empty());
     RETURN_FALSE_IF(all_ref_p_w.size() != all_cur_p_w.size());
     const int32_t size = static_cast<int32_t>(all_ref_p_w.size());

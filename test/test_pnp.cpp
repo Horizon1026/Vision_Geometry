@@ -23,7 +23,7 @@ void TestPnpOnce(const std::string method_name, const PnpSolver::Method method, 
 
     ReportColorInfo(">> Test pnp with [norm_xy] " << method_name << ".");
     begin = clock();
-    solver.EstimatePose(pts_3d, pts_2d, res_q_wc, res_p_wc, status);
+    solver.EstimatePose(pts_3d, pts_2d, res_p_wc, res_q_wc, status);
     end = clock();
     cost_time = static_cast<float>(end - begin) / CLOCKS_PER_SEC * 1000.0f;
     ReportInfo("cost time is " << cost_time << " ms");
@@ -45,7 +45,7 @@ void TestPnpOnce(const std::string &method_name, const PnpSolver::Method &method
 
     ReportColorInfo(">> Test pnp with [norm_xy] " << method_name << ".");
     begin = clock();
-    solver.EstimatePose(pts_3d, all_q_ic, all_p_ic, pts_2d, res_q_wi, res_p_wi, status);
+    solver.EstimatePose(pts_3d, all_p_ic, all_q_ic, pts_2d, res_p_wi, res_q_wi, status);
     end = clock();
     cost_time = static_cast<float>(end - begin) / CLOCKS_PER_SEC * 1000.0f;
     ReportInfo("cost time " << cost_time << " ms");
@@ -67,7 +67,7 @@ void TestPnpOnce(const std::string method_name, const PnpSolver::Method method, 
 
     ReportColorInfo(">> Test pnp with [bearing_xyz] " << method_name << ".");
     begin = clock();
-    solver.EstimatePose(pts_3d, bearing_xyz, res_q_wc, res_p_wc, status);
+    solver.EstimatePose(pts_3d, bearing_xyz, res_p_wc, res_q_wc, status);
     end = clock();
     cost_time = static_cast<float>(end - begin) / CLOCKS_PER_SEC * 1000.0f;
     ReportInfo("cost time is " << cost_time << " ms");
@@ -89,7 +89,7 @@ void TestPnpOnce(const std::string &method_name, const PnpSolver::Method &method
 
     ReportColorInfo(">> Test pnp with [bearing_xyz] " << method_name << ".");
     begin = clock();
-    solver.EstimatePose(pts_3d, all_q_ic, all_p_ic, bearing_xyz, res_q_wi, res_p_wi, status);
+    solver.EstimatePose(pts_3d, all_p_ic, all_q_ic, bearing_xyz, res_p_wi, res_q_wi, status);
     end = clock();
     cost_time = static_cast<float>(end - begin) / CLOCKS_PER_SEC * 1000.0f;
     ReportInfo("cost time " << cost_time << " ms");

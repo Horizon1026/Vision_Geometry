@@ -28,7 +28,7 @@ public:
     explicit IcpSolver() = default;
     virtual ~IcpSolver() = default;
 
-    bool EstimatePose(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
+    bool EstimatePose(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Vec3 &p_rc, Quat &q_rc);
 
     // Reference for member variables.
     Options &options() { return options_; }
@@ -37,17 +37,17 @@ public:
 
 private:
     // Support for method of point-to-point.
-    bool EstimatePoseByMethodPointToPointWithNanoFlann(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
-    bool EstimatePoseByMethodPointToPointWithKdtree(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
-    bool EstimatePoseByPointPairs(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
+    bool EstimatePoseByMethodPointToPointWithNanoFlann(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Vec3 &p_rc, Quat &q_rc);
+    bool EstimatePoseByMethodPointToPointWithKdtree(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Vec3 &p_rc, Quat &q_rc);
+    bool EstimatePoseByPointPairs(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Vec3 &p_rc, Quat &q_rc);
 
     // Support for method of point-to-line.
-    bool EstimatePoseByMethodPointToLineWithNanoFlann(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
-    bool EstimatePoseByMethodPointToLineWithKdtree(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
+    bool EstimatePoseByMethodPointToLineWithNanoFlann(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Vec3 &p_rc, Quat &q_rc);
+    bool EstimatePoseByMethodPointToLineWithKdtree(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Vec3 &p_rc, Quat &q_rc);
 
     // Support for method of point-to-plane.
-    bool EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
-    bool EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Quat &q_rc, Vec3 &p_rc);
+    bool EstimatePoseByMethodPointToPlaneWithNanoFlann(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Vec3 &p_rc, Quat &q_rc);
+    bool EstimatePoseByMethodPointToPlaneWithKdtree(const std::vector<Vec3> &all_ref_p_w, const std::vector<Vec3> &all_cur_p_w, Vec3 &p_rc, Quat &q_rc);
 
     uint32_t GetIndexStep(const uint32_t num_of_points) {
         return std::max(static_cast<uint32_t>(1), static_cast<uint32_t>(num_of_points / options_.kMaxUsedPoints));
