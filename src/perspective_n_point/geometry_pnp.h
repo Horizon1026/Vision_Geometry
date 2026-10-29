@@ -85,7 +85,6 @@ private:
 
     // Huber weight function: w = 1 if |r| <= delta, w = delta/|r| if |r| > delta.
     float Huber(float param, float x);
-
     // Cauchy weight function: w = 1 if |r| <= delta, w = delta^2/(delta^2 + r^2) if |r| > delta.
     float Cauchy(float param, float x);
 

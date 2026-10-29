@@ -63,17 +63,19 @@ int main(int argc, char **argv) {
     }
 
     // Add outliers.
-    // std::vector<int> outliers_indice;
-    // for (uint32_t i = 0; i < pts_3d.size() / 100; i++) {
-    //     uint32_t idx = rand() % pts_3d.size();
-    //     ref_bearing_xyz[idx].x() += 0.1f * ref_bearing_xyz[idx].z();
-    //     ref_bearing_xyz[idx].normalize();
-    //     cur_bearing_xyz[idx].x() += 0.1f * cur_bearing_xyz[idx].z();
-    //     cur_bearing_xyz[idx].normalize();
-    //     outliers_indice.emplace_back(idx);
-    // }
+    std::vector<int> outliers_indice;
+    for (uint32_t i = 0; i < pts_3d.size() / 10; i++) {
+        uint32_t idx = rand() % pts_3d.size();
+        ref_bearing_xyz[idx].x() += 0.1f * ref_bearing_xyz[idx].y();
+        ref_bearing_xyz[idx].normalize();
+        cur_bearing_xyz[idx].x() += 0.1f * cur_bearing_xyz[idx].z();
+        cur_bearing_xyz[idx].normalize();
+        outliers_indice.emplace_back(idx);
+    }
 
     TestPnpOnce("using all points by optimization", HomographyPnpSolver::Method::kOptimize, ref_bearing_xyz, depth_m, cur_bearing_xyz);
+    TestPnpOnce("using all points with huber kernel", HomographyPnpSolver::Method::kOptimizeHuber, ref_bearing_xyz, depth_m, cur_bearing_xyz);
+    TestPnpOnce("using all points with cauchy kernel", HomographyPnpSolver::Method::kOptimizeCauchy, ref_bearing_xyz, depth_m, cur_bearing_xyz);
 
     return 0;
 }

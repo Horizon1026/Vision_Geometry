@@ -22,10 +22,10 @@ bool HomographyPnpSolver::EstimatePose(const std::vector<Vec3> all_ref_bearing_x
 
     switch (options_.kMethod) {
         default:
-        case Method::kOptimize: {
+        case Method::kOptimize:
+        case Method::kOptimizeHuber:
+        case Method::kOptimizeCauchy:
             return EstimatePoseUseAll(all_ref_bearing_xyz, ref_depth_m, all_cur_bearing_xyz, p_cr, q_cr, homo_plane_slope_xy, status);
-            break;
-        }
     }
 
     return true;
@@ -83,8 +83,28 @@ bool HomographyPnpSolver::EstimatePoseUseAll(const std::vector<Vec3> all_ref_bea
             jacobian.block<3, 2>(0, 6) = jacobian_bearing_p_c * p_cr * ref_bearing_xyz.head<2>().transpose() / plane_denominator;
 
             // Construct incremental function.
-            hessian += jacobian.transpose() * jacobian;
-            bias -= jacobian.transpose() * residual;
+            switch (options_.kMethod) {
+                default:
+                case Method::kOptimize: {
+                    hessian += jacobian.transpose() * jacobian;
+                    bias -= jacobian.transpose() * residual;
+                    break;
+                }
+                case Method::kOptimizeHuber: {
+                    const float r_norm = residual.norm();
+                    const float kernel = this->Huber(options_.kDefaultHuberKernelParameter, r_norm);
+                    hessian += jacobian.transpose() * jacobian * kernel;
+                    bias += -jacobian.transpose() * residual * kernel;
+                    break;
+                }
+                case Method::kOptimizeCauchy: {
+                    const float r_norm = residual.norm();
+                    const float kernel = this->Cauchy(options_.kDefaultCauchyKernelParameter, r_norm);
+                    hessian += jacobian.transpose() * jacobian * kernel;
+                    bias += -jacobian.transpose() * residual * kernel;
+                    break;
+                }
+            }
         }
 
         // Solve incremental function using SVD to handle a rank-deficient Hessian.
@@ -101,6 +121,23 @@ bool HomographyPnpSolver::EstimatePoseUseAll(const std::vector<Vec3> all_ref_bea
         }
     }
     return false;
+}
+
+float HomographyPnpSolver::Huber(float param, float x) {
+    float huber = 1.0f;
+    if (x > param) {
+        huber = param / x;
+    }
+    return huber;
+}
+
+float HomographyPnpSolver::Cauchy(float param, float x) {
+    float cauchy = 1.0f;
+    float param2 = param * param;
+    if (x > param) {
+        cauchy = param2 / (param2 + x * x);
+    }
+    return cauchy;
 }
 
 }  // namespace vision_geometry
