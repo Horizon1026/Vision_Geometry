@@ -132,12 +132,8 @@ float HomographyPnpSolver::Huber(float param, float x) {
 }
 
 float HomographyPnpSolver::Cauchy(float param, float x) {
-    float cauchy = 1.0f;
-    float param2 = param * param;
-    if (x > param) {
-        cauchy = param2 / (param2 + x * x);
-    }
-    return cauchy;
+    const float param2 = param * param;
+    return param2 / (param2 + x * x);
 }
 
 }  // namespace vision_geometry
