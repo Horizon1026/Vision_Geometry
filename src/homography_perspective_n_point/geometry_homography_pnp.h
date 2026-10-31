@@ -26,6 +26,7 @@ public:
         Method kMethod = Method::kOptimize;
         int32_t kMaxIteration = 100;
         float kMaxConvergeStep = 1e-6f;
+        float kMaxPnpResidual = 0.01f;
         float kDefaultHuberKernelParameter = 0.01f;
         float kDefaultCauchyKernelParameter = 0.01f;
     };
@@ -43,10 +44,12 @@ public:
     const Options &options() const { return options_; }
 
 private:
-    bool Project(const Vec3 &ref_bearing_xyz, const float ref_depth_m, const Vec2 &homo_plane_slope_xy, const Vec3 &p_cr, const Quat &q_cr,
-                 Vec3 &cur_bearing_xyz);
+    bool ProjectBearing(const Vec3 &ref_bearing_xyz, const float ref_depth_m, const Vec2 &homo_plane_slope_xy, const Vec3 &p_cr, const Quat &q_cr,
+                        Vec3 &cur_bearing_xyz);
     bool EstimatePoseUseAll(const std::vector<Vec3> all_ref_bearing_xyz, const float ref_depth_m, const std::vector<Vec3> &all_cur_bearing_xyz, Vec3 &p_cr,
                             Quat &q_cr, Vec2 &homo_plane_slope_xy, std::vector<uint8_t> &status);
+    bool EstimatePoseUseAll(const std::vector<Vec3> all_ref_bearing_xyz, const float ref_depth_m, const std::vector<Vec3> &all_cur_bearing_xyz, Vec3 &p_cr,
+                            Quat &q_cr, Vec2 &homo_plane_slope_xy);
 
     // Huber weight function: w = 1 if |r| <= delta, w = delta/|r| if |r| > delta.
     float Huber(float param, float x);

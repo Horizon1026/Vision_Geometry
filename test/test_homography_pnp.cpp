@@ -31,6 +31,7 @@ void TestPnpOnce(const std::string method_name, const HomographyPnpSolver::Metho
     const Vec3 res_p_wc = -(res_q_cw.inverse() * res_p_cw);
     const Quat res_q_wc = res_q_cw.inverse();
     ReportInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc) << ", homo_plane_slope_xy is " << LogVec(homo_plane_slope_xy));
+    ReportInfo("Inliers num: " << std::count(status.begin(), status.end(), static_cast<uint8_t>(HomographyPnpSolver::Result::kSolved)) << " in " << status.size());
 }
 
 int main(int argc, char **argv) {

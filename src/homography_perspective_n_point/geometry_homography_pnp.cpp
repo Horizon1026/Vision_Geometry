@@ -14,7 +14,7 @@ bool HomographyPnpSolver::EstimatePose(const std::vector<Vec3> all_ref_bearing_x
     RETURN_FALSE_IF(ref_depth_m < kZeroFloat);
     RETURN_FALSE_IF(!std::isfinite(ref_depth_m) || !p_cr.allFinite() || !homo_plane_slope_xy.allFinite());
     RETURN_FALSE_IF(!q_cr.coeffs().allFinite() || q_cr.norm() < kZeroFloat);
-    for (size_t i = 0; i < all_ref_bearing_xyz.size(); ++i) {
+    for (uint32_t i = 0; i < all_ref_bearing_xyz.size(); ++i) {
         RETURN_FALSE_IF(!all_ref_bearing_xyz[i].allFinite() || !all_cur_bearing_xyz[i].allFinite());
         RETURN_FALSE_IF(all_ref_bearing_xyz[i].norm() < kZeroFloat || all_cur_bearing_xyz[i].norm() < kZeroFloat);
     }
@@ -31,8 +31,8 @@ bool HomographyPnpSolver::EstimatePose(const std::vector<Vec3> all_ref_bearing_x
     return true;
 }
 
-bool HomographyPnpSolver::Project(const Vec3 &ref_bearing_xyz, const float ref_depth_m, const Vec2 &homo_plane_slope_xy, const Vec3 &p_cr, const Quat &q_cr,
-                                  Vec3 &cur_bearing_xyz) {
+bool HomographyPnpSolver::ProjectBearing(const Vec3 &ref_bearing_xyz, const float ref_depth_m, const Vec2 &homo_plane_slope_xy, const Vec3 &p_cr,
+                                         const Quat &q_cr, Vec3 &cur_bearing_xyz) {
     // Plane model: aX + bY + Z = d
     const float &a = homo_plane_slope_xy.x();
     const float &b = homo_plane_slope_xy.y();
@@ -49,7 +49,7 @@ bool HomographyPnpSolver::Project(const Vec3 &ref_bearing_xyz, const float ref_d
 }
 
 bool HomographyPnpSolver::EstimatePoseUseAll(const std::vector<Vec3> all_ref_bearing_xyz, const float ref_depth_m, const std::vector<Vec3> &all_cur_bearing_xyz,
-                                             Vec3 &p_cr, Quat &q_cr, Vec2 &homo_plane_slope_xy, std::vector<uint8_t> &status) {
+                                             Vec3 &p_cr, Quat &q_cr, Vec2 &homo_plane_slope_xy) {
     RETURN_FALSE_IF(all_ref_bearing_xyz.size() < 5);
     RETURN_FALSE_IF(ref_depth_m < kZeroFloat);
     RETURN_FALSE_IF(options_.kMaxIteration <= 0);
@@ -63,7 +63,7 @@ bool HomographyPnpSolver::EstimatePoseUseAll(const std::vector<Vec3> all_ref_bea
             const Vec3 &ref_bearing_xyz = all_ref_bearing_xyz[i];
             const Vec3 &cur_bearing_xyz = all_cur_bearing_xyz[i];
             Vec3 pred_cur_bearing_xyz = Vec3::Zero();
-            RETURN_FALSE_IF_FALSE(Project(ref_bearing_xyz, ref_depth_m, homo_plane_slope_xy, p_cr, q_cr, pred_cur_bearing_xyz));
+            RETURN_FALSE_IF_FALSE(ProjectBearing(ref_bearing_xyz, ref_depth_m, homo_plane_slope_xy, p_cr, q_cr, pred_cur_bearing_xyz));
             const Vec3 residual = pred_cur_bearing_xyz - cur_bearing_xyz;
 
             // Compute jacobian.
@@ -121,6 +121,34 @@ bool HomographyPnpSolver::EstimatePoseUseAll(const std::vector<Vec3> all_ref_bea
         }
     }
     return false;
+}
+
+
+bool HomographyPnpSolver::EstimatePoseUseAll(const std::vector<Vec3> all_ref_bearing_xyz, const float ref_depth_m, const std::vector<Vec3> &all_cur_bearing_xyz,
+                                             Vec3 &p_cr, Quat &q_cr, Vec2 &homo_plane_slope_xy, std::vector<uint8_t> &status) {
+    RETURN_FALSE_IF_FALSE(EstimatePoseUseAll(all_ref_bearing_xyz, ref_depth_m, all_cur_bearing_xyz, p_cr, q_cr, homo_plane_slope_xy));
+
+    if (status.size() != all_ref_bearing_xyz.size()) {
+        status.assign(all_ref_bearing_xyz.size(), static_cast<uint8_t>(Result::kUnsolved));
+    }
+
+    // Check those features that haven't been solved.
+    for (uint32_t i = 0; i < all_ref_bearing_xyz.size(); ++i) {
+        CONTINUE_IF(status[i] != static_cast<uint8_t>(Result::kUnsolved));
+        const Vec3 &ref_bearing_xyz = all_ref_bearing_xyz[i];
+        const Vec3 &cur_bearing_xyz = all_cur_bearing_xyz[i];
+        Vec3 pred_cur_bearing_xyz = Vec3::Zero();
+        if (ProjectBearing(ref_bearing_xyz, ref_depth_m, homo_plane_slope_xy, p_cr, q_cr, pred_cur_bearing_xyz)) {
+            const float residual = (pred_cur_bearing_xyz - cur_bearing_xyz).norm();
+            if (residual < options_.kMaxPnpResidual) {
+                status[i] = static_cast<uint8_t>(Result::kSolved);
+                continue;
+            }
+        }
+        status[i] = static_cast<uint8_t>(Result::kLargeResidual);
+    }
+
+    return true;
 }
 
 float HomographyPnpSolver::Huber(float param, float x) {

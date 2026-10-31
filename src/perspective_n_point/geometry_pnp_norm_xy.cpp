@@ -39,10 +39,10 @@ bool PnpSolver::EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vect
             const float residual = (norm_xy[i] - p_c.head<2>() / p_c(2)).norm();
             if (residual < options_.kMaxPnpResidual) {
                 status[i] = static_cast<uint8_t>(Result::kSolved);
-            } else {
-                status[i] = static_cast<uint8_t>(Result::kLargeResidual);
+                continue;
             }
         }
+        status[i] = static_cast<uint8_t>(Result::kLargeResidual);
     }
 
     return true;

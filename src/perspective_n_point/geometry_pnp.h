@@ -65,6 +65,8 @@ public:
     const Options &options() const { return options_; }
 
 private:
+    float BearingError(const Vec3 &p_c, const Vec3 &bearing) const;
+
     bool EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Vec3 &p_wc, Quat &q_wc, std::vector<uint8_t> &status);
     bool EstimatePoseUseAll(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Vec3 &p_wc, Quat &q_wc);
     bool EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Vec3 &p_wc, Quat &q_wc, std::vector<uint8_t> &status);

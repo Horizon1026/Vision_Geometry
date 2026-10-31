@@ -22,9 +22,9 @@ bool EpipolarSolver::EstimateEssential(const std::vector<Vec3> &ref_bearing_xyz,
         }
 
         case EpipolarMethod::kUseAll: {
-            for (size_t i = 0; i < ref_bearing_xyz.size(); ++i) {
-                RETURN_FALSE_IF(!ref_bearing_xyz[i].allFinite() || !cur_bearing_xyz[i].allFinite() ||
-                                ref_bearing_xyz[i].norm() <= kZeroFloat || cur_bearing_xyz[i].norm() <= kZeroFloat);
+            for (uint32_t i = 0; i < ref_bearing_xyz.size(); ++i) {
+                RETURN_FALSE_IF(!ref_bearing_xyz[i].allFinite() || !cur_bearing_xyz[i].allFinite() || ref_bearing_xyz[i].norm() <= kZeroFloat ||
+                                cur_bearing_xyz[i].norm() <= kZeroFloat);
             }
             return EstimateEssentialUseAll(ref_bearing_xyz, cur_bearing_xyz, essential, status);
         }
@@ -56,13 +56,13 @@ bool EpipolarSolver::EstimateEssentialUseAll(const std::vector<Vec3> &ref_bearin
 }
 
 bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec3> &ref_bearing_xyz, const std::vector<Vec3> &cur_bearing_xyz, Mat3 &essential,
-                                            std::vector<uint8_t> &status) {
+                                             std::vector<uint8_t> &status) {
     RETURN_FALSE_IF(!status.empty() && status.size() != ref_bearing_xyz.size());
     std::vector<uint32_t> indices;
     for (uint32_t i = 0; i < ref_bearing_xyz.size(); ++i) {
         if (status.empty() || status[i] == static_cast<uint8_t>(EpipolarResult::kSolved)) {
-            RETURN_FALSE_IF(!ref_bearing_xyz[i].allFinite() || !cur_bearing_xyz[i].allFinite() ||
-                            ref_bearing_xyz[i].norm() <= kZeroFloat || cur_bearing_xyz[i].norm() <= kZeroFloat);
+            RETURN_FALSE_IF(!ref_bearing_xyz[i].allFinite() || !cur_bearing_xyz[i].allFinite() || ref_bearing_xyz[i].norm() <= kZeroFloat ||
+                            cur_bearing_xyz[i].norm() <= kZeroFloat);
             indices.push_back(i);
         }
     }
@@ -70,7 +70,7 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec3> &ref_bearin
     RETURN_FALSE_IF(indices.size() < primary_sample_size);
     Mat3 best_essential = Mat3::Zero();
     uint32_t best_score = 0;
-    std::mt19937 rng(std::random_device{}());
+    std::mt19937 rng(std::random_device {}());
     // Retry with the eight-point model if the five-point model has insufficient support.
     for (int pass = 0; pass < 2; ++pass) {
         const uint32_t sample_size = pass == 0 ? primary_sample_size : 8;
@@ -85,8 +85,7 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec3> &ref_bearin
                 cur.push_back(cur_bearing_xyz[indices[j]]);
             }
             Mat3 candidate = Mat3::Zero();
-            const bool solved = sample_size == 5 ? EstimateEssentialUseFivePoints(ref, cur, candidate) :
-                                                  EstimateEssentialUseEightPoints(ref, cur, candidate);
+            const bool solved = sample_size == 5 ? EstimateEssentialUseFivePoints(ref, cur, candidate) : EstimateEssentialUseEightPoints(ref, cur, candidate);
             CONTINUE_IF(!solved || !candidate.allFinite());
             RefineEssentialMatrix(candidate);
             uint32_t score = 0;
@@ -160,7 +159,8 @@ void EpipolarSolver::ComputeEssentialModelResidual(const std::vector<Vec3> &ref_
     }
 }
 
-float EpipolarSolver::ComputeEssentialModelResidualSummary(const std::vector<Vec3> &ref_bearing_xyz, const std::vector<Vec3> &cur_bearing_xyz, const Mat3 &essential) {
+float EpipolarSolver::ComputeEssentialModelResidualSummary(const std::vector<Vec3> &ref_bearing_xyz, const std::vector<Vec3> &cur_bearing_xyz,
+                                                           const Mat3 &essential) {
     std::vector<float> residuals;
     residuals.resize(ref_bearing_xyz.size());
     ComputeEssentialModelResidual(ref_bearing_xyz, cur_bearing_xyz, essential, residuals);
@@ -193,14 +193,14 @@ void EpipolarSolver::CheckEssentialPairsStatus(const std::vector<Vec3> &ref_bear
     }
 }
 
-bool EpipolarSolver::RecoverPoseFromEssential(const std::vector<Vec3> &ref_bearing_xyz, const std::vector<Vec3> &cur_bearing_xyz, const Mat3 &essential, Mat3 &R_cr,
-                                              Vec3 &t_cr) {
+bool EpipolarSolver::RecoverPoseFromEssential(const std::vector<Vec3> &ref_bearing_xyz, const std::vector<Vec3> &cur_bearing_xyz, const Mat3 &essential,
+                                              Mat3 &R_cr, Vec3 &t_cr) {
     RETURN_FALSE_IF(ref_bearing_xyz.size() != cur_bearing_xyz.size() || ref_bearing_xyz.empty());
 
     RETURN_FALSE_IF(!essential.allFinite() || essential.norm() <= kZeroFloat);
-    for (size_t i = 0; i < ref_bearing_xyz.size(); ++i) {
-        RETURN_FALSE_IF(!ref_bearing_xyz[i].allFinite() || !cur_bearing_xyz[i].allFinite() ||
-                        ref_bearing_xyz[i].norm() <= kZeroFloat || cur_bearing_xyz[i].norm() <= kZeroFloat);
+    for (uint32_t i = 0; i < ref_bearing_xyz.size(); ++i) {
+        RETURN_FALSE_IF(!ref_bearing_xyz[i].allFinite() || !cur_bearing_xyz[i].allFinite() || ref_bearing_xyz[i].norm() <= kZeroFloat ||
+                        cur_bearing_xyz[i].norm() <= kZeroFloat);
     }
 
     // Decompose essential matrix. R, t, q means R_cr, t_cr, q_cr.
