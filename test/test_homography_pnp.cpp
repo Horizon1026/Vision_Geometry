@@ -2,11 +2,39 @@
 
 #include "slam_log_reporter.h"
 
+#include "algorithm"
 #include "cmath"
 #include "fstream"
 #include "iostream"
 
 using namespace vision_geometry;
+
+void TestPnpOnce(const std::string method_name, const HomographyPnpSolver::Method method, const std::vector<Vec2> &ref_norm_xy, const float &depth_m,
+                 const std::vector<Vec2> &cur_norm_xy) {
+    Quat res_q_cw = Quat::Identity();
+    Vec3 res_p_cw = Vec3::Zero();
+    Vec2 homo_plane_slope_xy = Vec2::Zero();
+    std::vector<uint8_t> status;
+    float cost_time = 0.0f;
+    clock_t begin = 0;
+    clock_t end = 0;
+
+    HomographyPnpSolver solver {};
+    solver.options().kMethod = method;
+
+    ReportColorInfo(">> Test pnp with [norm_xy] " << method_name << ".");
+    begin = clock();
+    solver.EstimatePose(ref_norm_xy, depth_m, cur_norm_xy, res_p_cw, res_q_cw, homo_plane_slope_xy, status);
+    end = clock();
+    cost_time = static_cast<float>(end - begin) / CLOCKS_PER_SEC * 1000.0f;
+    ReportInfo("cost time is " << cost_time << " ms");
+
+    const Vec3 res_p_wc = -(res_q_cw.inverse() * res_p_cw);
+    const Quat res_q_wc = res_q_cw.inverse();
+    ReportInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc) << ", homo_plane_slope_xy is " << LogVec(homo_plane_slope_xy));
+    ReportInfo("Inliers num: " << std::count(status.begin(), status.end(), static_cast<uint8_t>(HomographyPnpSolver::Result::kSolved)) << " in "
+                               << status.size());
+}
 
 void TestPnpOnce(const std::string method_name, const HomographyPnpSolver::Method method, const std::vector<Vec3> &ref_bearing_xyz, const float &depth_m,
                  const std::vector<Vec3> &cur_bearing_xyz) {
@@ -31,7 +59,8 @@ void TestPnpOnce(const std::string method_name, const HomographyPnpSolver::Metho
     const Vec3 res_p_wc = -(res_q_cw.inverse() * res_p_cw);
     const Quat res_q_wc = res_q_cw.inverse();
     ReportInfo("res_q_wc is " << LogQuat(res_q_wc) << ", res_p_wc is " << LogVec(res_p_wc) << ", homo_plane_slope_xy is " << LogVec(homo_plane_slope_xy));
-    ReportInfo("Inliers num: " << std::count(status.begin(), status.end(), static_cast<uint8_t>(HomographyPnpSolver::Result::kSolved)) << " in " << status.size());
+    ReportInfo("Inliers num: " << std::count(status.begin(), status.end(), static_cast<uint8_t>(HomographyPnpSolver::Result::kSolved)) << " in "
+                               << status.size());
 }
 
 int main(int argc, char **argv) {
@@ -74,7 +103,20 @@ int main(int argc, char **argv) {
         outliers_indice.emplace_back(idx);
     }
 
+    std::vector<Vec2> ref_norm_xy;
+    std::vector<Vec2> cur_norm_xy;
+    for (uint32_t i = 0; i < ref_bearing_xyz.size(); ++i) {
+        ref_norm_xy.emplace_back(ref_bearing_xyz[i].head<2>() / ref_bearing_xyz[i].z());
+        cur_norm_xy.emplace_back(cur_bearing_xyz[i].head<2>() / cur_bearing_xyz[i].z());
+    }
+
+    TestPnpOnce("using all points by optimization", HomographyPnpSolver::Method::kOptimize, ref_norm_xy, depth_m, cur_norm_xy);
+    TestPnpOnce("using ransac", HomographyPnpSolver::Method::kOptimizeRansac, ref_norm_xy, depth_m, cur_norm_xy);
+    TestPnpOnce("using all points with huber kernel", HomographyPnpSolver::Method::kOptimizeHuber, ref_norm_xy, depth_m, cur_norm_xy);
+    TestPnpOnce("using all points with cauchy kernel", HomographyPnpSolver::Method::kOptimizeCauchy, ref_norm_xy, depth_m, cur_norm_xy);
+
     TestPnpOnce("using all points by optimization", HomographyPnpSolver::Method::kOptimize, ref_bearing_xyz, depth_m, cur_bearing_xyz);
+    TestPnpOnce("using ransac", HomographyPnpSolver::Method::kOptimizeRansac, ref_bearing_xyz, depth_m, cur_bearing_xyz);
     TestPnpOnce("using all points with huber kernel", HomographyPnpSolver::Method::kOptimizeHuber, ref_bearing_xyz, depth_m, cur_bearing_xyz);
     TestPnpOnce("using all points with cauchy kernel", HomographyPnpSolver::Method::kOptimizeCauchy, ref_bearing_xyz, depth_m, cur_bearing_xyz);
 

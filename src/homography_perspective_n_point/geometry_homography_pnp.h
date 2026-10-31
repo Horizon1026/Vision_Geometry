@@ -27,6 +27,7 @@ public:
         int32_t kMaxIteration = 100;
         float kMaxConvergeStep = 1e-6f;
         float kMaxPnpResidual = 0.01f;
+        float kMinRansacInlierRatio = 0.9f;
         float kDefaultHuberKernelParameter = 0.01f;
         float kDefaultCauchyKernelParameter = 0.01f;
     };
@@ -35,6 +36,9 @@ public:
     HomographyPnpSolver() = default;
     virtual ~HomographyPnpSolver() = default;
 
+    // For RANSAC, a nonempty status selects kSolved pairs; excluded entries are preserved.
+    bool EstimatePose(const std::vector<Vec2> &all_ref_norm_xy, const float ref_depth_m, const std::vector<Vec2> &all_cur_norm_xy, Vec3 &p_cr, Quat &q_cr,
+                      Vec2 &homo_plane_slope_xy, std::vector<uint8_t> &status);
     bool EstimatePose(const std::vector<Vec3> all_ref_bearing_xyz, const float ref_depth_m, const std::vector<Vec3> &all_cur_bearing_xyz, Vec3 &p_cr,
                       Quat &q_cr, Vec2 &homo_plane_slope_xy, std::vector<uint8_t> &status);
 
@@ -44,12 +48,23 @@ public:
     const Options &options() const { return options_; }
 
 private:
+    bool ProjectNormXY(const Vec2 &ref_norm_xy, const float ref_depth_m, const Vec2 &homo_plane_slope_xy, const Vec3 &p_cr, const Quat &q_cr,
+                       Vec2 &cur_norm_xy);
+    bool EstimatePoseUseAll(const std::vector<Vec2> &all_ref_norm_xy, const float ref_depth_m, const std::vector<Vec2> &all_cur_norm_xy, Vec3 &p_cr, Quat &q_cr,
+                            Vec2 &homo_plane_slope_xy, std::vector<uint8_t> &status);
+    bool EstimatePoseUseAll(const std::vector<Vec2> &all_ref_norm_xy, const float ref_depth_m, const std::vector<Vec2> &all_cur_norm_xy, Vec3 &p_cr, Quat &q_cr,
+                            Vec2 &homo_plane_slope_xy);
+    bool EstimatePoseRansac(const std::vector<Vec2> &all_ref_norm_xy, const float ref_depth_m, const std::vector<Vec2> &all_cur_norm_xy, Vec3 &p_cr, Quat &q_cr,
+                            Vec2 &homo_plane_slope_xy, std::vector<uint8_t> &status);
+
     bool ProjectBearing(const Vec3 &ref_bearing_xyz, const float ref_depth_m, const Vec2 &homo_plane_slope_xy, const Vec3 &p_cr, const Quat &q_cr,
                         Vec3 &cur_bearing_xyz);
     bool EstimatePoseUseAll(const std::vector<Vec3> all_ref_bearing_xyz, const float ref_depth_m, const std::vector<Vec3> &all_cur_bearing_xyz, Vec3 &p_cr,
                             Quat &q_cr, Vec2 &homo_plane_slope_xy, std::vector<uint8_t> &status);
     bool EstimatePoseUseAll(const std::vector<Vec3> all_ref_bearing_xyz, const float ref_depth_m, const std::vector<Vec3> &all_cur_bearing_xyz, Vec3 &p_cr,
                             Quat &q_cr, Vec2 &homo_plane_slope_xy);
+    bool EstimatePoseRansac(const std::vector<Vec3> all_ref_bearing_xyz, const float ref_depth_m, const std::vector<Vec3> &all_cur_bearing_xyz, Vec3 &p_cr,
+                            Quat &q_cr, Vec2 &homo_plane_slope_xy, std::vector<uint8_t> &status);
 
     // Huber weight function: w = 1 if |r| <= delta, w = delta/|r| if |r| > delta.
     float Huber(float param, float x);
