@@ -8,6 +8,12 @@ namespace vision_geometry {
 bool PointTriangulator::Triangulate(const std::vector<Vec3> &p_wc, const std::vector<Quat> &q_wc, const std::vector<Vec2> &norm_xy, Vec3 &p_w) {
     RETURN_FALSE_IF(q_wc.size() < 2);
     RETURN_FALSE_IF(q_wc.size() != p_wc.size() || q_wc.size() != norm_xy.size());
+
+    Reset();
+    for (uint32_t i = 0; i < q_wc.size(); ++i) {
+        UpdateIncrementalFunction(p_wc[i], q_wc[i], Vec3(norm_xy[i].x(), norm_xy[i].y(), 1.0f));
+    }
+
     switch (options_.kMethod) {
         default:
         case Method::kAnalytic: {

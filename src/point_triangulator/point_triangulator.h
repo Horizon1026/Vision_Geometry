@@ -22,6 +22,7 @@ public:
         float kMinValidDepth = 1e-3f;
         float kMaxConvergeStep = 1e-6f;
         float kMaxToleranceReprojectionError = 0.1f;
+        float kMaxConditionNumber = 1e3f;
         float kDefaultHuberKernelParameter = 1.0f;
         float kDefaultCauchyKernelParameter = 1.0f;
         Method kMethod = Method::kAnalytic;
@@ -33,6 +34,11 @@ public:
 
     bool Triangulate(const std::vector<Vec3> &p_wc, const std::vector<Quat> &q_wc, const std::vector<Vec2> &norm_xy, Vec3 &p_w);
     bool Triangulate(const std::vector<Vec3> &p_wc, const std::vector<Quat> &q_wc, const std::vector<Vec3> &bearing_xyz, Vec3 &p_w);
+
+    // Append one observation. A failed solve still retains its contribution for later observations.
+    void Reset();
+    bool IncrementalTriangulate(const Vec3 &p_wc, const Quat &q_wc, const Vec2 &norm_xy, Vec3 &p_w);
+    bool IncrementalTriangulate(const Vec3 &p_wc, const Quat &q_wc, const Vec3 &bearing_xyz, Vec3 &p_w);
 
     static float GetSineOfParallexAngle(const Vec3 &p_wci, const Quat &q_wci, const Vec3 &p_wcj, const Quat &q_wcj, const Vec2 &norm_xy_i,
                                         const Vec2 &norm_xy_j);
@@ -53,14 +59,17 @@ private:
     bool CheckResultInMultiView(const std::vector<Vec3> &p_wc, const std::vector<Quat> &q_wc, const std::vector<Vec3> &bearing_xyz, const Vec3 &p_w);
 
     bool SolveAnalyticConstraint(const Eigen::Matrix<float, Eigen::Dynamic, 4> &A, Vec3 &p_w);
+    void UpdateIncrementalFunction(const Vec3 &p_wc, const Quat &q_wc, const Vec3 &bearing_xyz);
 
     // Huber weight function: w = 1 if |r| <= delta, w = delta/|r| if |r| > delta.
     float Huber(float param, float x);
-
+    // Cauchy weight function: w = delta^2 / (delta^2 + r^2).
     float Cauchy(float param, float x);
 
 private:
     Options options_;
+    Mat3 A_ = Mat3::Zero();
+    Vec3 b_ = Vec3::Zero();
 };
 
 }  // namespace vision_geometry

@@ -43,6 +43,18 @@ void TestTriangulatorOnce(const std::string &method_name, const PointTriangulato
     ReportInfo("Estimated p_w " << LogVec(res_p_w) << " within " << cost_time << " ms.");
 }
 
+void TestIncrementalTriangulator(const std::vector<Vec3> &bearing_xyz, const std::vector<Vec3> &p_wc_vec, const std::vector<Quat> &q_wc_vec,
+                                 const Vec3 &gt_p_w) {
+    ReportColorInfo(">> Test incremental point_triangulator with [bearing_xyz].");
+    PointTriangulator solver = {};
+    Vec3 res_p_w = Vec3::Zero();
+    solver.Reset();
+    for (uint32_t i = 0; i < q_wc_vec.size(); ++i) {
+        const bool succeed = solver.IncrementalTriangulate(p_wc_vec[i], q_wc_vec[i], bearing_xyz[i], res_p_w);
+        ReportInfo("View " << i << ", succeed " << succeed << ", estimated p_w " << LogVec(res_p_w) << ", ground truth " << LogVec(gt_p_w));
+    }
+}
+
 int main(int argc, char **argv) {
     ReportInfo(YELLOW ">> Test point triangulator." RESET_COLOR);
     LogFixPercision(3);
@@ -76,11 +88,14 @@ int main(int argc, char **argv) {
     TestTriangulatorOnce("optimize huber", PointTriangulator::Method::kOptimizeHuber, bearing_xyz, p_wc_vec, q_wc_vec, p_w);
     TestTriangulatorOnce("optimize cauchy", PointTriangulator::Method::kOptimizeCauchy, bearing_xyz, p_wc_vec, q_wc_vec, p_w);
 
+    TestIncrementalTriangulator(bearing_xyz, p_wc_vec, q_wc_vec, p_w);
+
     ReportColorInfo(">> Test computation of parallex angle.");
     PointTriangulator solver = {};
     for (uint32_t i = 1; i < q_wc_vec.size(); ++i) {
         const float parallex_angle_norm_xy = solver.GetSineOfParallexAngle(p_wc_vec[0], q_wc_vec[0], p_wc_vec[i], q_wc_vec[i], norm_xy[0], norm_xy[i]);
-        const float parallex_angle_bearing_xyz = solver.GetSineOfParallexAngle(p_wc_vec[0], q_wc_vec[0], p_wc_vec[i], q_wc_vec[i], bearing_xyz[0], bearing_xyz[i]);
+        const float parallex_angle_bearing_xyz =
+            solver.GetSineOfParallexAngle(p_wc_vec[0], q_wc_vec[0], p_wc_vec[i], q_wc_vec[i], bearing_xyz[0], bearing_xyz[i]);
         ReportInfo("Feature " << LogVec(p_w) << " has sine parallex angle [" << parallex_angle_norm_xy << " | " << parallex_angle_bearing_xyz
                               << "] between camera pose 0 and pose " << i << "");
     }
