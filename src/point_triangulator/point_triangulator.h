@@ -49,6 +49,7 @@ public:
     Options &options() { return options_; }
     // Const reference for member variables.
     const Options &options() const { return options_; }
+    const float &max_sine_parallex_angle() const { return max_sine_parallex_angle_; }
 
 private:
     bool TriangulateAnalytic(const std::vector<Vec3> &p_wc, const std::vector<Quat> &q_wc, const std::vector<Vec2> &norm_xy, Vec3 &p_w);
@@ -70,6 +71,8 @@ private:
     Options options_;
     Mat3 A_ = Mat3::Zero();
     Vec3 b_ = Vec3::Zero();
+    Vec3 first_bearing_xyz_w_ = Vec3::Zero();
+    float max_sine_parallex_angle_ = 0.0f;
 };
 
 }  // namespace vision_geometry

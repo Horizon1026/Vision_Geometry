@@ -26,6 +26,8 @@ bool PointTriangulator::IncrementalTriangulate(const Vec3 &p_wc, const Quat &q_w
 void PointTriangulator::Reset() {
     A_.setZero();
     b_.setZero();
+    first_bearing_xyz_w_.setZero();
+    max_sine_parallex_angle_ = 0.0f;
 }
 
 void PointTriangulator::UpdateIncrementalFunction(const Vec3 &p_wc, const Quat &q_wc, const Vec3 &bearing_xyz) {
@@ -51,6 +53,12 @@ void PointTriangulator::UpdateIncrementalFunction(const Vec3 &p_wc, const Quat &
     //   A <- A + A_i
     //   b <- b + b_i
     const Vec3 bearing_w = (q_wc * bearing_xyz).normalized();
+    if (first_bearing_xyz_w_.squaredNorm() == 0.0f) {
+        first_bearing_xyz_w_ = bearing_w;
+    } else {
+        const float sine_parallex_angle = first_bearing_xyz_w_.cross(bearing_w).norm();
+        max_sine_parallex_angle_ = std::max(max_sine_parallex_angle_, sine_parallex_angle);
+    }
     const Mat3 A_i = Mat3::Identity() - bearing_w * bearing_w.transpose();
     A_ += A_i;
     b_ += A_i * p_wc;
