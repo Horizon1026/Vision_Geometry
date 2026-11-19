@@ -102,7 +102,7 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
     residuals.reserve(tracked_ref_norm_xy.size());
 
     // Random engine for sampling.
-    std::mt19937 rng(std::random_device{}());
+    std::mt19937 rng(std::random_device {}());
     std::uniform_int_distribution<uint32_t> dist(0, tracked_ref_norm_xy.size() - 1);
 
     // Adaptive RANSAC.
@@ -150,8 +150,7 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
             const float inlier_ratio = static_cast<float>(best_score) / static_cast<float>(tracked_ref_norm_xy.size());
             const float outlier_ratio = 1.0f - inlier_ratio;
             if (outlier_ratio > kZeroFloat) {
-                const float required = std::log(1.0f - kDesiredConfidence) /
-                                       std::log(1.0f - std::pow(outlier_ratio, static_cast<float>(indice_size)));
+                const float required = std::log(1.0f - kDesiredConfidence) / std::log(1.0f - std::pow(outlier_ratio, static_cast<float>(indice_size)));
                 if (required < static_cast<float>(max_iter)) {
                     max_iter = std::min(options_.kMaxIteration, static_cast<uint32_t>(std::ceil(required)));
                 }
@@ -164,8 +163,7 @@ bool EpipolarSolver::EstimateEssentialRansac(const std::vector<Vec2> &ref_norm_x
 
     // If the 5-point model produced very few inliers, fall back to 8-point.
     constexpr float kMinAcceptableInlierRatio = 0.5f;
-    if (best_score < static_cast<uint32_t>(kMinAcceptableInlierRatio * tracked_ref_norm_xy.size()) &&
-        options_.kModel == EpipolarModel::kFivePoints) {
+    if (best_score < static_cast<uint32_t>(kMinAcceptableInlierRatio * tracked_ref_norm_xy.size()) && options_.kModel == EpipolarModel::kFivePoints) {
 
         // Re-run RANSAC with 8-point model.
         const auto original_model = options_.kModel;

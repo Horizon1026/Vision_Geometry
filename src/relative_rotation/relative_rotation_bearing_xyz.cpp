@@ -12,8 +12,8 @@ bool RelativeRotation::EstimateRotationByBnb(const std::vector<Vec3> &ref_bearin
     RETURN_FALSE_IF(options_.kDivisionsOfPitch < 2 || options_.kDivisionsOfRoll < 2 || options_.kDivisionsOfYaw < 2);
 
     for (uint32_t i = 0; i < ref_bearing_xyz.size(); ++i) {
-        RETURN_FALSE_IF(!ref_bearing_xyz[i].allFinite() || !cur_bearing_xyz[i].allFinite() ||
-                        ref_bearing_xyz[i].norm() <= kZeroFloat || cur_bearing_xyz[i].norm() <= kZeroFloat);
+        RETURN_FALSE_IF(!ref_bearing_xyz[i].allFinite() || !cur_bearing_xyz[i].allFinite() || ref_bearing_xyz[i].norm() <= kZeroFloat ||
+                        cur_bearing_xyz[i].norm() <= kZeroFloat);
     }
     RETURN_FALSE_IF(!q_cr.coeffs().allFinite() || q_cr.norm() <= kZeroFloat);
     q_cr.normalize();
@@ -26,8 +26,8 @@ bool RelativeRotation::EstimateRotation(const std::vector<Vec3> &ref_bearing_xyz
     RETURN_FALSE_IF(ref_bearing_xyz.empty());
     RETURN_FALSE_IF(ref_bearing_xyz.size() != cur_bearing_xyz.size());
     for (uint32_t i = 0; i < ref_bearing_xyz.size(); ++i) {
-        RETURN_FALSE_IF(!ref_bearing_xyz[i].allFinite() || !cur_bearing_xyz[i].allFinite() ||
-                        ref_bearing_xyz[i].norm() <= kZeroFloat || cur_bearing_xyz[i].norm() <= kZeroFloat);
+        RETURN_FALSE_IF(!ref_bearing_xyz[i].allFinite() || !cur_bearing_xyz[i].allFinite() || ref_bearing_xyz[i].norm() <= kZeroFloat ||
+                        cur_bearing_xyz[i].norm() <= kZeroFloat);
     }
     RETURN_FALSE_IF(!q_cr.coeffs().allFinite() || q_cr.norm() <= kZeroFloat);
     q_cr.normalize();
@@ -46,8 +46,8 @@ bool RelativeRotation::EstimatePose(const std::vector<Vec3> &ref_bearing_xyz, co
     RETURN_FALSE_IF(ref_bearing_xyz.empty());
     RETURN_FALSE_IF(ref_bearing_xyz.size() != cur_bearing_xyz.size());
     for (uint32_t i = 0; i < ref_bearing_xyz.size(); ++i) {
-        RETURN_FALSE_IF(!ref_bearing_xyz[i].allFinite() || !cur_bearing_xyz[i].allFinite() ||
-                        ref_bearing_xyz[i].norm() <= kZeroFloat || cur_bearing_xyz[i].norm() <= kZeroFloat);
+        RETURN_FALSE_IF(!ref_bearing_xyz[i].allFinite() || !cur_bearing_xyz[i].allFinite() || ref_bearing_xyz[i].norm() <= kZeroFloat ||
+                        cur_bearing_xyz[i].norm() <= kZeroFloat);
     }
     RETURN_FALSE_IF(!q_cr.coeffs().allFinite() || q_cr.norm() <= kZeroFloat);
     q_cr.normalize();
@@ -75,8 +75,8 @@ bool RelativeRotation::EstimatePose(const std::vector<Vec3> &ref_bearing_xyz, co
 void RelativeRotation::ComputeSummationTerms(const std::vector<Vec3> &ref_bearing_xyz, const std::vector<Vec3> &cur_bearing_xyz, SummationTerms &terms) {
     RETURN_IF(ref_bearing_xyz.size() != cur_bearing_xyz.size());
     for (uint32_t i = 0; i < ref_bearing_xyz.size(); ++i) {
-        RETURN_IF(!ref_bearing_xyz[i].allFinite() || !cur_bearing_xyz[i].allFinite() ||
-                  ref_bearing_xyz[i].norm() <= kZeroFloat || cur_bearing_xyz[i].norm() <= kZeroFloat);
+        RETURN_IF(!ref_bearing_xyz[i].allFinite() || !cur_bearing_xyz[i].allFinite() || ref_bearing_xyz[i].norm() <= kZeroFloat ||
+                  cur_bearing_xyz[i].norm() <= kZeroFloat);
         const Vec3 f_r = ref_bearing_xyz[i].normalized();
         const Vec3 f_c = cur_bearing_xyz[i].normalized();
         AccumulateSummationTerms(f_r, f_c, terms);

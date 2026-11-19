@@ -51,8 +51,8 @@ public:
     float ComputeAverageReprojectionError(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, const Vec3 &p_wc, const Quat &q_wc) const;
     bool EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic, const std::vector<Vec2> &norm_xy, Vec3 &p_wi,
                       Quat &q_wi, std::vector<uint8_t> &status);
-    bool EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic, const std::vector<Vec3> &bearing_xyz, Vec3 &p_wi,
-                      Quat &q_wi, std::vector<uint8_t> &status);
+    bool EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic, const std::vector<Vec3> &bearing_xyz,
+                      Vec3 &p_wi, Quat &q_wi, std::vector<uint8_t> &status);
     void CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic, const std::vector<Vec2> &norm_xy,
                         Vec3 &p_wi, Quat &q_wi, std::vector<uint8_t> &status);
     void CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic, const std::vector<Vec3> &bearing_xyz,
@@ -79,8 +79,8 @@ private:
     bool EstimatePoseRansac(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic, const std::vector<Vec2> &norm_xy,
                             Vec3 &p_wi, Quat &q_wi, std::vector<uint8_t> &status);
 
-    bool OptimizeBearings(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic,
-                          const std::vector<Vec3> &bearing_xyz, Vec3 &p_wi, Quat &q_wi);
+    bool OptimizeBearings(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic, const std::vector<Vec3> &bearing_xyz,
+                          Vec3 &p_wi, Quat &q_wi);
     bool EstimatePoseDlt(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, Vec3 &p_wc, Quat &q_wc);
 
     bool SolveDltConstraint(const Mat &A, Mat3x4 &P, bool check_rank);
