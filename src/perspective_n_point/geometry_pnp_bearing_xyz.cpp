@@ -22,8 +22,7 @@ bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec
     RETURN_FALSE_IF(!status.empty() && status.size() != p_w.size());
     if (options_.kMethod == Method::kDirectLinearTransform) {
         RETURN_FALSE_IF_FALSE(EstimatePoseDlt(p_w, bearing_xyz, p_wc, q_wc));
-        CheckPnpStatus(p_w, bearing_xyz, p_wc, q_wc, status);
-        return true;
+        return CheckPnpResult(p_w, bearing_xyz, p_wc, q_wc, status);
     }
     return EstimatePose(p_w, std::vector<Vec3>(p_w.size(), Vec3::Zero()), std::vector<Quat>(p_w.size(), Quat::Identity()), bearing_xyz, p_wc, q_wc, status);
 }
@@ -138,15 +137,19 @@ bool PnpSolver::EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec
     RETURN_FALSE_IF(best_score < 3);
     q_wi = best_q;
     p_wi = best_p;
+    // Check only selected pairs and preserve excluded states.
+    std::vector<uint8_t> checked_status(p_w.size(), static_cast<uint8_t>(Result::kLargeResidual));
+    for (const uint32_t i: selected) {
+        checked_status[i] = static_cast<uint8_t>(Result::kSolved);
+    }
+    const bool result = CheckPnpResult(p_w, p_ic, q_ic, bearing_xyz, p_wi, q_wi, checked_status);
     if (status.empty()) {
         status.assign(p_w.size(), static_cast<uint8_t>(Result::kUnsolved));
     }
     for (const uint32_t i: selected) {
-        const Vec3 p_c = q_ic[i].inverse() * (q_wi.inverse() * (p_w[i] - p_wi) - p_ic[i]);
-        const float error = BearingError(p_c, bearing_xyz[i]);
-        status[i] = static_cast<uint8_t>(error * error < options_.kMaxConvergeResidual ? Result::kSolved : Result::kLargeResidual);
+        status[i] = checked_status[i];
     }
-    return true;
+    return result;
 }
 
 bool PnpSolver::EstimatePoseDlt(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, Vec3 &p_wc, Quat &q_wc) {
@@ -176,22 +179,56 @@ bool PnpSolver::EstimatePoseDlt(const std::vector<Vec3> &p_w, const std::vector<
     return q_wc.coeffs().allFinite() && p_wc.allFinite();
 }
 
-void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, Vec3 &p_wc, Quat &q_wc, std::vector<uint8_t> &status) {
-    CheckPnpStatus(p_w, std::vector<Vec3>(p_w.size(), Vec3::Zero()), std::vector<Quat>(p_w.size(), Quat::Identity()), bearing_xyz, p_wc, q_wc, status);
+bool PnpSolver::CheckPnpResult(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, const Vec3 &p_wc, const Quat &q_wc,
+                               std::vector<uint8_t> &status) {
+    return CheckPnpResult(p_w, std::vector<Vec3>(p_w.size(), Vec3::Zero()), std::vector<Quat>(p_w.size(), Quat::Identity()), bearing_xyz, p_wc, q_wc, status);
 }
 
-void PnpSolver::CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic, const std::vector<Vec3> &bearing_xyz,
-                               Vec3 &p_wi, Quat &q_wi, std::vector<uint8_t> &status) {
-    RETURN_IF(p_w.empty() || p_w.size() != bearing_xyz.size() || q_ic.size() != p_w.size() || p_ic.size() != p_w.size());
+bool PnpSolver::CheckPnpResult(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic, const std::vector<Vec3> &bearing_xyz,
+                               const Vec3 &p_wi, const Quat &q_wi, std::vector<uint8_t> &status) {
+    // Validate measurements and pose.
+    RETURN_FALSE_IF(p_w.empty() || p_w.size() != bearing_xyz.size() || q_ic.size() != p_w.size() || p_ic.size() != p_w.size());
+    RETURN_FALSE_IF(!p_wi.allFinite() || !q_wi.coeffs().allFinite() || std::fabs(q_wi.norm() - 1.0f) > 1e-3f);
+
+    // Initialize observation states.
     if (status.size() != p_w.size()) {
         status.assign(p_w.size(), static_cast<uint8_t>(Result::kUnsolved));
     }
+
+    // Accumulate the Hessian from inliers.
+    Mat6 H = Mat6::Zero();
     for (uint32_t i = 0; i < p_w.size(); ++i) {
         CONTINUE_IF(status[i] != static_cast<uint8_t>(Result::kUnsolved) && status[i] != static_cast<uint8_t>(Result::kSolved));
-        const Vec3 p_c = q_ic[i].inverse() * (q_wi.inverse() * (p_w[i] - p_wi) - p_ic[i]);
+        RETURN_FALSE_IF(!p_ic[i].allFinite() || !q_ic[i].coeffs().allFinite() || std::fabs(q_ic[i].norm() - 1.0f) > 1e-3f);
+
+        // Classify observations by bearing error.
+        const Vec3 p_i = q_wi.inverse() * (p_w[i] - p_wi);
+        const Vec3 p_c = q_ic[i].inverse() * (p_i - p_ic[i]);
         const float error = BearingError(p_c, bearing_xyz[i]);
         status[i] = static_cast<uint8_t>(error * error < options_.kMaxConvergeResidual ? Result::kSolved : Result::kLargeResidual);
+        CONTINUE_IF(status[i] != static_cast<uint8_t>(Result::kSolved));
+
+        // Form the bearing Jacobian.
+        const float range = p_c.norm();
+        RETURN_FALSE_IF(range <= options_.kMinValidDepth);
+        const Vec3 predicted = p_c / range;
+        const Mat3 projection = (Mat3::Identity() - predicted * predicted.transpose()) / range;
+        Eigen::Matrix<float, 3, 6> jacobian;
+        jacobian.leftCols<3>() = -projection * (q_wi * q_ic[i]).inverse().matrix();
+        jacobian.rightCols<3>() = projection * q_ic[i].inverse().matrix() * Utility::SkewSymmetricMatrix(p_i);
+        H += jacobian.transpose() * jacobian;
     }
+
+    // Normalize the Jacobian column scales.
+    RETURN_FALSE_IF(!H.allFinite() || H.diagonal().minCoeff() <= 0.0f);
+    const Vec6 inverse_scale = H.diagonal().cwiseSqrt().cwiseInverse();
+    const Mat6 normalized_H = inverse_scale.asDiagonal() * H * inverse_scale.asDiagonal();
+
+    // Reject weakly constrained geometry.
+    const Eigen::SelfAdjointEigenSolver<Mat6> eigen_solver(normalized_H, Eigen::EigenvaluesOnly);
+    RETURN_FALSE_IF(eigen_solver.info() != Eigen::Success || !eigen_solver.eigenvalues().allFinite());
+    RETURN_FALSE_IF(eigen_solver.eigenvalues().minCoeff() <= options_.kMinNormalizedEigenvalueRatio * eigen_solver.eigenvalues().maxCoeff());
+    return true;
 }
 
 float PnpSolver::ComputeAverageReprojectionError(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, const Vec3 &p_wc, const Quat &q_wc) const {

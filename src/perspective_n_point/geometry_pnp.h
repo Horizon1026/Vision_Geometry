@@ -31,6 +31,7 @@ public:
         float kMinRansacInlierRatio = 0.9f;
         float kMaxPnpResidual = 1e-3f;
         float kMinValidDepth = 1e-3f;
+        float kMinNormalizedEigenvalueRatio = 1e-3f;
         float kDefaultHuberKernelParameter = 1.0f;
         float kDefaultCauchyKernelParameter = 1.0f;
         Method kMethod = Method::kOptimizeRansac;
@@ -46,7 +47,7 @@ public:
     bool EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Vec3 &p_wc, Quat &q_wc, std::vector<uint8_t> &status);
     bool EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, Vec3 &p_wc, Quat &q_wc, std::vector<uint8_t> &status);
     void CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, Vec3 &p_wc, Quat &q_wc, std::vector<uint8_t> &status);
-    void CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, Vec3 &p_wc, Quat &q_wc, std::vector<uint8_t> &status);
+    bool CheckPnpResult(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, const Vec3 &p_wc, const Quat &q_wc, std::vector<uint8_t> &status);
     float ComputeAverageReprojectionError(const std::vector<Vec3> &p_w, const std::vector<Vec2> &norm_xy, const Vec3 &p_wc, const Quat &q_wc) const;
     float ComputeAverageReprojectionError(const std::vector<Vec3> &p_w, const std::vector<Vec3> &bearing_xyz, const Vec3 &p_wc, const Quat &q_wc) const;
     bool EstimatePose(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic, const std::vector<Vec2> &norm_xy, Vec3 &p_wi,
@@ -55,8 +56,8 @@ public:
                       Vec3 &p_wi, Quat &q_wi, std::vector<uint8_t> &status);
     void CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic, const std::vector<Vec2> &norm_xy,
                         Vec3 &p_wi, Quat &q_wi, std::vector<uint8_t> &status);
-    void CheckPnpStatus(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic, const std::vector<Vec3> &bearing_xyz,
-                        Vec3 &p_wi, Quat &q_wi, std::vector<uint8_t> &status);
+    bool CheckPnpResult(const std::vector<Vec3> &p_w, const std::vector<Vec3> &p_ic, const std::vector<Quat> &q_ic, const std::vector<Vec3> &bearing_xyz,
+                        const Vec3 &p_wi, const Quat &q_wi, std::vector<uint8_t> &status);
 
     // Reference for member variables.
     Options &options() { return options_; }
