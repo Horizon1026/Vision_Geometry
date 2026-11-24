@@ -14,18 +14,23 @@ bool PointTriangulator::Triangulate(const std::vector<Vec3> &p_wc, const std::ve
         UpdateIncrementalFunction(p_wc[i], q_wc[i], bearing_xyz[i]);
     }
 
+    Vec3 result = Vec3::Zero();
     switch (options_.kMethod) {
         default:
         case Method::kAnalytic: {
-            return TriangulateAnalytic(p_wc, q_wc, bearing_xyz, p_w);
+            RETURN_FALSE_IF_FALSE(TriangulateAnalytic(p_wc, q_wc, bearing_xyz, result));
+            break;
         }
         case Method::kOptimize:
         case Method::kOptimizeHuber:
         case Method::kOptimizeCauchy: {
-            return TriangulateIterative(p_wc, q_wc, bearing_xyz, p_w);
+            result = p_w;
+            RETURN_FALSE_IF_FALSE(TriangulateIterative(p_wc, q_wc, bearing_xyz, result));
+            break;
         }
     }
-    return false;
+    p_w = result;
+    return true;
 }
 
 bool PointTriangulator::TriangulateAnalytic(const std::vector<Vec3> &p_wc, const std::vector<Quat> &q_wc, const std::vector<Vec3> &bearing_xyz, Vec3 &p_w) {
